@@ -8,6 +8,9 @@ import lombok.Setter;
 @Setter
 @Builder
 public class LoginResponse {
-    String token;
-    boolean isAuthenticated;
+    private String accessToken;
+    private String refreshToken;
+    private String tokenType = "Bearer";
+    private Long expiresIn;
+    private UserInfo user;
 }

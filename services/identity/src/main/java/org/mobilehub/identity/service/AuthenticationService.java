@@ -9,6 +9,7 @@ import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
 import org.mobilehub.identity.dto.request.LoginRequest;
+import org.mobilehub.identity.dto.request.LogoutRequest;
 import org.mobilehub.identity.dto.response.LoginResponse;
 import org.mobilehub.identity.entity.User;
 import org.mobilehub.identity.exception.UserException;
@@ -42,9 +43,12 @@ public class AuthenticationService {
         }
 
         return LoginResponse.builder()
-                .token(generateToken(user))
-                .isAuthenticated(true)
+                .accessToken(generateToken(user))
                 .build();
+    }
+
+    public boolean logout(LogoutRequest logoutRequest) {
+        return false;
     }
 
     @NonFinal
