@@ -1,0 +1,207 @@
+.home-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.home-platform-selector {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.home-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.home-metric-card {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+}
+
+.home-metric-title {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 16px;
+}
+
+.home-metric-value {
+    font-size: 32px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.home-metric-change {
+    font-size: 13px;
+    color: #65676b;
+}
+
+.home-chart-placeholder {
+    width: 100%;
+    height: 60px;
+    background: linear-gradient(to right, #e7f3ff 0%, #1877f2 50%, #e7f3ff 100%);
+    border-radius: 4px;
+    margin-top: 16px;
+}
+
+.home-metric-details {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #e4e6eb;
+}
+
+.home-detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.home-detail-label {
+    color: #65676b;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.home-content-section {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 24px;
+}
+
+.home-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.home-section-title {
+    font-size: 17px;
+    font-weight: 600;
+}
+
+.home-see-all-btn {
+    padding: 8px 16px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.home-see-all-btn:hover {
+    background: #f2f3f5;
+}
+
+.home-empty-state {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.home-empty-icon {
+    font-size: 48px;
+    color: #bcc0c4;
+    margin-bottom: 16px;
+}
+
+.home-empty-title {
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.home-empty-description {
+    font-size: 14px;
+    color: #65676b;
+}
+
+.home-recommendations {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+}
+
+.home-recommendation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.home-rec-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+}
+
+.home-rec-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.home-rec-image {
+    width: 100%;
+    height: 160px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+}
+
+.home-rec-content {
+    padding: 16px;
+}
+
+.home-rec-title {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.home-rec-description {
+    font-size: 13px;
+    color: #65676b;
+    line-height: 1.4;
+}
+
+.home-info-icon {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 1px solid #65676b;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 12px;
+    font-size: 10px;
+    color: #65676b;
+    cursor: help;
+}
+
+.home-account-selector {
+    padding: 8px 16px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: #fff;
+    cursor: pointer;
+    font-size: 14px;
+}
