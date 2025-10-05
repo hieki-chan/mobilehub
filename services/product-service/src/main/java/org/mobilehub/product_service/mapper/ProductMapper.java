@@ -10,7 +10,7 @@ import org.mobilehub.product_service.entity.Product;
 @Mapper(componentModel = "spring")
 public interface ProductMapper {
     Product toProduct(CreateProductRequest request);
-    ProductResponse toCreateProductResponse(Product product);
+    ProductResponse toProductResponse(Product product);
 
     Product updateProduct(@MappingTarget Product product, UpdateProductRequest updateRequest);
 }

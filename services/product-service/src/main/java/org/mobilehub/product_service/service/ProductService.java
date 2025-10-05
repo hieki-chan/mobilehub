@@ -15,9 +15,7 @@ import org.mobilehub.product_service.repository.ProductRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -50,7 +48,7 @@ public class ProductService {
         }
         Product savedProduct = productRepository.save(product);
 
-        return productMapper.toCreateProductResponse(savedProduct);
+        return productMapper.toProductResponse(savedProduct);
     }
 
     public ProductResponse updateProduct(Long id, UpdateProductRequest updateRequest) {
@@ -59,7 +57,14 @@ public class ProductService {
 
         productMapper.updateProduct(product, updateRequest);
         Product updatedProduct = productRepository.save(product);
-        return productMapper.toCreateProductResponse(updatedProduct);
+        return productMapper.toProductResponse(updatedProduct);
+    }
+
+    public ProductResponse getProduct(Long id)
+    {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
+        return productMapper.toProductResponse(product);
     }
 
     public void deleteProduct(Long id) {

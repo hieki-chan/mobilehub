@@ -29,6 +29,14 @@ public class Product {
     @Convert(converter = ProductStatusConverter.class)
     ProductStatus status =  ProductStatus.ACTIVE;
 
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "product_spec_id", referencedColumnName = "id", unique = true)
+    ProductSpec spec;
+
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ProductImage> images = new ArrayList<>();
+    List<ProductImage> images = new ArrayList<>();
+
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "product_discount_id", referencedColumnName = "id", unique = true)
+    ProductDiscount discount;
 }

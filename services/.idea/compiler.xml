@@ -31,6 +31,9 @@
         <module name="cloud-media-service" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="identity" target="21" />
+    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
