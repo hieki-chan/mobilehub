@@ -1,1 +1,62 @@
+####################################
+# Maven / Gradle
+####################################
+target/
+build/
+out/
+!.mvn/wrapper/maven-wrapper.jar
+
+####################################
+# IntelliJ IDEA
+####################################
 .idea/
+*.iml
+*.ipr
+*.iws
+
+# Sonar / Plugin Files
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/usage.statistics.xml
+.idea/**/dictionaries
+.idea/**/shelf
+
+####################################
+# OS Specific Files
+####################################
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+desktop.ini
+
+####################################
+# Logs
+####################################
+logs/
+*.log
+
+####################################
+# Environment & Secrets
+####################################
+*.env
+.env.*
+application-*.yml
+application-*.yaml
+application-*.properties
+
+####################################
+# Java
+####################################
+*.class
+*.jar
+*.war
+*.ear
+
+####################################
+# Backup Files
+####################################
+*.swp
+*.swo
+*.tmp
