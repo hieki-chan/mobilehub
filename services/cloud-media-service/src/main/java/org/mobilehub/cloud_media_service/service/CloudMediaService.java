@@ -4,6 +4,7 @@ import com.cloudinary.Cloudinary;
 import com.cloudinary.Transformation;
 import com.cloudinary.utils.ObjectUtils;
 import org.mobilehub.cloud_media_service.dto.response.DeleteImageResponse;
+import org.mobilehub.cloud_media_service.dto.response.ImageResponse;
 import org.mobilehub.cloud_media_service.dto.response.ImageVersions;
 import org.mobilehub.cloud_media_service.dto.response.UploadResponse;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +16,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +48,23 @@ public class CloudMediaService {
                 uploadResult.get("format").toString(),
                 generateImageVersions(publicId)
         );
+    }
+
+    public ImageResponse getImageInfo(String publicId) throws Exception {
+        var resource = cloudinary.api().resource(publicId, ObjectUtils.emptyMap());
+
+        return ImageResponse.builder()
+                .publicId(publicId)
+                .url(cloudinary.url().generate(publicId))
+                .secureUrl(cloudinary.url().secure(true).generate(publicId))
+                .thumbnailUrl(cloudinary.url()
+                        .transformation(new Transformation().width(200).height(200).crop("thumb"))
+                        .generate(publicId))
+                .width((Integer) resource.get("width"))
+                .height((Integer) resource.get("height"))
+                .format((String) resource.get("format"))
+                .size(((Number) resource.get("bytes")).longValue())
+                .build();
     }
 
     public byte[] downloadImage(String publicId) throws IOException {

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.List;
 
 import org.mobilehub.cloud_media_service.dto.response.DeleteImageResponse;
+import org.mobilehub.cloud_media_service.dto.response.ImageResponse;
 import org.mobilehub.cloud_media_service.dto.response.UploadResponse;
 import org.mobilehub.cloud_media_service.service.CloudMediaService;
 import org.springframework.http.HttpHeaders;
@@ -39,6 +40,16 @@ public class CloudMediaController {
         return ResponseEntity.ok(responses);
     }
 
+    @GetMapping("/images/{publicId}")
+    public ResponseEntity<ImageResponse> getImageInfo(@PathVariable String publicId) {
+        try {
+            ImageResponse imageResponse = mediaService.getImageInfo(publicId);
+            return ResponseEntity.ok(imageResponse);
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
     @GetMapping("/download/{publicId}")
     public ResponseEntity<byte[]> downloadImage(@PathVariable String publicId) {
         try {
@@ -56,7 +67,7 @@ public class CloudMediaController {
         }
     }
 
-    @DeleteMapping("/{publicId}")
+    @DeleteMapping("delete/{publicId}")
     public ResponseEntity<DeleteImageResponse> deleteImage(@PathVariable String publicId) {
         //System.out.println("delete" + publicId);
         String decodedPublicId = publicId.replace("_", "/");
@@ -71,7 +82,6 @@ public class CloudMediaController {
         }
         return ResponseEntity.badRequest().body(response);
     }
-
 
     @DeleteMapping("/batch")
     public ResponseEntity<Void> deleteMultipleImages(@RequestBody List<String> publicIds) throws Exception {
