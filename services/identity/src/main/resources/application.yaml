@@ -5,9 +5,9 @@ server:
 
 spring:
   datasource:
-    url: ${DBMS_CONNECTION:jdbc:mysql://localhost:3306/mobilehub}
-    username: ${DBMS_USERNAME:root}
-    password: ${DBMS_PASSWORD:Hiudz123@}
+    url: jdbc:mysql://localhost:3306/identity
+    username: root
+    password: root1234!
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
