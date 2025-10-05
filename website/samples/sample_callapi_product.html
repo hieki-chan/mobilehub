@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Create Product</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      width: 300px;
+    }
+
+    input, textarea, button {
+      width: 100%;
+      padding: 8px;
+      margin-top: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    button {
+      background-color: #4CAF50;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    .result {
+      margin-top: 15px;
+      font-size: 14px;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h3>Create Product</h3>
+    <input type="text" id="name" placeholder="Product Name" />
+    <textarea id="description" placeholder="Product Description"></textarea>
+    <button onclick="createProduct()">Create</button>
+    <div class="result" id="result"></div>
+  </div>
+
+  <script>
+    async function createProduct() {
+      const name = document.getElementById("name").value;
+      const description = document.getElementById("description").value;
+
+      const product = { name, description };
+
+      try {
+        const response = await fetch("http://localhost:8081/api/products", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(product)
+        });
+
+        if (!response.ok) throw new Error("Failed to create product");
+
+        const data = await response.json();
+        document.getElementById("result").innerText = "✅ Created: " + JSON.stringify(data);
+      } catch (error) {
+        document.getElementById("result").innerText = "❌ Error: " + error.message;
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+body {
+  background: #f7fafc;
+}
+.card {
+  border-radius: 12px;
+}
+.avatar-preview {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.form-section + .form-section {
+  margin-top: 1.25rem;
+}
+.muted {
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+
+.card-footer {
+  background-color: transparent !important;
+  border-top: none; /* xóa luôn cái đường kẻ trên nếu muốn */
+}

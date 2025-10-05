@@ -1,0 +1,84 @@
+body {
+  background-color: #fafafa;
+}
+.phone-frame {
+  background: url("./frame.png") no-repeat center center;
+  background-size: contain;
+  width: 550px;
+  height: 180px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+}
+.phone-frame img {
+  width: 550px;
+  height: 480px;
+  object-fit: cover;
+  border-radius: 20px;
+}
+.login-box {
+  width: 350px;
+  padding: 40px;
+  margin: 20px auto;
+  background: #fff;
+  border: 1px solid #dbdbdb;
+  border-radius: 8px;
+}
+.login-box h1 {
+  font-family: "Billabong", cursive;
+  font-size: 48px;
+  text-align: center;
+  margin-bottom: 30px;
+}
+.btn-login {
+  background-color: #0095f6;
+  color: #fff;
+  font-weight: 600;
+}
+.or-line {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 20px 0;
+}
+.or-line::before,
+.or-line::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px solid #dbdbdb;
+}
+.or-line:not(:empty)::before {
+  margin-right: 0.75em;
+}
+.or-line:not(:empty)::after {
+  margin-left: 0.75em;
+}
+.register-box {
+  width: 350px;
+  padding: 20px;
+  margin: 20px auto;
+  background: #fff;
+  border: 1px solid #dbdbdb;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.container-fluid .row {
+  gap: 30px; /* chỉnh nhỏ hoặc to để canh vừa ý */
+}
+
+/* footer */
+.footer {
+  font-size: 14px;
+  color: #8e8e8e;
+}
+.footer select {
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  color: #8e8e8e;
+  outline: none;
+  cursor: pointer;
+}

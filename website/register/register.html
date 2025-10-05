@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Instagram Sign Up</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="./ascet/bootrap/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- link css  -->
+    <link rel="stylesheet" href="Register.css" />
+    <style></style>
+    <!-- Font cho chữ Instagram -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div
+      class="container d-flex align-items-center justify-content-center min-vh-100"
+    >
+      <div class="card shadow-sm border">
+        <div class="logo">Vphone</div>
+        <p class="text-center text-muted">
+          Đăng ký để có thể mua sắm thỏa thích.
+        </p>
+
+        <button class="btn btn-primary w-100 mb-3">
+          <i class="bi bi-facebook me-2"></i> Đăng nhập bằng Gmail
+        </button>
+
+        <div class="divider"><span>HOẶC</span></div>
+
+        <form id="signupForm" novalidate>
+          <div class="mb-3">
+            <input
+              type="text"
+              class="form-control"
+              id="email"
+              placeholder="Số điện thoại di động"
+              required
+            />
+            <div class="invalid-feedback">
+              Vui lòng nhập email hoặc số điện thoại hợp lệ.
+            </div>
+          </div>
+          <div class="mb-3">
+            <input
+              type="password"
+              class="form-control"
+              id="password"
+              placeholder="Mật khẩu"
+              required
+              minlength="6"
+            />
+            <div class="invalid-feedback">
+              Mật khẩu phải từ 6 ký tự trở lên.
+            </div>
+          </div>
+          <div class="mb-3">
+            <input
+              type="text"
+              class="form-control"
+              id="fullname"
+              placeholder="Tên đầy đủ"
+              required
+            />
+            <div class="invalid-feedback">Vui lòng nhập tên đầy đủ.</div>
+          </div>
+          <div class="mb-3">
+            <input
+              type="text"
+              class="form-control"
+              id="username"
+              placeholder="Tên người dùng"
+              required
+              pattern="^[a-zA-Z0-9._]{3,30}$"
+            />
+            <div class="invalid-feedback">
+              Tên người dùng từ 3–30 ký tự, chỉ gồm chữ, số, dấu chấm hoặc gạch
+              dưới.
+            </div>
+          </div>
+
+          <p class="text-muted small">
+            Những người dùng dịch vụ của chúng tôi có thể đã tải thông tin liên
+            hệ của bạn lên Vphone.
+            <a href="#">Tìm hiểu thêm</a>.
+          </p>
+          <p class="text-muted small">
+            Bằng cách đăng ký, bạn đồng ý với
+            <a href="#">Điều khoản</a>,
+            <a href="#">Chính sách quyền riêng tư</a> và
+            <a href="#">Chính sách cookie</a>.
+          </p>
+
+          <button type="submit" class="btn btn-success w-100">Đăng ký</button>
+        </form>
+
+        <div class="text-center mt-3">
+          <span>Bạn có tài khoản? </span><a href="login.html">Đăng nhập</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap JS + Popper -->
+    <script src="./ascet/bootrap/js/bootstrap.bundle.min.js"></script>
+    <!-- Validation JS -->
+    <script src="register.js"></script>
+  </body>
+</html>

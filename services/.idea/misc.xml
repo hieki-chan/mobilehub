@@ -6,6 +6,9 @@
       <list>
         <option value="$PROJECT_DIR$/identity-service/pom.xml" />
         <option value="$PROJECT_DIR$/identity/pom.xml" />
+        <option value="$PROJECT_DIR$/product-service/product-service/pom.xml" />
+        <option value="$PROJECT_DIR$/product-service/pom.xml" />
+        <option value="$PROJECT_DIR$/cloud-media-service/pom.xml" />
       </list>
     </option>
   </component>
