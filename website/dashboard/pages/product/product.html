@@ -1,0 +1,58 @@
+<link rel="stylesheet" href="pages/product/product.css">
+
+<div class="product-container">
+    <div class="product-header">
+        <h1>Products</h1>
+        <div class="product-header-buttons">
+            <button class="product-btn">
+                <span>📥</span> Import
+            </button>
+            <button class="product-btn">
+                <span>📤</span> Export
+            </button>
+            <button class="product-btn product-btn-primary">
+                Create Product
+            </button>
+        </div>
+    </div>
+
+    <div class="product-filters">
+        <div class="product-search-box">
+            <input type="text" placeholder="Search for Product" id="product-searchInput">
+            <span class="product-search-icon">🔍</span>
+        </div>
+        <div class="product-select-box">
+            <select id="product-categoryFilter">
+                <option>All Categories</option>
+                <option>Lubricants</option>
+                <option>Fluids</option>
+            </select>
+        </div>
+        <div class="product-select-box">
+            <select id="product-productFilter">
+                <option>All Products</option>
+                <option>Available</option>
+                <option>Disabled</option>
+            </select>
+        </div>
+        <button class="product-btn">🔍</button>
+        <span class="product-clear-filters">Clear Filters</span>
+    </div>
+
+    <div class="product-table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th><input type="checkbox" id="product-selectAll"></th>
+                    <th>Name</th>
+                    <th>Status</th>
+                    <th>Stock</th>
+                    <th>Price</th>
+                </tr>
+            </thead>
+            <tbody id="product-productTable"></tbody>
+                <!-- Products will be inserted here -->
+            </tbody>
+        </table>
+    </div>
+</div>

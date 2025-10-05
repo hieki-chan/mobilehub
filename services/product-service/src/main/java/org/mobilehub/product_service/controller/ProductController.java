@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.mobilehub.product_service.dto.request.CreateProductRequest;
 import org.mobilehub.product_service.dto.request.UpdateProductRequest;
 import org.mobilehub.product_service.dto.response.ProductResponse;
+import org.mobilehub.product_service.entity.Product;
 import org.mobilehub.product_service.service.ProductService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -38,20 +39,32 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/update/{productId}")
     public ResponseEntity<ProductResponse> updateProduct(
-            @PathVariable Long id,
+            @PathVariable Long productId,
             @RequestBody UpdateProductRequest updateRequest
     ) {
-        ProductResponse updated = productService.updateProduct(id, updateRequest);
+        ProductResponse updated = productService.updateProduct(productId, updateRequest);
         return ResponseEntity.ok(updated);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, String>> deleteProduct(@PathVariable Long id) {
-        productService.deleteProduct(id);
+    @DeleteMapping("/delete/{productId}")
+    public ResponseEntity<Map<String, String>> deleteProduct(@PathVariable Long productId) {
+        productService.deleteProduct(productId);
         Map<String, String> response = new HashMap<>();
         response.put("message", "Product deleted successfully");
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/get/{productId}")
+    public ResponseEntity<ProductResponse> getProduct(@RequestParam Long productId)
+    {
+        return ResponseEntity.ok(productService.getProduct(productId));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<ProductResponse>> getDiscountProduct()
+    {
+        return ResponseEntity.ok(null);
     }
 }

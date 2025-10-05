@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facebook Insights Style Background</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            padding: 16px 24px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #050505;
+        }
+
+        .header p {
+            font-size: 13px;
+            color: #65676b;
+            margin-top: 4px;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            gap: 0;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: white;
+            min-height: calc(100vh - 70px);
+            padding: 8px 0;
+            position: sticky;
+            top: 70px;
+            height: fit-content;
+        }
+
+        .nav-item {
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #050505;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            text-decoration: none;
+        }
+
+        .nav-item:hover {
+            background: #f2f3f5;
+        }
+
+        .nav-item.active {
+            background: #e7f3ff;
+            color: #1877f2;
+            border-left: 3px solid #1877f2;
+        }
+
+        .nav-section {
+            padding: 16px 16px 8px 16px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #65676b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 20px;
+        }
+
+        /* Card */
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .card-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: #050505;
+        }
+
+        /* Alert Banner */
+        .alert-banner {
+            background: #e7f3ff;
+            border: 1px solid #d0e7ff;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: start;
+            gap: 12px;
+        }
+
+        .alert-icon {
+            width: 20px;
+            height: 20px;
+            background: #1877f2;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+
+        .alert-content {
+            flex: 1;
+        }
+
+        .alert-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #050505;
+            margin-bottom: 4px;
+        }
+
+        .alert-link {
+            color: #1877f2;
+            font-size: 14px;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .alert-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: #65676b;
+            cursor: pointer;
+            padding: 0;
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Progress Section */
+        .progress-section {
+            margin-bottom: 20px;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .progress-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #050505;
+        }
+
+        .progress-badge {
+            background: #f0f2f5;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #65676b;
+        }
+
+        .progress-subtitle {
+            font-size: 13px;
+            color: #65676b;
+            margin-bottom: 16px;
+        }
+
+        .progress-bar-container {
+            position: relative;
+            margin-bottom: 8px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e4e6eb;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00a400 0%, #00d100 100%);
+            border-radius: 4px;
+            width: 33%;
+            transition: width 0.3s;
+        }
+
+        .progress-marker {
+            position: absolute;
+            right: 0;
+            top: -2px;
+            width: 2px;
+            height: 12px;
+            background: #050505;
+        }
+
+        .progress-text {
+            font-size: 13px;
+            color: #65676b;
+            margin-bottom: 16px;
+        }
+
+        /* Task Cards */
+        .task-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .task-card {
+            background: white;
+            border: 1px solid #e4e6eb;
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .task-card:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .task-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .task-icon.green { background: #d8f3dc; }
+        .task-icon.yellow { background: #fff3cd; }
+        .task-icon.blue { background: #cfe2ff; }
+
+        .task-info {
+            flex: 1;
+        }
+
+        .task-title {
+            font-size: 14px;
+            color: #050505;
+            margin-bottom: 4px;
+        }
+
+        .task-progress {
+            font-size: 13px;
+            color: #65676b;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border: 1px solid #e4e6eb;
+            border-radius: 8px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .stat-card:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 12px;
+        }
+
+        .stat-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #050505;
+        }
+
+        .stat-number {
+            font-size: 28px;
+            font-weight: 700;
+            color: #050505;
+            margin-bottom: 8px;
+        }
+
+        .stat-change {
+            font-size: 13px;
+            color: #00a400;
+            font-weight: 500;
+        }
+
+        .stat-chart {
+            height: 40px;
+            margin-top: 12px;
+            background: linear-gradient(to right, transparent, #e7f3ff, transparent);
+            border-radius: 4px;
+        }
+
+        /* Button */
+        .btn {
+            background: white;
+            border: 1px solid #ccd0d5;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #050505;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background: #f2f3f5;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-content">
+            <div>
+                <h1>Insights</h1>
+                <p>Review performance results and more.</p>
+            </div>
+            <button class="btn">🔵 Facebook</button>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <a href="#" class="nav-item active">
+                ⭐ Overview
+            </a>
+            <a href="#" class="nav-item">
+                📋 Plan
+            </a>
+            <a href="#" class="nav-item">
+                📈 Results
+            </a>
+            <a href="#" class="nav-item">
+                👥 Audience
+            </a>
+            <a href="#" class="nav-item">
+                💬 Messaging
+            </a>
+            <a href="#" class="nav-item">
+                📊 Benchmarking
+            </a>
+
+            <div class="nav-section">Content</div>
+            <a href="#" class="nav-item">
+                📄 Overview
+            </a>
+            <a href="#" class="nav-item">
+                📦 Content
+            </a>
+            <a href="#" class="nav-item">
+                🎯 Ads
+            </a>
+
+            <div class="nav-section">Earnings</div>
+            <a href="#" class="nav-item">
+                💰 Earnings
+            </a>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Alert Banner -->
+            <div class="alert-banner">
+                <div class="alert-icon">ℹ️</div>
+                <div class="alert-content">
+                    <div class="alert-title">Turn on Facebook story insights</div>
+                    <a href="#" class="alert-link">See more</a>
+                </div>
+                <button class="alert-close">×</button>
+            </div>
+
+            <!-- Weekly Plan Card -->
+            <div class="card">
+                <div class="progress-section">
+                    <div class="progress-header">
+                        <div>
+                            <span class="progress-title">Weekly plan</span>
+                            <span class="progress-badge">⏰ 13 hours left</span>
+                        </div>
+                        <button class="btn">📋 See full plan</button>
+                    </div>
+                    <p class="progress-subtitle">Set your business up for success by completing recommended tasks.</p>
+                    
+                    <h3 style="font-size: 15px; font-weight: 600; margin-bottom: 12px;">
+                        Complete at least 4 tasks to finish this plan.
+                    </h3>
+                    
+                    <div class="progress-bar-container">
+                        <div class="progress-bar">
+                            <div class="progress-fill"></div>
+                        </div>
+                        <div class="progress-marker"></div>
+                    </div>
+                    
+                    <p class="progress-text">2 of 6 tasks completed <span style="float: right; color: #050505;">Weekly goal</span></p>
+                </div>
+
+                <!-- Task Cards -->
+                <div class="task-grid">
+                    <div class="task-card">
+                        <div class="task-icon green">📝</div>
+                        <div class="task-info">
+                            <div class="task-title">Publish one ad</div>
+                            <div class="task-progress">0 / 1</div>
+                        </div>
+                    </div>
+                    <div class="task-card">
+                        <div class="task-icon yellow">📱</div>
+                        <div class="task-info">
+                            <div class="task-title">Publish one post on Facebook</div>
+                            <div class="task-progress">0 / 1</div>
+                        </div>
+                    </div>
+                    <div class="task-card">
+                        <div class="task-icon blue">📖</div>
+                        <div class="task-info">
+                            <div class="task-title">Publish one story on Facebook</div>
+                            <div class="task-progress">0 / 1</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Card -->
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-title">🔵 Performance</h2>
+                        <p style="font-size: 13px; color: #65676b;">September 6, 2025 - October 3, 2025</p>
+                    </div>
+                    <button class="btn">Customize view: Business ▼</button>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-title">Views</div>
+                                <div style="font-size: 12px; color: #65676b;">Views ⓘ</div>
+                            </div>
+                            <span style="font-size: 18px;">→</span>
+                        </div>
+                        <div class="stat-number">3</div>
+                        <div class="stat-change">↑ 100%</div>
+                        <div style="font-size: 13px; color: #65676b; margin-top: 8px;">
+                            <div>From followers ⓘ <strong>33.3%</strong> <span style="color: #00a400;">↑ 100%</span></div>
+                            <div>From non-followers ⓘ <strong>66.7%</strong> <span style="color: #00a400;">↑ 100%</span></div>
+                        </div>
+                        <div class="stat-chart"></div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-title">Reach</div>
+                                <div style="font-size: 12px; color: #65676b;">Facebook reach ⓘ</div>
+                            </div>
+                            <span style="font-size: 18px;">→</span>
+                        </div>
+                        <div class="stat-number">2</div>
+                        <div class="stat-change">↑ 100%</div>
+                        <div style="font-size: 13px; color: #65676b; margin-top: 8px;">
+                            <div>From followers ⓘ <strong>1</strong> --</div>
+                            <div>From non-followers ⓘ <strong>1</strong> --</div>
+                        </div>
+                        <div class="stat-chart"></div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-title">Interactions</div>
+                                <div style="font-size: 12px; color: #65676b;">Content interactions ⓘ</div>
+                            </div>
+                            <span style="font-size: 18px;">→</span>
+                        </div>
+                        <div class="stat-number">0</div>
+                        <div style="color: #65676b; font-size: 13px;">0%</div>
+                        <div style="font-size: 13px; color: #65676b; margin-top: 8px;">
+                            <div>From followers ⓘ --</div>
+                            <div>From non-followers ⓘ --</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-title">Follows</div>
+                                <div style="font-size: 12px; color: #65676b;">Follows ⓘ</div>
+                            </div>
+                            <span style="font-size: 18px;">→</span>
+                        </div>
+                        <div class="stat-number">0</div>
+                        <div style="color: #65676b; font-size: 13px;">0%</div>
+                        <div style="font-size: 13px; color: #65676b; margin-top: 8px;">
+                            <div>Unfollows ⓘ <strong>0</strong> 0%</div>
+                            <div>Net follows ⓘ <strong>0</strong> 0%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
