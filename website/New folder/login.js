@@ -32,3 +32,6 @@ function handleLogin(event) {
   // Chuyển về màn hình chính (index.html)
   window.location.href = "index.html";
 }
+document.getElementById("loginEmailBtn").addEventListener("click", function () {
+  window.location.href = "loginWithGmail.html";
+});

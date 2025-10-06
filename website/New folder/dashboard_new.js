@@ -1,3 +1,167 @@
+// Pie Chart
+new Chart(document.getElementById("pieChart"), {
+  type: "doughnut",
+  data: {
+    labels: ["Iphone", "Samsung", "oppo", "remie"],
+    datasets: [
+      {
+        data: [72, 18, 6, 4],
+        backgroundColor: ["#f7c948", "#d3d3d3", "#fff6b2", "#eee"],
+      },
+    ],
+  },
+  options: {
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: "right",
+        labels: {
+          boxWidth: 15,
+          padding: 10,
+        },
+      },
+    },
+    layout: {
+      padding: {
+        left: 10,
+        right: 10,
+        top: 10,
+        bottom: 10,
+      },
+    },
+  },
+});
+
+// Line Chart – Full 12 Months (Jan → Dec)
+new Chart(document.getElementById("lineChart"), {
+  type: "line",
+  data: {
+    labels: [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ],
+    datasets: [
+      {
+        label: "Sales",
+        data: [0.8, 1.6, 1.2, 2.1, 2.4, 1.0, 1.8, 2.3, 1.7, 2.6, 2.1, 1.5],
+        fill: true,
+        borderColor: "#f7c948",
+        backgroundColor: "rgba(247,201,72,0.3)",
+        tension: 0.35,
+        pointBackgroundColor: "#f7c948",
+        pointBorderWidth: 2,
+      },
+    ],
+  },
+
+  options: {
+    responsive: true,
+    scales: {
+      y: {
+        beginAtZero: true,
+        max: 3,
+        ticks: {
+          callback: function (value) {
+            return "$" + value.toFixed(1) + "M";
+          },
+        },
+      },
+    },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: function (context) {
+            return "Sales: $" + context.parsed.y.toFixed(2) + "M";
+          },
+        },
+      },
+    },
+  },
+});
+
+// Ads Expense
+new Chart(document.getElementById("barChart"), {
+  type: "bar",
+  data: {
+    labels: ["M", "T", "W", "T", "F", "S", "S"],
+    datasets: [
+      {
+        data: [60, 120, 200, 90, 160, 180, 120],
+        backgroundColor: [
+          "#000",
+          "#f7c948",
+          "#000",
+          "#f7c948",
+          "#000",
+          "#f7c948",
+          "#000",
+        ],
+      },
+    ],
+  },
+  options: { plugins: { legend: { display: false } } },
+});
+
+// Repayments - Line Chart (4 tháng)
+const repayCtx = document.getElementById("repayChart").getContext("2d");
+new Chart(repayCtx, {
+  type: "line",
+  data: {
+    labels: ["Tháng 1", "Tháng 4", "Tháng 8", "Tháng 12"],
+    datasets: [
+      {
+        label: "Nợ phải trả",
+        data: [0.9, 1.2, 0.8, 1.5],
+        fill: true,
+        borderColor: "#f7c948",
+        backgroundColor: "rgba(247, 201, 72, 0.3)",
+        tension: 0.35,
+        pointBackgroundColor: "#f7c948",
+        pointBorderWidth: 2,
+      },
+    ],
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      y: {
+        beginAtZero: true,
+        max: 2,
+        ticks: {
+          callback: function (value) {
+            return "$" + value.toFixed(1) + "M";
+          },
+        },
+      },
+      x: {
+        grid: { color: "rgba(0,0,0,0.05)" },
+      },
+    },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: function (context) {
+            return "Nợ: $" + context.parsed.y.toFixed(2) + "M";
+          },
+        },
+      },
+    },
+  },
+});
+
 let editIndex = -1; // -1 = thêm mới, khác -1 = sửa
 // Data mẫu
 let products = [
@@ -72,14 +236,6 @@ function renderProducts() {
     // cộng dồn doanh thu = giá * số lượng
     totalRevenue += p.price * p.stock;
   });
-
-  // cập nhật thống kê
-  document.getElementById("stat-products").innerText = products.length;
-  document.getElementById("stat-orders").innerText = 15;
-  document.getElementById("stat-revenue").innerText =
-    totalRevenue.toLocaleString() + "₫"; // <-- sửa ở đây
-  document.getElementById("stat-customers").innerText = 45;
-
   // --- Gắn sự kiện xoá ---
   document.querySelectorAll(".btn-delete").forEach((btn) => {
     btn.addEventListener("click", function () {
@@ -162,7 +318,8 @@ document
     document.getElementById("addProductForm").reset();
 
     // đổi lại tiêu đề & nút
-    document.getElementById("addProductLabel").innerText = "Thêm sản phẩm mới";
+    document.getElementById("addProductLabel").innerText =
+      "Thêm sản phẩ  m mới";
     document.querySelector("#addProductForm button[type=submit]").innerText =
       "Lưu";
   });
