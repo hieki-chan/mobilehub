@@ -19,6 +19,9 @@ public class ProductImage {
     @Column
     String publicId;
 
+    @Column
+    boolean isMain;
+
     @Enumerated(EnumType.STRING)
     private ImageStatus status = ImageStatus.PENDING;
 

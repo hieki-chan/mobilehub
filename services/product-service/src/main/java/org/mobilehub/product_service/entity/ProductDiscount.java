@@ -21,7 +21,7 @@ public class ProductDiscount {
     private Long id;
 
     @Column
-    Double value_in_percent;
+    Integer valueInPercent;
 
     @Column
     LocalDateTime startDate;

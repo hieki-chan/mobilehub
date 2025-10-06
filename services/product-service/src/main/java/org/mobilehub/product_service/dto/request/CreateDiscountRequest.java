@@ -13,7 +13,7 @@ public class CreateDiscountRequest {
     @NotNull
     @Min(value = 5, message = "Percent must be greater than 0")
     @Max(value = 100, message = "Percent must be less than or equal to 100")
-    private Integer value_in_percent;
+    private Integer valueInPercent;
 
     @NotNull(message = "Start date is required")
     @FutureOrPresent(message = "Start date cannot be in the past")

@@ -9,6 +9,11 @@ import org.mobilehub.cloud_media_service.dto.response.ImageVersions;
 import org.mobilehub.cloud_media_service.dto.response.UploadResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.mobilehub.shared_contracts.media.ImageTopics;
+import org.mobilehub.shared_contracts.media.ImageUploadEvent;
+import org.mobilehub.shared_contracts.media.ImageUploadedEvent;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -17,6 +22,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
@@ -26,6 +32,39 @@ import java.util.Map;
 public class CloudMediaService {
 
     private final Cloudinary cloudinary;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
+
+    @KafkaListener(topics = ImageTopics.IMAGE_UPLOAD)
+    public void handleUpload(ImageUploadEvent event) {
+        for (String base64 : event.getFiles()) {
+            try {
+                // Decode Base64 to bytes
+                byte[] bytes = Base64.getDecoder().decode(base64);
+
+                var result = cloudinary.uploader().upload(bytes,
+                        ObjectUtils.asMap(
+                                "folder", "products",
+                                "resource_type", "image"
+                        ));
+
+                String publicId = (String) result.get("public_id");
+                String url = (String) result.get("secure_url");
+
+                // uploaded callback
+                ImageUploadedEvent uploadedEvent = new ImageUploadedEvent();
+                uploadedEvent.setProductId(event.getProductId());
+                uploadedEvent.setPublicId(publicId);
+                uploadedEvent.setUrl(url);
+
+                kafkaTemplate.send(ImageTopics.IMAGE_UPLOADED, uploadedEvent);
+
+                System.out.println("Uploaded: " + publicId);
+
+            } catch (Exception e) {
+                System.err.println("Upload failed: " + e.getMessage());
+            }
+        }
+    }
 
     public UploadResponse uploadImage(MultipartFile file, String folder) throws IOException {
         var uploadResult = cloudinary.uploader().upload(file.getBytes(),

@@ -4,5 +4,5 @@ import lombok.Data;
 
 @Data
 public class DiscountResponse {
-    private Integer value_in_percent;
+    private Integer valueInPercent;
 }

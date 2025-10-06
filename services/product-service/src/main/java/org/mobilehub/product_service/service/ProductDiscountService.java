@@ -4,15 +4,12 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.mobilehub.product_service.dto.request.CreateDiscountRequest;
 import org.mobilehub.product_service.dto.response.DiscountResponse;
-import org.mobilehub.product_service.entity.ProductDiscount;
 import org.mobilehub.product_service.mapper.ProductDiscountMapper;
-import org.mobilehub.product_service.mapper.ProductMapper;
 import org.mobilehub.product_service.repository.ProductDiscountRepository;
 import org.mobilehub.product_service.repository.ProductRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor

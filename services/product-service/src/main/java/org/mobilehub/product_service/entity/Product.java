@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.experimental.FieldDefaults;
 import org.mobilehub.product_service.util.ProductStatusConverter;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,7 +37,21 @@ public class Product {
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     List<ProductImage> images = new ArrayList<>();
 
+    @Column(name = "price", precision = 10, scale = 2, nullable = false)
+    BigDecimal price;
+
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "product_discount_id", referencedColumnName = "id", unique = true)
     ProductDiscount discount;
+
+    public BigDecimal getDiscountedPrice() {
+        if (discount == null || discount.getValueInPercent() == null) {
+            return price;
+        }
+
+        BigDecimal discountPercent = BigDecimal.valueOf(discount.getValueInPercent());
+        BigDecimal multiplier = BigDecimal.ONE.subtract(discountPercent.divide(BigDecimal.valueOf(100)));
+
+        return price.multiply(multiplier);
+    }
 }
