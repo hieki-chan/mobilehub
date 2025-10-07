@@ -5,6 +5,7 @@ import lombok.Data;
 
 @Data
 public class CreateAddressRequest {
+
     @NotBlank
     private String street;
 

@@ -16,7 +16,7 @@ public class Address {
     Long id;
 
     @Column(nullable = false)
-    private Long userId;
+    private String userId;
 
     @NotBlank
     @Size(max = 500)
