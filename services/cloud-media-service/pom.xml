@@ -70,9 +70,10 @@
         </dependency>
 
         <dependency>
-            <groupId>org.mobilehub</groupId>
-            <artifactId>shared-events-contracts</artifactId>
+            <groupId>org.mobilehub.shared</groupId>
+            <artifactId>contracts</artifactId>
             <version>1.0.0</version>
+            <scope>compile</scope>
         </dependency>
 
     </dependencies>
