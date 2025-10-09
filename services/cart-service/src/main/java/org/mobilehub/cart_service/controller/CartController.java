@@ -1,71 +1,74 @@
 package org.mobilehub.cart_service.controller;
 
-import jdk.jfr.Frequency;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.mobilehub.cart_service.dto.CartAddRequest;
 import org.mobilehub.cart_service.dto.CartDTO;
 import org.mobilehub.cart_service.dto.CartItemDTO;
 import org.mobilehub.cart_service.dto.CartUpdateItemRequest;
-import org.mobilehub.cart_service.entity.Cart;
-import org.mobilehub.cart_service.entity.CartItem;
-import org.mobilehub.cart_service.mapper.CartMapper;
 import org.mobilehub.cart_service.service.CartService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Map;
 
+@Slf4j
 @RestController
+@RequestMapping("/cart")
+@RequiredArgsConstructor
+@Validated
 public class CartController {
-    private CartService cartService;
+
+    private final CartService cartService;
+
 
     @GetMapping
-    public ResponseEntity<CartDTO> getCart(@RequestParam(required = false) Long userId){
-        Cart cart = cartService.getCart(userId);
-        return ResponseEntity.ok(CartMapper.toCartDTO(cart));
+    public ResponseEntity<CartDTO> getCart(@RequestParam Long userId) {
+        CartDTO cart = cartService.getCart(userId);
+        return ResponseEntity.ok(cart);
     }
+
 
     @PostMapping("/add")
     public ResponseEntity<CartDTO> addItemToCart(
-            @RequestParam(required = false) Long userId,
-            @RequestBody CartAddRequest request){
-        Cart cart = cartService.addItemToCart(userId, request);
-        return ResponseEntity.ok(CartMapper.toCartDTO(cart));
+            @RequestParam Long userId,
+            @Valid @RequestBody CartAddRequest request) {
+        CartDTO updatedCart = cartService.addItemToCart(userId, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(updatedCart);
     }
 
+
     @PutMapping("/update")
-    public ResponseEntity<CartItemDTO> updateItem(@RequestBody CartUpdateItemRequest request){
-        CartItem item = cartService.updateItemQuantity(request.getItemId(), request.getQuantity());
-        return ResponseEntity.ok(CartMapper.toCartItemDTO(item));
+    public ResponseEntity<CartItemDTO> updateItem(@Valid @RequestBody CartUpdateItemRequest request) {
+        CartItemDTO updatedItem = cartService.updateItemQuantity(request.getItemId(), request.getQuantity());
+        return ResponseEntity.ok(updatedItem);
     }
 
     @DeleteMapping("/item/{itemId}")
-    public ResponseEntity<String> removeItem(@PathVariable Long itemId){
-        try{
-            cartService.removeItem(itemId);
-            return ResponseEntity.ok("Item remove successfully");
-        } catch (RuntimeException e){
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<Map<String, String>> removeItem(@PathVariable Long itemId) {
+        cartService.removeItem(itemId);
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Item removed successfully");
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/clear")
-    public ResponseEntity<String> clearCart(@RequestParam Long userId){
-        try {
-            cartService.clearCart(userId);
-            return ResponseEntity.ok("Cart cleared successfully");
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<Map<String, String>> clearCart(@RequestParam Long userId) {
+        cartService.clearCart(userId);
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Cart cleared successfully");
+        return ResponseEntity.ok(response);
     }
+
 
     @GetMapping("/total")
-    public ResponseEntity<BigDecimal> getTotal(@RequestParam Long userId){
-        try {
-            BigDecimal total = cartService.getTotal(userId);
-            return ResponseEntity.ok(total);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build();
-        }
+    public ResponseEntity<BigDecimal> getTotal(@RequestParam Long userId) {
+        BigDecimal total = cartService.getTotal(userId);
+        return ResponseEntity.ok(total);
     }
-
 }
