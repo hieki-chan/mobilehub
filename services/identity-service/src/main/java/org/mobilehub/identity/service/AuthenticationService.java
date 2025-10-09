@@ -48,7 +48,7 @@ public class AuthenticationService {
         }
 
         return LoginResponse.builder()
-                .accessToken(tokenProvider.generateToken(user.getId(), buildUserClaim(user)))
+                .accessToken(tokenProvider.generateToken(String.valueOf(user.getId()), buildUserClaim(user)))
                 .build();
     }
 

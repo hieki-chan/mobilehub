@@ -1,43 +1,31 @@
 package org.mobilehub.order_service.Mapper;
 
-
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.factory.Mappers;
 import org.mobilehub.order_service.dto.response.OrderItemResponse;
 import org.mobilehub.order_service.dto.response.OrderResponse;
 import org.mobilehub.order_service.dto.response.OrderSummaryResponse;
 import org.mobilehub.order_service.entity.Order;
+import org.mobilehub.order_service.entity.OrderItem;
 
-import java.math.BigDecimal;
 import java.util.List;
 
-public class OrderMapper {
-    public static OrderResponse toOrderResponse(Order order){
-        List<OrderItemResponse> itemResponses = order.getItems().stream()
-                .map(i -> OrderItemResponse.builder()
-                        .productId(i.getProductId())
-                        .productName(i.getProductName())
-                        .thumbnailUrl(i.getThumbnailUrl())
-                        .price(i.getPrice())
-                        .quantity(i.getQuantity())
-                        .subtotal(i.getPrice().multiply(BigDecimal.valueOf(i.getQuantity())))
-                        .build())
-                .toList();
+@Mapper(componentModel = "spring")
+public interface OrderMapper {
 
-        return OrderResponse.builder()
-                .id(order.getId())
-                .userId(order.getUserId())
-                .shippingAddress(order.getShippingAddress())
-                .paymentMethod(order.getPaymentMethod())
-                .totalAmount(order.getTotalAmount())
-                .status(order.getStatus())
-                .items(itemResponses)
-                .build();
-    }
-    public OrderSummaryResponse toSummaryResponse(Order order) {
-        return OrderSummaryResponse.builder()
-                .id(order.getId())
-                .totalAmount(order.getTotalAmount())
-                .status(order.getStatus())
-                .paymentMethod(order.getPaymentMethod())
-                .build();
-    }
+    OrderMapper INSTANCE = Mappers.getMapper(OrderMapper.class);
+
+    // Chuyển từ Entity → DTO chính
+    @Mapping(target = "items", source = "items")
+    OrderResponse toOrderResponse(Order order);
+
+    // Chuyển từng OrderItem → OrderItemResponse
+    OrderItemResponse toOrderItemResponse(OrderItem item);
+
+    // Chuyển danh sách Item
+    List<OrderItemResponse> toOrderItemResponses(List<OrderItem> items);
+
+    // Chuyển sang dạng tóm tắt
+    OrderSummaryResponse toSummaryResponse(Order order);
 }

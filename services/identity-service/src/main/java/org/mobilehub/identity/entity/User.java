@@ -14,9 +14,9 @@ import java.util.Set;
 @Data
 public class User {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    String id;
+    Long id;
 
     @Column(name = "email", unique = true, nullable = false)
     String email;
