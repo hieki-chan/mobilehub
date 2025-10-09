@@ -1,6 +1,5 @@
 package org.mobilehub.order_service.service;
 
-
 import lombok.RequiredArgsConstructor;
 import org.mobilehub.order_service.Mapper.OrderMapper;
 import org.mobilehub.order_service.dto.request.OrderCancelRequest;
@@ -10,6 +9,8 @@ import org.mobilehub.order_service.dto.response.OrderResponse;
 import org.mobilehub.order_service.dto.response.OrderSummaryResponse;
 import org.mobilehub.order_service.entity.Order;
 import org.mobilehub.order_service.entity.OrderItem;
+import org.mobilehub.order_service.exception.OrderCannotBeCancelledException;
+import org.mobilehub.order_service.exception.OrderNotFoundException;
 import org.mobilehub.order_service.repository.OrderRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,10 +24,13 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Transactional
 public class OrderService {
-    private OrderRepository orderRepository;
-    private OrderMapper orderMapper;
 
-    public OrderResponse createOrder(OrderCreateRequest request){
+    private final OrderRepository orderRepository;
+    private final OrderMapper orderMapper;
+
+
+    public OrderResponse createOrder(OrderCreateRequest request) {
+
         String shippingAddress = "Địa chỉ mặc định " + request.getUserId();
 
         Order order = new Order();
@@ -34,17 +38,21 @@ public class OrderService {
         order.setShippingAddress(shippingAddress);
         order.setPaymentMethod(request.getPaymentMethod());
         order.setStatus("PENDING");
+        order.setCreatedAt(LocalDateTime.now());
 
-        List<OrderItem> items = request.getItems().stream().map(i -> {
-            OrderItem item = new OrderItem();
-            item.setProductId(i.getProductId());
-            item.setProductName(i.getProductName());
-            item.setThumbnailUrl(i.getThumbnailUrl());
-            item.setPrice(i.getPrice());
-            item.setQuantity(i.getQuantity());
-            item.setOrder(order);
-            return item;
-        }).collect(Collectors.toList());
+        // Gán danh sách sản phẩm
+        List<OrderItem> items = request.getItems().stream()
+                .map(i -> {
+                    OrderItem item = new OrderItem();
+                    item.setProductId(i.getProductId());
+                    item.setProductName(i.getProductName());
+                    item.setThumbnailUrl(i.getThumbnailUrl());
+                    item.setPrice(i.getPrice());
+                    item.setQuantity(i.getQuantity());
+                    item.setOrder(order);
+                    return item;
+                })
+                .collect(Collectors.toList());
 
         order.setItems(items);
 
@@ -55,19 +63,19 @@ public class OrderService {
 
         order.setTotalAmount(totalAmount);
 
-        // Lưu DB
+        // Lưu vào DB
         Order saved = orderRepository.save(order);
-
-        // Trả về DTO
         return orderMapper.toOrderResponse(saved);
     }
+
 
     @Transactional(readOnly = true)
     public OrderResponse getOrderById(Long orderId) {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+                .orElseThrow(() -> new OrderNotFoundException(orderId));
         return orderMapper.toOrderResponse(order);
     }
+
 
     @Transactional(readOnly = true)
     public List<OrderSummaryResponse> getOrdersByUser(Long userId) {
@@ -77,25 +85,25 @@ public class OrderService {
                 .collect(Collectors.toList());
     }
 
+
     public OrderResponse updateStatus(Long orderId, OrderUpdateStatusRequest request) {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+                .orElseThrow(() -> new OrderNotFoundException(orderId));
 
         order.setStatus(request.getStatus());
         return orderMapper.toOrderResponse(orderRepository.save(order));
     }
 
+
     public OrderResponse cancelOrder(Long orderId, OrderCancelRequest request) {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+                .orElseThrow(() -> new OrderNotFoundException(orderId));
 
-        if (!order.getStatus().equals("PENDING")) {
-            throw new RuntimeException("Order cannot be cancelled in status: " + order.getStatus());
+        if (!"PENDING".equals(order.getStatus())) {
+            throw new OrderCannotBeCancelledException(order.getStatus());
         }
 
         order.setStatus("CANCELLED");
-        // Bạn có thể lưu lý do hủy vào cột riêng (nếu có)
-
         return orderMapper.toOrderResponse(orderRepository.save(order));
     }
 }
