@@ -21,19 +21,40 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class UserService {
+
     UserRepository userRepository;
     UserMapper userMapper;
-
     RoleRepository roleRepository;
-
     PasswordEncoder passwordEncoder;
 
-    public UserResponse getUser(String id) {
-        return userMapper.toUserResponse(
-                userRepository.findById(id).orElseThrow(() -> new UserException("user is invalid")));
+    /**
+     * Lấy thông tin người dùng theo ID (Long)
+     */
+    public UserResponse getUser(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UserException("User not found with id: " + id));
+        return userMapper.toUserResponse(user);
     }
 
+    /**
+     * Tìm người dùng theo username
+     */
     public Optional<User> findByUsername(String username) {
         return userRepository.findByUsername(username);
+    }
+
+    /**
+     * Đăng ký user mới (tùy chọn)
+     */
+    public UserResponse register(RegisterUserRequest request) {
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new UserException("Email already exists");
+        }
+
+        User user = userMapper.toUser(request);
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+
+        User saved = userRepository.save(user);
+        return userMapper.toUserResponse(saved);
     }
 }
