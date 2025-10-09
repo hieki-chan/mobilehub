@@ -1,5 +1,0 @@
-jwt:
-  signerKey: "koNAzoN/cNgpNBC6N7JFzl8Gkycz3ryA39mWjs4q1N7YPw+dB68UcwPQPNhfY3iiIE9aTl9kC5mX0640CmPGFw" # Khóa ký JWT
-  issuer: "mobilehub-auth.com"     # Issuer c?a JWT
-  valid-duration: 3600 # in second
-  refreshable-duration: 36000 # in seconds

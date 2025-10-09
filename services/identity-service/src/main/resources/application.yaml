@@ -16,3 +16,20 @@ spring:
     show-sql: true
     properties:
       hibernate.dialect: org.hibernate.dialect.MySQLDialect
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: YOUR_GOOGLE_CLIENT_ID_HERE
+            client-secret: YOUR_GOOGLE_CLIENT_SECRET_HERE
+            scope:
+              - openid
+              - email
+              - profile
+jwt:
+  signerKey: "koNAzoN/cNgpNBC6N7JFzl8Gkycz3ryA39mWjs4q1N7YPw+dB68UcwPQPNhfY3iiIE9aTl9kC5mX0640CmPGFw"
+  issuer: "mobilehub-auth.com"
+  valid-duration: 3600 # in second
+  refreshable-duration: 36000 # in seconds

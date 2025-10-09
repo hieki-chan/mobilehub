@@ -30,6 +30,9 @@ public class User {
     @Column(name = "password", nullable = false)
     String password;
 
+    @Enumerated(EnumType.STRING)
+    private SignInProvider provider;
+
     private LocalDateTime createdAt;
     //private LocalDateTime updatedAt;
 

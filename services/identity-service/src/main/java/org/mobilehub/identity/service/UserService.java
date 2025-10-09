@@ -28,8 +28,6 @@ public class UserService {
 
     PasswordEncoder passwordEncoder;
 
-
-
     public UserResponse getUser(String id) {
         return userMapper.toUserResponse(
                 userRepository.findById(id).orElseThrow(() -> new UserException("user is invalid")));
