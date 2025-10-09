@@ -47,4 +47,10 @@ public class AuthenticationController {
         boolean valid = authenticationService.validate(token);
         return ResponseEntity.ok(valid ? "Valid" : "Invalid");
     }
+
+    @GetMapping
+    public String home()
+    {
+        return "home";
+    }
 }

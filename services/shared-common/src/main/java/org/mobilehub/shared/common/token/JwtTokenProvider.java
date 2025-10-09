@@ -17,21 +17,31 @@ import java.util.UUID;
 
 @Slf4j
 public class JwtTokenProvider implements TokenProvider {
-    @NonFinal
-    @Value("${jwt.signerKey}")
-    protected String SIGNED_KEY;
+    public static final String SIGNER_KEY = "koNAzoN/cNgpNBC6N7JFzl8Gkycz3ryA39mWjs4q1N7YPw+dB68UcwPQPNhfY3iiIE9aTl9kC5mX0640CmPGFw";
+    private static final String ISSUER = "mobilehub-auth.com";
+    private static final long VALID_DURATION = 3600_000; // 1 hour in ms
+    private static final long REFRESHABLE_DURATION = 36_000_000; // 10 hours in ms
 
-    @NonFinal
-    @Value("${jwt.valid-duration}")
-    protected long VALID_DURATION;
+//    @NonFinal
+//    @Value("${jwt.signerKey}")
+//    protected String SIGNER_KEY;
+//
+//    @NonFinal
+//    @Value("${jwt.valid-duration}")
+//    protected long VALID_DURATION;
+//
+//    @NonFinal
+//    @Value("${jwt.issuer}")
+//    protected String ISSUER;
+//
+//    @NonFinal
+//    @Value("${jwt.refreshable-duration}")
+//    protected long REFRESHABLE_DURATION;
 
-    @NonFinal
-    @Value("${jwt.issuer}")
-    protected String ISSUER;
-
-    @NonFinal
-    @Value("${jwt.refreshable-duration}")
-    protected long REFRESHABLE_DURATION;
+    @Override
+    public String generateToken(String subject) {
+        return generateToken(subject, new ClaimSet());
+    }
 
     // Generate token
     @Override
@@ -55,7 +65,7 @@ public class JwtTokenProvider implements TokenProvider {
         JWSObject jwsObject = new JWSObject(header, payload);
 
         try {
-            jwsObject.sign(new MACSigner(SIGNED_KEY.getBytes()));
+            jwsObject.sign(new MACSigner(SIGNER_KEY.getBytes()));
             return jwsObject.serialize();
         } catch (JOSEException e) {
             log.error("cannot create token", e);
@@ -68,7 +78,7 @@ public class JwtTokenProvider implements TokenProvider {
     public boolean validateToken(String token) {
         try {
             SignedJWT signedJWT = SignedJWT.parse(token);
-            JWSVerifier verifier = new MACVerifier(SIGNED_KEY.getBytes());
+            JWSVerifier verifier = new MACVerifier(SIGNER_KEY.getBytes());
 
             boolean verified = signedJWT.verify(verifier);
 
