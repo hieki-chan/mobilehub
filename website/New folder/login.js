@@ -1,37 +1,19 @@
-document.addEventListener("DOMContentLoaded", function () {
-  const loginForm = document.querySelector("form");
-  const usernameInput = document.getElementById("usernameInput");
-  const passwordInput = document.getElementById("passwordInput");
-
-  loginForm.addEventListener("submit", function (e) {
-    e.preventDefault();
-    if (
-      usernameInput.value.trim() === "" ||
-      passwordInput.value.trim() === ""
-    ) {
-      alert("Vui lòng nhập đầy đủ Tên người dùng/Số điện thoại và Mật khẩu!");
-      return;
-    }
-
-    alert("Đăng nhập thành công với tài khoản: " + usernameInput.value);
-  });
+// Hiệu ứng xuất hiện form
+window.addEventListener("load", () => {
+  document.getElementById("loginBox").classList.add("show");
 });
 
-function handleLogin(event) {
-  event.preventDefault();
+// Xử lý nút đăng nhập
+document.getElementById("loginBtn").addEventListener("click", () => {
+  const phone = document.getElementById("phoneInput").value.trim();
+  const pass = document.getElementById("passwordInput").value.trim();
+  const box = document.getElementById("loginBox");
 
-  const email = document.getElementById("email").value;
-
-  if (email.trim() === "") {
-    alert("Vui lòng nhập email hoặc số điện thoại!");
-    return;
+  if (phone === "" || pass === "") {
+    box.classList.add("shake");
+    setTimeout(() => box.classList.remove("shake"), 400);
+    alert("Vui lòng nhập đầy đủ thông tin đăng nhập!");
+  } else {
+    alert("Đăng nhập thành công!");
   }
-
-  alert("Đăng nhập thành công với: " + email);
-
-  // Chuyển về màn hình chính (index.html)
-  window.location.href = "index.html";
-}
-document.getElementById("loginEmailBtn").addEventListener("click", function () {
-  window.location.href = "loginWithGmail.html";
 });

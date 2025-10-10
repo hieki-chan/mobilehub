@@ -1,53 +1,282 @@
+/* ========== Tổng thể ========== */
 body {
   background-color: #f5f5f5;
+  font-family: "Segoe UI", sans-serif;
+  color: #333;
 }
+
+/* ========== Header ========== */
 .header {
-  background-color: #ffcc00;
+  background-color: #dd0000;
   padding: 10px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
+
+.header h3 {
+  color: white;
+  font-weight: bold;
+  margin: 0;
+}
+
+.header input {
+  max-width: 50%;
+  border-radius: 6px;
+}
+
+/* ========== Ảnh sản phẩm ========== */
 .product-img img {
   width: 100%;
-  height: 100%; /* ép chiều cao = khung chứa */
-  object-fit: contain; /* giữ tỉ lệ ảnh, không bị méo */
   border: 1px solid #ddd;
   border-radius: 10px;
+  object-fit: contain;
 }
+
+/* ========== Giá ========== */
 .price {
   color: red;
   font-size: 1.8rem;
   font-weight: bold;
 }
+
 .old-price {
   text-decoration: line-through;
   color: #777;
   margin-left: 10px;
 }
-.btn-buy {
-  background-color: #ff3300;
-  color: #fff;
-  font-size: 1.2rem;
-  padding: 10px 20px;
-  border-radius: 10px;
-  border: none;
-}
-.btn-buy:hover {
-  background-color: #e62e00;
-}
+
+/* ========== Khuyến mãi ========== */
 .promo {
   border: 1px solid #ddd;
   border-radius: 10px;
   padding: 15px;
-  background: #fff8f0;
+  background: #fff;
 }
 
-.row {
-  align-items: stretch; /* ép col trái/phải bằng chiều cao */
+.promo h6 {
+  font-weight: bold;
+  margin-bottom: 10px;
 }
 
-/* Khung ảnh chiếm toàn bộ chiều cao */
-.product-img {
+/* ========== Nút tùy chỉnh ========== */
+.btn-custom,
+.btn-outline-dark,
+.btn-primary,
+.btn-warning,
+.btn-outline-primary {
+  background-color: #a40404 !important; /* nền đen */
+  color: #fff !important; /* chữ trắng */
+  border: 1px solid #ccc !important; /* viền xám */
+  font-weight: 500;
+  transition: all 0.25s ease;
+  border-radius: 6px;
+}
+
+.btn-custom:hover,
+.btn-outline-dark:hover,
+.btn-primary:hover,
+.btn-warning:hover,
+.btn-outline-primary:hover {
+  background-color: #222 !important;
+  border-color: #bbb !important;
+  transform: scale(1.03);
+  color: #fff !important;
+}
+
+/* ========== Box thông báo ========== */
+.alert-box {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  padding: 20px 30px;
+  text-align: center;
+  z-index: 9999;
+  display: none;
+}
+
+.alert-box.show {
+  display: block;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -45%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+/* ========== Thẻ card, collapse, đánh giá ========== */
+.card {
+  border: 1px solid #ddd;
+  border-radius: 10px;
+}
+
+.card-body {
+  background-color: #fff;
+}
+
+.rating-summary .progress-bar {
+  background-color: #ffcc00;
+}
+
+.progress {
+  background-color: #e9ecef;
+}
+
+/* ========== Cam kết ========== */
+.bg-white {
+  background-color: #fff !important;
+}
+
+/* --- Slideshow --- */
+.slideshow-container {
+  position: relative;
+  width: 100%;
+  height: 400px;
+  overflow: hidden;
+}
+
+.slideshow-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  transition: opacity 0.5s ease-in-out;
+}
+
+/* --- Nút điều hướng --- */
+.prev-btn,
+.next-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  font-size: 28px;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.prev-btn:hover,
+.next-btn:hover {
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+.prev-btn {
+  left: 10px;
+}
+
+.next-btn {
+  right: 10px;
+}
+
+/* --- Dấu chấm --- */
+.dots {
+  position: absolute;
+  bottom: 10px;
+  width: 100%;
+  text-align: center;
+}
+
+.dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin: 0 4px;
+  background-color: #ccc;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.dot.active {
+  background-color: #000;
+}
+
+.dot:hover {
+  background-color: #555;
+}
+
+/* ========== Popup overlay ========== */
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  backdrop-filter: blur(3px);
+}
+
+.popup-overlay.show {
   display: flex;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.popup-box {
+  background: #fff;
+  border-radius: 12px;
+  padding: 25px;
+  width: 80%;
+  max-width: 800px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+  position: relative;
+  animation: scaleIn 0.3s ease;
+  max-height: 90%;
+  overflow-y: auto;
+}
+
+.close-popup {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 24px;
+  background: transparent;
+  border: none;
+  color: #333;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.close-popup:hover {
+  color: #dd0000;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
