@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Đăng nhập bằng Google</title>
+    <!-- Bootstrap -->
+    <link href="./ascet/bootrap/css/bootstrap.min.css" rel="stylesheet" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="login.css" />
+  </head>
+  <body class="bg-light">
+    <div
+      class="container d-flex justify-content-center align-items-center vh-100"
+    >
+      <div
+        class="card shadow-sm p-4"
+        style="max-width: 600px; width: 100%; border-radius: 15px"
+      >
+        <!-- Logo + Tiêu đề -->
+        <div class="d-flex align-items-center mb-4">
+          <img src="./anh_bia.png" width="28" class="me-2" />
+          <h6 class="mb-0">Đăng nhập bằng Google</h6>
+        </div>
+
+        <!-- TikTok logo + tiêu đề -->
+        <div class="d-flex align-items-center mb-4">
+          <img src="./anh_bia.png" width="40" class="me-3" />
+          <div>
+            <h4 class="mb-0">Đăng nhập</h4>
+            <small class="text-muted"
+              >Tiếp tục tới <span class="text-primary">Vphone</span></small
+            >
+          </div>
+        </div>
+
+        <!-- Form -->
+        <form onsubmit="return handleLogin(event)">
+          <div class="mb-3">
+            <label for="email" class="form-label small"
+              >Email hoặc số điện thoại</label
+            >
+            <input
+              type="text"
+              class="form-control"
+              id="email"
+              placeholder="Nhập email hoặc số điện thoại"
+              required
+            />
+          </div>
+
+          <a href="#" class="d-block mb-3 small text-primary"
+            >Bạn quên địa chỉ email?</a
+          >
+
+          <div class="d-flex justify-content-between align-items-center mt-4">
+            <a href="register.html" class="small">Tạo tài khoản</a>
+            <button type="submit" class="btn btn-primary">Tiếp theo</button>
+          </div>
+        </form>
+
+        <!-- Footer text -->
+        <p class="text-muted mt-4 small">
+          Trước khi sử dụng TikTok, bạn có thể xem
+          <a href="#">chính sách quyền riêng tư</a> và
+          <a href="#">điều khoản dịch vụ</a> của ứng dụng này.
+        </p>
+      </div>
+    </div>
+
+    <!-- Footer links -->
+    <div class="text-center mt-3 small">
+      <a href="#">Trợ giúp</a> · <a href="#">Quyền riêng tư</a> ·
+      <a href="#">Điều khoản</a>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="./ascet/bootrap/js/bootstrap.bundle.min.js"></script>
+    <script src="login.js"></script>
+  </body>
+</html>

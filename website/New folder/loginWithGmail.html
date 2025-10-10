@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chọn tài khoản - Google</title>
+    <!-- Bootstrap -->
+    <link href="./ascet/bootrap/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="LoginGmail.css" />
+  </head>
+  <body>
+    <div class="card-box p-4">
+      <!-- Logo + Tiêu đề -->
+      <div class="d-flex align-items-center mb-3">
+        <img src="./anh_bia.png" alt="Google" width="30" class="me-2" />
+        <h6 class="mb-0">Đăng nhập bằng Google</h6>
+      </div>
+
+      <div class="d-flex align-items-center mb-3">
+        <img src="./anh_bia.png" alt="TikTok" width="40" class="me-3" />
+        <div>
+          <h5 class="mb-0">Chọn tài khoản</h5>
+          <small class="text-muted"
+            >Tiếp tục tới <span class="text-primary">Vphone</span></small
+          >
+        </div>
+      </div>
+
+      <!-- Danh sách tài khoản -->
+      <div
+        class="account-item d-flex align-items-center gap-4 mb-3"
+        onclick="selectAccount('tanghuuhuy2005@gmail.com')"
+      >
+        <div class="avatar bg-primary text-white fw-bold">H</div>
+        <div>
+          <div>14.Tăng Hữu Huy</div>
+          <small class="text-muted">tanghuuhuy2005@gmail.com</small>
+        </div>
+      </div>
+
+      <div
+        class="account-item d-flex align-items-center gap-4 mb-3"
+        onclick="selectAccount('tanghuuhuy2006@gmail.com')"
+      >
+        <div class="avatar bg-primary text-white fw-bold">h</div>
+        <div>
+          <div>huy tang</div>
+          <small class="text-muted">tanghuuhuy2006@gmail.com</small>
+        </div>
+      </div>
+
+      <div
+        class="account-item d-flex align-items-center gap-4 mb-3"
+        onclick="selectAccount('tanghuuhuy123@gmail.com')"
+      >
+        <div class="avatar bg-primary text-white fw-bold">h</div>
+        <div>
+          <div>huy tang</div>
+          <small class="text-muted">tanghuuhuy123@gmail.com</small>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div
+        class="account-item d-flex align-items-center"
+        onclick="selectAccount('other')"
+      >
+        <div class="circle-icon bg-light text-dark border me-3">
+          <i class="bi bi-person"></i>
+        </div>
+        <div>Sử dụng một tài khoản khác</div>
+      </div>
+
+      <!-- Footer -->
+      <p class="text-muted mt-4 small">
+        Trước khi sử dụng TikTok, bạn có thể xem
+        <a href="#">chính sách quyền riêng tư</a> và
+        <a href="#">điều khoản dịch vụ</a> của ứng dụng này.
+      </p>
+    </div>
+
+    <!-- Footer links -->
+    <div class="text-center footer-links mt-3">
+      <a href="#">Trợ giúp</a>
+      <a href="#">Quyền riêng tư</a>
+      <a href="#">Điều khoản</a>
+    </div>
+
+    <!-- Bootstrap Icons -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
+
+    <!-- JS -->
+    <script src="LoginWithGmail.js"></script>
+  </body>
+</html>

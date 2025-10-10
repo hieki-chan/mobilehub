@@ -5,8 +5,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   loginForm.addEventListener("submit", function (e) {
     e.preventDefault();
-
-    // Kiểm tra rỗng
     if (
       usernameInput.value.trim() === "" ||
       passwordInput.value.trim() === ""
@@ -15,7 +13,25 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    // Nếu ok -> giả lập đăng nhập thành công
     alert("Đăng nhập thành công với tài khoản: " + usernameInput.value);
   });
+});
+
+function handleLogin(event) {
+  event.preventDefault();
+
+  const email = document.getElementById("email").value;
+
+  if (email.trim() === "") {
+    alert("Vui lòng nhập email hoặc số điện thoại!");
+    return;
+  }
+
+  alert("Đăng nhập thành công với: " + email);
+
+  // Chuyển về màn hình chính (index.html)
+  window.location.href = "index.html";
+}
+document.getElementById("loginEmailBtn").addEventListener("click", function () {
+  window.location.href = "loginWithGmail.html";
 });

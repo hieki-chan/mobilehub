@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vphone - Quên mật khẩu</title>
+    <!-- Bootstrap -->
+    <link href="./ascet/bootrap/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="logi_forget.css" />
+  </head>
+  <body>
+    <!-- Navbar -->
+    <div class="d-flex justify-content-between p-3 border-bottom">
+      <h1 class="ms-5 fw-bold" style="font-family: cursive">Vphone</h1>
+      <div class="me-5">
+        <a href="login.html" class="btn btn-primary btn-sm">Đăng nhập</a>
+        <a href="register.html" class="btn btn-link btn-sm">Đăng ký</a>
+      </div>
+    </div>
+
+    <!-- Form -->
+    <div class="form-box mt-4">
+      <!-- Icon -->
+      <div>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="50"
+          height="50"
+          fill="none"
+          stroke="black"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+        >
+          <path d="M12 17a2 2 0 0 0 2-2v-3a2 2 0 1 0-4 0v3a2 2 0 0 0 2 2z" />
+          <path d="M17 8V6a5 5 0 0 0-10 0v2" />
+          <rect x="5" y="8" width="14" height="12" rx="2" />
+        </svg>
+      </div>
+      <!-- Nội dung -->
+      <h6 class="fw-bold mt-3">Bạn gặp sự cố khi đăng nhập?</h6>
+      <p class="text-muted small">
+        Nhập email, số điện thoại hoặc tên người dùng của bạn và chúng tôi sẽ
+        gửi cho bạn một liên kết để truy cập lại vào tài khoản.
+      </p>
+
+      <input
+        type="text"
+        id="usernameInput"
+        class="form-control"
+        placeholder="Email, điện thoại hoặc tên người dùng"
+      />
+      <button id="submitBtn" class="btn btn-login w-100 mt-2" disabled>
+        Gửi liên kết đăng nhập
+      </button>
+
+      <div class="divider">HOẶC</div>
+      <a href="register.html" class="fw-bold small text-decoration-none"
+        >Tạo tài khoản mới</a
+      >
+    </div>
+
+    <!-- Quay lại -->
+    <div class="text-center mt-3">
+      <a href="login.html" class="small text-decoration-none"
+        >Quay lại đăng nhập</a
+      >
+    </div>
+
+    <script src="login_forget.js"></script>
+  </body>
+</html>

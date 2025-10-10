@@ -1,0 +1,40 @@
+body {
+  background-color: #fafafa;
+  font-family: Arial, sans-serif;
+}
+.form-box {
+  max-width: 350px;
+  margin: 50px auto;
+  background: #fff;
+  border: 1px solid #dbdbdb;
+  padding: 20px;
+  text-align: center;
+}
+.btn-login {
+  background-color: #0095f6;
+  color: #fff;
+  font-weight: 600;
+}
+.btn-login:disabled {
+  opacity: 0.5;
+}
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 20px 0;
+  font-size: 13px;
+  color: #8e8e8e;
+}
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px solid #dbdbdb;
+}
+.divider:not(:empty)::before {
+  margin-right: 0.75em;
+}
+.divider:not(:empty)::after {
+  margin-left: 0.75em;
+}
