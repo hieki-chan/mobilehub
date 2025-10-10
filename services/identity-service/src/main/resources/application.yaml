@@ -28,6 +28,22 @@ spring:
               - openid
               - email
               - profile
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${GOOGLE_APP_NAME}
+    password: ${GOOGLE_APP_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+app:
+  otp:
+    expire-minutes: 1
+    from-email: "no-reply@example.com"
 #jwt:
 #  signerKey: "koNAzoN/cNgpNBC6N7JFzl8Gkycz3ryA39mWjs4q1N7YPw+dB68UcwPQPNhfY3iiIE9aTl9kC5mX0640CmPGFw"
 #  issuer: "mobilehub-auth.com"

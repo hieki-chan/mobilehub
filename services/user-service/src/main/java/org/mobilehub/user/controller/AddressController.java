@@ -8,6 +8,7 @@ import org.mobilehub.user.dto.request.CreateAddressRequest;
 import org.mobilehub.user.dto.response.AddressResponse;
 import org.mobilehub.user.service.AddressService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.text.ParseException;
@@ -20,6 +21,18 @@ public class AddressController {
 
     AddressService addressService;
     TokenProvider tokenProvider;
+
+
+    @GetMapping("/")
+    public String me()  {
+        return "Hello, ";
+    }
+
+    @GetMapping("/me")
+    public String me(@RequestParam("token") String token) throws ParseException {
+        String email = tokenProvider.extractSubject(token);
+        return "Hello, " + email;
+    }
 
     @PostMapping("/create")
     public ResponseEntity<AddressResponse> createAddress(

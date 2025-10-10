@@ -35,6 +35,10 @@ public class AuthenticationService {
         User user = userMapper.toUser(registerUserRequest);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
+        // check if user exists
+        var existingUser = userRepository.findByEmail(registerUserRequest.getEmail());
+        if(existingUser .isPresent())
+            throw new UserException("User with email" + registerUserRequest.getEmail() + " is already in use");
         User savedUser = userRepository.save(user);
         return userMapper.toUserResponse(savedUser);
     }
