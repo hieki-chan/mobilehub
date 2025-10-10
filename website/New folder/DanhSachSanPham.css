@@ -1,0 +1,94 @@
+body {
+  background-color: #f8f9fa;
+}
+
+/* Navbar */
+.navbar {
+  background-color: #dd0000;
+  border-radius: 0 0 10px 10px;
+}
+
+.navbar-nav .nav-link {
+  color: #fff !important;
+  font-weight: 600;
+  margin-right: 25px;
+}
+
+.navbar-nav .nav-link.active {
+  font-weight: 800;
+}
+
+.logout-btn {
+  border: 2px solid #fff;
+  color: #fff;
+  background: transparent;
+  border-radius: 50%;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
+.logout-btn:hover {
+  background-color: #fff;
+  color: #dd0000;
+}
+
+/* Nút thêm sản phẩm */
+.btn-add {
+  background-color: #dd0000;
+  color: #fff;
+  border: none;
+  font-weight: 600;
+}
+
+.btn-add:hover {
+  background-color: #b80000;
+}
+
+/* Bảng sản phẩm */
+table th {
+  background-color: #f2f2f2;
+}
+
+.card {
+  border-radius: 10px;
+}
+
+/* Overlay mờ và form */
+.overlay {
+  display: none; /* ẩn mặc định */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-box {
+  background: #fff;
+  padding: 20px 25px;
+  border-radius: 10px;
+  width: 400px;
+  max-width: 90%;
+  position: relative;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* Nút đóng form */
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 25px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: #333;
+}
