@@ -68,8 +68,7 @@ public class AuthenticationService {
     private ClaimSet buildUserClaim(User user) {
         ClaimSet claimSet = new ClaimSet();
 
-        if (!CollectionUtils.isEmpty(user.getRoleSet()))
-            claimSet.add("roles", user.getRoleSet());
+        claimSet.add("roles", user.getRole());
 
         return claimSet;
     }

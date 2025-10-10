@@ -26,7 +26,7 @@ public interface ProductMapper {
 
     ProductDetailResponse toProductDetailResponse(Product product);
 
-    Product updateProduct(@MappingTarget Product product, UpdateProductRequest updateRequest);
+    void updateProduct(@MappingTarget Product product, UpdateProductRequest updateRequest);
 
     @Named("mapDiscountToInteger")
     default Integer mapDiscountToInteger(ProductDiscount discount) {

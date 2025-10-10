@@ -47,6 +47,6 @@ public class User {
         //updatedAt = LocalDateTime.now();
     }
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    Set<Role> roleSet;
+    @OneToOne()
+    Role role;
 }

@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MailService {
     private final JavaMailSender mailSender;
 
-    @Value("${spring.mail.username:renderman205@gmail.com}")
+    @Value("${spring.mail.username:}")
     private String configuredEmail;
 
     @Value("${app.otp.from-email:no-reply@example.com}")
@@ -56,7 +56,7 @@ public class MailService {
             %s
         </div>
         <p style="color: #777; font-size: 12px;">
-            This code will expire in <b>5 minutes</b>. If you didn’t request this, you can safely ignore this email.
+            This code will expire in <b>1 minutes</b>. If you didn’t request this, you can safely ignore this email.
         </p>
     </div>
     <p style="text-align:center; font-size: 12px; color: #aaa; margin-top: 16px;">

@@ -23,28 +23,27 @@ public class SecurityConfig {
         http
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(auth ->
-                {
-                    auth.requestMatchers(
-                            "/v3/api-docs/**",
-                            "/swagger-ui/**",
-                            "/swagger-ui.html",
-                            "/swagger-resources/**",
-                            "/webjars/**"
-                    ).permitAll();
-                    auth.requestMatchers("/register", "/verify", "/resend-otp").permitAll();
-                    auth.requestMatchers("/").permitAll();
-                    auth.requestMatchers("/favicon.ico").permitAll();
-                    auth.anyRequest().authenticated();
-                })
-                .oauth2Login(oauth -> oauth
-                        .successHandler(oAuth2SuccessHandler))
-                //.formLogin(Customizer.withDefaults());
-                .formLogin(AbstractHttpConfigurer::disable)  // disable form login
-                .httpBasic(AbstractHttpConfigurer::disable); // disable HTTP Basic
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/swagger-resources/**",
+                                "/webjars/**"
+                        ).permitAll()
+                        // allowing these
+                        .requestMatchers("/register", "/verify", "/resend-otp", "/token", "/validate").permitAll()
+                        .requestMatchers("/", "/favicon.ico").permitAll()
+                        // authenticated
+                        .anyRequest().authenticated()
+                )
+                .oauth2Login(oauth -> oauth.successHandler(oAuth2SuccessHandler))
+                .formLogin(AbstractHttpConfigurer::disable)
+                .httpBasic(AbstractHttpConfigurer::disable);
 
         return http.build();
     }
+
 
     @Bean
     public PasswordEncoder passwordEncoder() {
