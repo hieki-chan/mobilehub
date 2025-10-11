@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="vi">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Trang chủ | Vphone</title>
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="home.css">
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="topbar" id="topbar" role="banner">
+        <div class="container topbar-inner">
+            <a href="#" class="logo" aria-label="Vphone - Trang chủ">
+                <svg class="logo-mark" width="48" height="48" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden>
+                    <rect width="120" height="120" rx="18" fill="#DD0000" />
+                    <g transform="translate(14,18)" fill="#ffffff">
+                        <circle cx="10" cy="10" r="6"></circle>
+                        <circle cx="34" cy="10" r="6"></circle>
+                        <circle cx="58" cy="10" r="6"></circle>
+                        <rect x="6" y="40" width="62" height="12" rx="6"></rect>
+                    </g>
+                </svg>
+                <div class="logo-text">
+                    <div class="brand">Vphone</div>
+                    <div class="brand-sub">Điện thoại • Phụ kiện</div>
+                </div>
+            </a>
+
+            <div class="search-wrap" role="search" aria-label="Tìm sản phẩm">
+                <input id="searchInput" type="search" placeholder="Tìm điện thoại, model, mã..."
+                    aria-label="Tìm sản phẩm" />
+                <button class="icon-btn" aria-label="Tìm kiếm">
+                    <i class="fa fa-magnifying-glass"></i>
+                </button>
+            </div>
+
+            <nav class="top-actions" aria-label="Tài khoản và giỏ hàng">
+                <a href="login.html" class="action" id="loginLink" aria-label="Đăng nhập">
+                    <i class="fa fa-user"></i><span class="label">Đăng nhập</span>
+                </a>
+                <a href="cart.html" class="action" id="cartLink" aria-label="Giỏ hàng">
+                    <i class="fa fa-shopping-cart"></i><span class="label">Giỏ hàng</span>
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="main-nav" id="mainNav" role="navigation" aria-label="Main navigation">
+        <div class="container nav-inner">
+            <ul class="menu" role="menubar" aria-label="Danh mục">
+                <li><a class="nav-item" role="menuitem" tabindex="0" href="#"><i
+                            class="fa fa-mobile-screen-button"></i><span>Điện thoại</span></a></li>
+                <li><a class="nav-item" role="menuitem" tabindex="0" href="#"><i
+                            class="fa fa-tablet"></i><span>Tablet</span></a></li>
+                <li><a class="nav-item" role="menuitem" tabindex="0" href="#"><i class="fa fa-headphones"></i><span>Phụ
+                            kiện</span></a></li>
+                <li><a class="nav-item" role="menuitem" tabindex="0" href="#"><i class="fa fa-bolt"></i><span>Sạc &
+                            Pin</span></a></li>
+                <li><a class="nav-item" role="menuitem" tabindex="0" href="#"><i class="fa fa-tags"></i><span>Khuyến
+                            mãi</span></a></li>
+                <li><a class="nav-item" role="menuitem" tabindex="0" href="#"><i class="fa fa-cog"></i><span>Dịch
+                            vụ</span></a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero" aria-label="Banner chính">
+        <div class="carousel" id="carousel" aria-roledescription="carousel">
+            <div class="carousel-track" id="carouselTrack">
+                <div class="slide active" style="background-image: linear-gradient(135deg, #06b6d4, #0ea5e9);">
+                    <div class="slide-content">
+                        <h2>Khuyến mãi điện thoại — Giá tốt mỗi ngày</h2>
+                        <p class="muted">Chọn model yêu thích, giao nhanh toàn quốc.</p>
+                    </div>
+                </div>
+                <div class="slide" style="background-image: linear-gradient(135deg, #06b6d4, #0891b2);">
+                    <div class="slide-content">
+                        <h2>Vphone Pro Series</h2>
+                        <p class="muted">Hiệu năng mạnh — Camera chuyên nghiệp.</p>
+                    </div>
+                </div>
+                <div class="slide" style="background-image: linear-gradient(135deg, #0ea5e9, #06b6d4);">
+                    <div class="slide-content">
+                        <h2>Flash Sale — Số lượng có hạn</h2>
+                        <p class="muted">Đừng bỏ lỡ giá rẻ trong ngày.</p>
+                    </div>
+                </div>
+            </div>
+
+            <button class="carousel-arrow prev" id="prevBtn" aria-label="Slide trước">
+                <i class="fa fa-chevron-left"></i>
+            </button>
+            <button class="carousel-arrow next" id="nextBtn" aria-label="Slide sau">
+                <i class="fa fa-chevron-right"></i>
+            </button>
+            <div class="carousel-dots" id="carouselDots" role="tablist" aria-label="Chọn slide"></div>
+        </div>
+    </section>
+
+    <!-- Products -->
+    <main class="container main-content" id="mainContent">
+        <h3 class="section-title">Sản phẩm</h3>
+        <section class="products-grid" id="productGrid" aria-label="Danh sách sản phẩm">
+            <div class="loading" role="status" aria-live="polite" style="padding:18px; width:100%; text-align:center;">
+                Đang tải sản phẩm...
+            </div>
+        </section>
+
+        <!-- Popular searches -->
+        <section class="popular-searches container" aria-label="Mọi người cũng tìm kiếm">
+            <h4 class="popular-title">Mọi người cũng tìm kiếm</h4>
+            <div class="tags-wrap">
+                <a href="#" class="tag">Vphone Pro 6</a>
+                <a href="#" class="tag">Vphone X</a>
+                <a href="#" class="tag">iPhone 17</a>
+                <a href="#" class="tag">Samsung S25</a>
+                <a href="#" class="tag">Pixel 9</a>
+                <a href="#" class="tag">Điện thoại chơi game</a>
+                <a href="#" class="tag">Camera phone</a>
+                <a href="#" class="tag">Pin dự phòng</a>
+                <a href="#" class="tag">Ốp lưng</a>
+                <a href="#" class="tag">Sạc 65W</a>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="container footer-inner">
+            <div class="brand">Vphone</div>
+            <div class="spacer"></div>
+            <div class="muted">© Vphone demo</div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="home.js"></script>
+</body>
+
+</html>
