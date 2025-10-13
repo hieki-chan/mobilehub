@@ -4,19 +4,20 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sản phẩm Masstel S9</title>
+
     <!-- Bootstrap -->
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
     />
-
-    <link href="./ascet/bootrap/css/bootstrap.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="product.css" />
+    <link href="../../assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="../../assets/css/product-detail.css" />
   </head>
+
   <body>
     <!-- Header -->
     <div class="header">
-      <h3>Vphone</h3>
+      <h3>MobileHub</h3>
       <input
         type="text"
         class="form-control w-50"
@@ -26,7 +27,7 @@
         <a href="giohang.html" class="btn btn-dark">
           <i class="bi bi-cart-fill me-1"></i> Giỏ hàng
         </a>
-        <a href="login.html" class="btn btn-outline-dark">
+        <a href="login.html" class="btn btn-outline-light">
           <i class="bi bi-person-circle me-1"></i> Đăng nhập
         </a>
       </div>
@@ -35,9 +36,26 @@
     <!-- Main Content -->
     <div class="container my-4">
       <div class="row">
-        <!-- Ảnh sản phẩm -->
-        <div class="col-md-5 product-img">
-          <img src="./Anh_mob.png" alt="Masstel S9" />
+        <!-- Ảnh sản phẩm có nút điều hướng & chấm chỉ số -->
+        <div class="col-md-5 product-img text-center">
+          <div class="slideshow-container">
+            <img
+              id="productImage"
+              src="../../assets/images/hinh-nen-i16.jpg"
+              alt="Masstel S9"
+            />
+
+            <!-- Nút điều hướng -->
+            <button class="prev-btn">&#10094;</button>
+            <button class="next-btn">&#10095;</button>
+
+            <!-- Dấu chấm chỉ số -->
+            <div class="dots">
+              <span class="dot active"></span>
+              <span class="dot"></span>
+              <span class="dot"></span>
+            </div>
+          </div>
         </div>
 
         <!-- Thông tin sản phẩm -->
@@ -46,6 +64,7 @@
           <p class="price">
             2.740.000đ <span class="old-price">3.240.000đ</span> (-15%)
           </p>
+
           <div
             class="p-3 mt-2 rounded text-white"
             style="background: linear-gradient(90deg, #ff6600, #ff9900)"
@@ -75,6 +94,7 @@
               </div>
             </div>
           </div>
+
           <div class="promo mt-3">
             <h6>Khuyến mãi</h6>
             <ul>
@@ -84,27 +104,26 @@
               <li>Nhập mã VNPAY giảm 100k (đơn hàng từ 2tr)</li>
             </ul>
           </div>
-          <!-- Các nút hành động -->
+
           <div class="d-flex gap-2 mt-3">
-            <!-- Nút thêm vào giỏ -->
-            <button class="btn btn-outline-primary flex-fill">
+            <button id="btnAddCart" class="btn btn-outline-primary flex-fill">
               🛒 Thêm vào giỏ
             </button>
-
-            <!-- Nút mua ngay -->
-            <button class="btn btn-warning flex-fill text-white fw-bold">
+            <button
+              id="btnBuyNow"
+              class="btn btn-warning flex-fill text-white fw-bold"
+            >
               Mua ngay
             </button>
           </div>
 
-          <!-- Nút mua trả chậm -->
           <div class="mt-2">
             <button class="btn btn-primary w-100">Mua trả chậm 0%</button>
           </div>
         </div>
       </div>
 
-      <!-- Thêm phần cam kết & sản phẩm tham khảo ở đây -->
+      <!-- Cam kết -->
       <div class="row mt-4">
         <div class="col-12">
           <div class="p-3 bg-white rounded shadow-sm mb-3">
@@ -128,16 +147,8 @@
 
       <!-- Thông tin thêm -->
       <div class="mb-3">
-        <!-- Nút bấm -->
         <div class="d-flex gap-3">
-          <button
-            class="btn btn-outline-dark"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#thongso"
-            aria-expanded="false"
-            aria-controls="thongso"
-          >
+          <button id="btnThongSo" class="btn btn-outline-dark">
             Thông số kỹ thuật
           </button>
           <button
@@ -145,160 +156,89 @@
             type="button"
             data-bs-toggle="collapse"
             data-bs-target="#thongtin"
-            aria-expanded="false"
-            aria-controls="thongtin"
           >
             Thông tin sản phẩm
           </button>
         </div>
 
-        <!-- Khối Thông số kỹ thuật -->
-        <div class="collapse mt-3" id="thongso" data-bs-parent=".mt-5">
-          <div class="card card-body">
+        <!-- Popup Thông số kỹ thuật -->
+        <div id="popupThongSo" class="popup-overlay">
+          <div class="popup-box">
+            <button class="close-popup">&times;</button>
+            <h5>📱 Thông số kỹ thuật Masstel S9</h5>
+            <hr />
+
             <div class="row">
-              <!-- Ảnh bên trái -->
               <div class="col-md-6 text-center">
                 <img
-                  src="./anh_tt.png"
+                  src="../../assets/images/anh_tt.png"
                   alt="Thông số kỹ thuật"
                   class="img-fluid"
                 />
               </div>
-              <!-- Thông số bên phải -->
-              <div class="col-md-6">
-                <h6>Cấu hình & Bộ nhớ</h6>
+
+              <div class="col-md-6 text-start">
+                <h6 class="mt-2">Cấu hình & Bộ nhớ</h6>
+                <p>- ID sản phẩm: LỚN</p>
                 <p>- RAM: 6GB</p>
                 <p>- Bộ nhớ trong: 256GB</p>
+                <p>- CPU: Helio G85</p>
+                <p>- Tốc độ CPU: 2.0 GHz</p>
+                <p>- GPU: Mali-G52 MC2</p>
+                <p>- Hệ điều hành (OS): Android 13</p>
+                <p>- Dung lượng lưu trữ: 256GB</p>
 
-                <h6 class="mt-3">Camera & Màn hình</h6>
-                <p>- Camera trước: 8MP</p>
-                <p>- Camera sau: 50MP + 2MP + 2MP</p>
-                <p>- Màn hình: 6.6 inch, FullHD+</p>
+                <h6 class="mt-3">Màn hình & Camera</h6>
+                <p>- Kích thước: 6.6 inch</p>
+                <p>- Độ phân giải màn hình (screen_res): Full HD+</p>
+                <p>- Camera trước (front_cam): 8MP</p>
+                <p>- Camera sau (rear_cam): 50MP + 2MP + 2MP</p>
 
-                <h6 class="mt-3">Pin & Sạc</h6>
+                <h6 class="mt-3">Pin & Năng lượng</h6>
                 <p>- Dung lượng pin: 5000mAh</p>
                 <p>- Sạc nhanh: 25W</p>
+                <p>- Ngày phát hành: 2024</p>
 
-                <h6 class="mt-3">Kết nối</h6>
-                <p>- USB Type-C, Jack 3.5mm, Bluetooth 5.0</p>
+                <h6 class="mt-3">Vật liệu & Thiết kế</h6>
+                <p>- Vật liệu: Nhựa nguyên khối</p>
+                <p>- Kích thước & trọng lượng: 164.5 x 75.9 x 8.4 mm, 190g</p>
+
+                <h6 class="mt-3">Kết nối & Tính năng</h6>
+                <p>- Tính năng: Mở khóa khuôn mặt, vân tay cạnh bên</p>
+                <p>- Cổng kết nối: USB Type-C, Jack 3.5mm</p>
+                <p>- Bluetooth: 5.0</p>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Khối Thông tin sản phẩm (thay thế phần trước đó) -->
-        <div class="collapse mt-3" id="thongtin" data-bs-parent=".mt-5">
+        <!-- Thông tin sản phẩm -->
+        <div class="collapse mt-3" id="thongtin">
           <div class="card card-body">
             <h5>Đánh giá Điện thoại Masstel S9 6GB/256GB</h5>
-
             <div class="d-flex align-items-start gap-3 mt-3 rating-summary">
-              <!-- Left: điểm trung bình & tổng -->
               <div class="rating-left text-center">
                 <div
                   class="d-flex align-items-baseline justify-content-center gap-2"
                 >
-                  <span id="rating-value" class="fs-1 fw-bold text-warning"
-                    >4.9</span
-                  >
+                  <span class="fs-1 fw-bold text-warning">4.9</span>
                   <small class="text-muted">/5</small>
                 </div>
                 <div class="small text-muted">115,6k khách hài lòng</div>
-                <div class="small text-muted" id="total-reviews">
-                  49 đánh giá
-                </div>
+                <div class="small text-muted">49 đánh giá</div>
               </div>
-
-              <!-- Right: các thanh % -->
               <div class="flex-grow-1 rating-bars">
-                <!-- template mỗi hàng -->
                 <div class="d-flex align-items-center mb-2">
                   <div class="me-2 small">
                     5 <span class="text-warning">★</span>
                   </div>
                   <div class="progress flex-grow-1" style="height: 8px">
-                    <div
-                      class="progress-bar"
-                      role="progressbar"
-                      style="width: 99.9%"
-                      aria-valuenow="99.9"
-                      aria-valuemin="0"
-                      aria-valuemax="100"
-                    ></div>
+                    <div class="progress-bar" style="width: 99.9%"></div>
                   </div>
-                  <div class="ms-2 small pct">99.9%</div>
-                </div>
-
-                <div class="d-flex align-items-center mb-2">
-                  <div class="me-2 small">
-                    4 <span class="text-warning">★</span>
-                  </div>
-                  <div class="progress flex-grow-1" style="height: 8px">
-                    <div
-                      class="progress-bar"
-                      role="progressbar"
-                      style="width: 0%"
-                      aria-valuenow="0"
-                      aria-valuemin="0"
-                      aria-valuemax="100"
-                    ></div>
-                  </div>
-                  <div class="ms-2 small pct">0%</div>
-                </div>
-
-                <div class="d-flex align-items-center mb-2">
-                  <div class="me-2 small">
-                    3 <span class="text-warning">★</span>
-                  </div>
-                  <div class="progress flex-grow-1" style="height: 8px">
-                    <div
-                      class="progress-bar"
-                      role="progressbar"
-                      style="width: 0%"
-                      aria-valuenow="0"
-                      aria-valuemin="0"
-                      aria-valuemax="100"
-                    ></div>
-                  </div>
-                  <div class="ms-2 small pct">0%</div>
-                </div>
-
-                <div class="d-flex align-items-center mb-2">
-                  <div class="me-2 small">
-                    2 <span class="text-warning">★</span>
-                  </div>
-                  <div class="progress flex-grow-1" style="height: 8px">
-                    <div
-                      class="progress-bar"
-                      role="progressbar"
-                      style="width: 0%"
-                      aria-valuenow="0"
-                      aria-valuemin="0"
-                      aria-valuemax="100"
-                    ></div>
-                  </div>
-                  <div class="ms-2 small pct">0%</div>
-                </div>
-
-                <div class="d-flex align-items-center">
-                  <div class="me-2 small">
-                    1 <span class="text-warning">★</span>
-                  </div>
-                  <div class="progress flex-grow-1" style="height: 8px">
-                    <div
-                      class="progress-bar"
-                      role="progressbar"
-                      style="width: 0%"
-                      aria-valuenow="0"
-                      aria-valuemin="0"
-                      aria-valuemax="100"
-                    ></div>
-                  </div>
-                  <div class="ms-2 small pct">0%</div>
+                  <div class="ms-2 small">99.9%</div>
                 </div>
               </div>
             </div>
-
-            <!-- Ví dụ 2 review hiển thị bên dưới -->
             <div class="mt-3">
               <div class="border rounded p-3 mb-2">
                 <strong>Văn Chấm</strong> ⭐⭐⭐⭐⭐ <br />
@@ -307,7 +247,6 @@
                   “Mình muốn xem trả góp được bao nhiêu lần thì làm sao ạ...”
                 </p>
               </div>
-
               <div class="border rounded p-3 mb-2">
                 <strong>Đinh Quốc Thắng</strong> ⭐⭐⭐⭐⭐ <br />
                 <small class="text-success">Đã mua tại TGDĐ</small>
@@ -315,16 +254,59 @@
                   “28/2 sử dụng tới tháng 7 samsung quá vẫn ổn định...”
                 </p>
               </div>
-
               <div class="mt-3 d-flex gap-2">
-                <button class="btn btn-primary">Viết đánh giá</button>
+                <button class="btn btn-primary" id="btnDanhGia">
+                  Viết đánh giá
+                </button>
               </div>
+
+              <!-- ===== FORM VIẾT ĐÁNH GIÁ ===== -->
+              <div id="popupDanhGia" class="popup-overlay">
+                <div class="popup-box">
+                  <button class="close-popup-dg">&times;</button>
+                  <h5 class="mb-3">📝 Viết đánh giá sản phẩm</h5>
+                  <form id="formDanhGia">
+                    <div class="mb-2">
+                      <label>Họ và tên:</label>
+                      <input type="text" class="form-control" required />
+                    </div>
+                    <div class="mb-2">
+                      <label>Đánh giá sao:</label>
+                      <select class="form-select">
+                        <option value="5">★★★★★ - Rất tốt</option>
+                        <option value="4">★★★★☆ - Tốt</option>
+                        <option value="3">★★★☆☆ - Bình thường</option>
+                        <option value="2">★★☆☆☆ - Tệ</option>
+                        <option value="1">★☆☆☆☆ - Rất tệ</option>
+                      </select>
+                    </div>
+                    <div class="mb-2">
+                      <label>Nhận xét:</label>
+                      <textarea
+                        class="form-control"
+                        rows="4"
+                        required
+                      ></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-dark w-100 mt-2">
+                      Gửi đánh giá
+                    </button>
+                  </form>
+                </div>
+              </div>
+              <!-- ===== HẾT FORM ===== -->
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <script src="./ascet/bootrap/js/bootstrap.bundle.min.js"></script>
+    <!-- Box thông báo -->
+    <div id="alertBox" class="alert-box">
+      <h5 id="alertMessage">Sản phẩm đã được thêm vào giỏ!</h5>
+    </div>
+
+    <script src="../../assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="../../assets/js/product-detail.js"></script>
   </body>
 </html>

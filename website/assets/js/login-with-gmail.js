@@ -2,7 +2,7 @@ function selectAccount(email) {
   if (email === "other") {
     // alert("Chọn: Sử dụng tài khoản khác");
     setTimeout(() => {
-      window.location.href = "AccountDiffence.html"; // Trang chính
+      window.location.href = "login-with-different-account.html"; // Trang chính
     }, 300);
   } else {
     setTimeout(() => {
