@@ -1,7 +1,10 @@
 package org.mobilehub.product.service;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.mobilehub.product.converter.MediaConverter;
+import org.mobilehub.product.mapper.ProductSpecMapper;
+import org.mobilehub.product.repository.ProductSpecRepository;
+import org.mobilehub.shared.common.converter.MediaConverter;
 import org.mobilehub.product.dto.request.CreateProductRequest;
 import org.mobilehub.product.dto.request.UpdateProductRequest;
 import org.mobilehub.product.dto.response.ProductDetailResponse;
@@ -22,6 +25,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -29,19 +33,26 @@ import java.util.List;
 public class ProductService {
 
     private final ProductRepository productRepository;
+    private final ProductSpecRepository productSpecRepository;
+
     private final ProductMapper productMapper;
-    private final MediaConverter mediaConverter;
+    private final ProductSpecMapper productSpecMapper;
+
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
-    //@Transactional
+    @Transactional
     public ProductResponse createProduct(CreateProductRequest request, List<MultipartFile> files) {
+        var productSpec = productSpecMapper.toProductSpec(request);
+        productSpecRepository.save(productSpec);
+
         Product product = productMapper.toProduct(request);
+        product.setSpec(productSpec);
         Product savedProduct = productRepository.save(product);
 
         // publish upload image event
         ImageUploadEvent event = new ImageUploadEvent();
         event.setProductId(product.getId());
-        event.setFiles(mediaConverter.convertToBase64(files));
+        event.setFiles(MediaConverter.convertToBase64(files));
 
         kafkaTemplate.send(ImageTopics.IMAGE_UPLOAD, event);
 
@@ -94,6 +105,14 @@ public class ProductService {
         }
     }
 
+    public List<ProductResponse> getDiscountedProducts() {
+        return productRepository.findActiveDiscountProducts(LocalDateTime.now())
+                .stream()
+                .map(productMapper::toProductResponse)
+                .toList();
+    }
+
+    @Transactional
     @KafkaListener(topics = ImageTopics.IMAGE_UPLOADED)
     public void handleImageUploaded(ImageUploadedEvent event) {
         Product product = productRepository.findById(event.getProductId())
@@ -101,6 +120,6 @@ public class ProductService {
         product.getImages().add(productMapper.toProductImage(event));
         productRepository.save(product);
 
-        System.out.println("Image uploaded: " + event.getPublicId());
+        System.out.println("Image saved: " + event.getPublicId());
     }
 }

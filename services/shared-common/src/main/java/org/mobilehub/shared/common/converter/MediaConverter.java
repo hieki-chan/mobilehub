@@ -1,4 +1,4 @@
-package org.mobilehub.product.converter;
+package org.mobilehub.shared.common.converter;
 
 import org.springframework.web.multipart.MultipartFile;
 
@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class MediaConverter {
-    public List<String> convertToBase64(List<MultipartFile> files) {
+    public static List<String> convertToBase64(List<MultipartFile> files) {
         return files.stream()
                 .map(file -> {
                     try {
@@ -18,5 +18,9 @@ public class MediaConverter {
                     }
                 })
                 .collect(Collectors.toList());
+    }
+
+    public static byte[] decodeFromBase64(String base64) {
+        return Base64.getDecoder().decode(base64);
     }
 }

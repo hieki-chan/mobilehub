@@ -1,6 +1,6 @@
 package org.mobilehub.product.config;
 
-import org.mobilehub.product.converter.MediaConverter;
+import org.mobilehub.shared.common.converter.MediaConverter;
 import org.mobilehub.product.converter.MultipartJacksonHttpMessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,10 +21,5 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
         converters.add(0, multipartConverter);
-    }
-
-    @Bean
-    public MediaConverter mediaConverter() {
-        return new MediaConverter();
     }
 }

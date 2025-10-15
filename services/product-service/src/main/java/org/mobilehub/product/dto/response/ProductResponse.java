@@ -12,5 +12,6 @@ public class ProductResponse {
 
     private BigDecimal price;
     private Integer discountInPercent;
-    private BigDecimal discountedPrice;
+
+    public BigDecimal discountedPrice;
 }

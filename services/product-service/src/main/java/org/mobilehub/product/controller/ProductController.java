@@ -28,6 +28,8 @@ import java.util.Map;
 @Validated
 public class ProductController {
     private final ProductService productService;
+
+    // region Admin-side APIs
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ProductResponse> createProduct(
             @Valid @RequestPart("request") CreateProductRequest request,
@@ -53,27 +55,32 @@ public class ProductController {
         return ResponseEntity.ok(response);
     }
 
+    // endregion
+
     @GetMapping("{productId}")
-    public ResponseEntity<ProductResponse> getProduct(@RequestParam Long productId)
+    public ResponseEntity<ProductResponse> getProduct(@PathVariable Long productId)
     {
         return ResponseEntity.ok(productService.getProductResponse(productId));
     }
 
     @GetMapping("{productId}/preview")
-    public ResponseEntity<ProductPreviewResponse> getProductPreview(@RequestParam Long productId)
+    public ResponseEntity<ProductPreviewResponse> getProductPreview(@PathVariable Long productId)
     {
         return ResponseEntity.ok(productService.getProductPreview(productId));
     }
 
     @GetMapping("{productId}/detail")
-    public ResponseEntity<ProductDetailResponse> getProductDetail(@RequestParam Long productId)
+    public ResponseEntity<ProductDetailResponse> getProductDetail(@PathVariable Long productId)
     {
         return ResponseEntity.ok(productService.getProductDetail(productId));
     }
 
+    // region Client-side APIs
     @GetMapping
-    public ResponseEntity<List<ProductResponse>> getDiscountProduct()
+    public ResponseEntity<List<ProductResponse>> getDiscountedProducts()
     {
-        return ResponseEntity.ok(null);
+        var discountedProducts = productService.getDiscountedProducts();
+        return ResponseEntity.ok(discountedProducts);
     }
+    // endregion
 }

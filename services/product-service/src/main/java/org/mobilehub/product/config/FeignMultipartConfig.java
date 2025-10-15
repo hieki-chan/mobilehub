@@ -8,7 +8,8 @@ import org.springframework.cloud.openfeign.support.SpringEncoder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-@Configuration
+//Configuration
+@Deprecated
 public class FeignMultipartConfig {
 
     @Bean

@@ -34,5 +34,15 @@ public interface ProductMapper {
     }
 
     // EVENT MAPPING
-    ProductImage toProductImage(ImageUploadedEvent imageUploadedEvent);
+    @Mapping(target = "product", source = "productId")
+    @Mapping(target = "publicId", source = "publicId")
+    @Mapping(target = "isMain", constant = "false")
+    ProductImage toProductImage(ImageUploadedEvent event);
+
+    default Product mapProduct(Long productId) {
+        if (productId == null) return null;
+        Product product = new Product();
+        product.setId(productId);
+        return product;
+    }
 }

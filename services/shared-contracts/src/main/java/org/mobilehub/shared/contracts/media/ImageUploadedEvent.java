@@ -8,4 +8,5 @@ public class ImageUploadedEvent {
     private Long productId;
     private String publicId;
     private String url;
+    private boolean isMain;
 }

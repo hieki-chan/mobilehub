@@ -9,6 +9,7 @@ import org.mobilehub.cloud_media.dto.response.ImageVersions;
 import org.mobilehub.cloud_media.dto.response.UploadResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.mobilehub.shared.common.converter.MediaConverter;
 import org.mobilehub.shared.contracts.media.ImageDeleteEvent;
 import org.mobilehub.shared.contracts.media.ImageTopics;
 import org.mobilehub.shared.contracts.media.ImageUploadEvent;
@@ -37,10 +38,11 @@ public class CloudMediaService {
 
     @KafkaListener(topics = ImageTopics.IMAGE_UPLOAD)
     public void handleUpload(ImageUploadEvent event) {
+        boolean isDefault = true;
         for (String base64 : event.getFiles()) {
             try {
                 // Decode Base64 to bytes
-                byte[] bytes = Base64.getDecoder().decode(base64);
+                byte[] bytes = MediaConverter.decodeFromBase64(base64);
 
                 var result = cloudinary.uploader().upload(bytes,
                         ObjectUtils.asMap(
@@ -56,6 +58,8 @@ public class CloudMediaService {
                 uploadedEvent.setProductId(event.getProductId());
                 uploadedEvent.setPublicId(publicId);
                 uploadedEvent.setUrl(url);
+                uploadedEvent.setMain(isDefault);
+                isDefault = false;
 
                 kafkaTemplate.send(ImageTopics.IMAGE_UPLOADED, uploadedEvent);
 
