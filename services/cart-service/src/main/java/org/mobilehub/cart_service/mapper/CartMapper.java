@@ -2,6 +2,7 @@ package org.mobilehub.cart_service.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mobilehub.cart_service.dto.CartAddRequest;
 import org.mobilehub.cart_service.dto.CartDTO;
 import org.mobilehub.cart_service.dto.CartItemDTO;
 import org.mobilehub.cart_service.entity.Cart;
@@ -17,6 +18,8 @@ public interface CartMapper {
     @Mapping(target = "subtotal",
             expression = "java(entity.getPrice().multiply(java.math.BigDecimal.valueOf(entity.getQuantity())))")
     CartItemDTO toCartItemDTO(CartItem entity);
+
+    CartItem toCartItem(CartAddRequest request);
 
     @Mapping(target = "totalAmount",
             expression = "java(calculateTotal(entity))")

@@ -23,12 +23,6 @@ public class CartItem {
 
     private Long productId;
 
-    private String productName;
-    // Lưu URL ảnh thumbnail sản phẩm
-    private String thumbnailUrl;
-
-    private BigDecimal price;
-
     private int quantity;
 
     public double getSubtotal(){

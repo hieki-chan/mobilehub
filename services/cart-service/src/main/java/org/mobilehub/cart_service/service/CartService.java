@@ -47,19 +47,9 @@ public class CartService {
 
         if (existing != null) {
             existing.setQuantity(existing.getQuantity() + request.getQuantity());
-            existing.setPrice(request.getPrice());
-            existing.setProductName(request.getProductName());
-            existing.setThumbnailUrl(request.getThumbnailUrl());
             cartItemRepository.save(existing);
         } else {
-            CartItem newItem = CartItem.builder()
-                    .cart(cart)
-                    .productId(request.getProductId())
-                    .productName(request.getProductName())
-                    .thumbnailUrl(request.getThumbnailUrl())
-                    .price(request.getPrice())
-                    .quantity(request.getQuantity())
-                    .build();
+            CartItem newItem = cartMapper.toCartItem(request);
             cartItemRepository.save(newItem);
         }
 
@@ -102,8 +92,6 @@ public class CartService {
         CartDTO cart = getCart(userId);
         List<CartItem> items = cartItemRepository.findByCartId(cart.getId());
 
-        return items.stream()
-                .map(i -> i.getPrice().multiply(BigDecimal.valueOf(i.getQuantity())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        return null;
     }
 }
