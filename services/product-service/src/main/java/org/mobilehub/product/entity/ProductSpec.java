@@ -54,7 +54,7 @@ public class ProductSpec {
     @Column(nullable = false)
     private String size_weight;
 
-    @Column(nullable = true)
+    @Column(nullable = false)
     private String brand;
 
     @Column(nullable = false)

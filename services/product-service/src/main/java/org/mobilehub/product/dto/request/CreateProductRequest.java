@@ -62,4 +62,7 @@ public class CreateProductRequest {
 
     @NotBlank(message = "Release date is required")
     private String release_date;
+
+    @NotBlank(message = "Brand cannot be null")
+    private String brand;
 }
