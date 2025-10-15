@@ -59,10 +59,10 @@ public class CreateProductRequest {
 
     @NotBlank(message = "Size & weight is required")
     private String size_weight;
+    
+    @NotBlank(message = "Brand is required")
+    private String brand;
 
     @NotBlank(message = "Release date is required")
     private String release_date;
-
-    @NotBlank(message = "Brand cannot be null")
-    private String brand;
 }

@@ -75,12 +75,22 @@ public class CartService {
         return cartMapper.toCartItemDTO(saved);
     }
 
-    public void removeItem(Long itemId) {
-        if (!cartItemRepository.existsById(itemId)) {
-            throw new CartItemNotFoundException(itemId);
-        }
-        cartItemRepository.deleteById(itemId);
+    public void removeItem(Long userId, Long itemId) {
+        // Tìm cart theo userId
+        var cart = cartRepository.findByUserId(userId)
+                .orElseThrow(() -> new CartNotFoundException(userId));
+
+        // Tìm item theo id và cartId (đảm bảo item thuộc giỏ của user)
+        var item = cartItemRepository.findById(itemId)
+                .filter(i -> i.getCart().getId().equals(cart.getId()))
+                .orElseThrow(() -> new CartItemNotFoundException(
+                        "Item " + itemId + " not found in cart of user " + userId
+                ));
+
+        // Xóa item
+        cartItemRepository.delete(item);
     }
+
 
     //Xoa toan bo san pham trong gio hang
     public void clearCart(Long userId){

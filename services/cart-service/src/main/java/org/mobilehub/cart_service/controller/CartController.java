@@ -50,12 +50,16 @@ public class CartController {
     }
 
     @DeleteMapping("/item/{itemId}")
-    public ResponseEntity<Map<String, String>> removeItem(@PathVariable Long itemId) {
-        cartService.removeItem(itemId);
+    public ResponseEntity<Map<String, String>> removeItem(
+            @RequestParam Long userId,
+            @PathVariable Long itemId
+    ) {
+        cartService.removeItem(userId, itemId);
         Map<String, String> response = new HashMap<>();
         response.put("message", "Item removed successfully");
         return ResponseEntity.ok(response);
     }
+
 
     @DeleteMapping("/clear")
     public ResponseEntity<Map<String, String>> clearCart(@RequestParam Long userId) {
