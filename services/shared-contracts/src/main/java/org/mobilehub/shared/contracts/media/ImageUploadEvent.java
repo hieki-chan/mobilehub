@@ -8,4 +8,5 @@ import java.util.List;
 public class ImageUploadEvent {
     private Long productId;
     private List<String> files; // Base64 encoded files
+    private String folder;
 }

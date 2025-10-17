@@ -12,7 +12,9 @@ import java.math.BigDecimal;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ProductPreviewResponse {
     String name;
+    String imageUrl;
+
     BigDecimal price;
-    Integer discount;
+    Integer discountInPercent;
     BigDecimal discountedPrice;
 }

@@ -20,6 +20,9 @@ public class ProductImage {
     String publicId;
 
     @Column
+    String url;
+
+    @Column
     boolean isMain;
 
     @Enumerated(EnumType.STRING)

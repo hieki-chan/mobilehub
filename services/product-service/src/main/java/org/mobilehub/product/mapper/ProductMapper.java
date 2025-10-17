@@ -18,12 +18,13 @@ import org.mobilehub.shared.contracts.media.ImageUploadedEvent;
 public interface ProductMapper {
     Product toProduct(CreateProductRequest request);
 
+    @Mapping(target = "discountInPercent", source = "discount", qualifiedByName = "mapDiscountToInteger")
     ProductResponse toProductResponse(Product product);
 
-    @Mapping(target = "discount", source = "discount", qualifiedByName = "mapDiscountToInteger")
-
+    @Mapping(target = "discountInPercent", source = "discount", qualifiedByName = "mapDiscountToInteger")
     ProductPreviewResponse toProductPreviewResponse(Product product);
 
+    @Mapping(target = "discountInPercent", source = "discount", qualifiedByName = "mapDiscountToInteger")
     ProductDetailResponse toProductDetailResponse(Product product);
 
     void updateProduct(@MappingTarget Product product, UpdateProductRequest updateRequest);

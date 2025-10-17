@@ -46,7 +46,7 @@ public class CloudMediaService {
 
                 var result = cloudinary.uploader().upload(bytes,
                         ObjectUtils.asMap(
-                                "folder", "products",
+                                "folder", event.getFolder(),
                                 "resource_type", "image"
                         ));
 

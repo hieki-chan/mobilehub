@@ -1,17 +1,21 @@
 package org.mobilehub.product.dto.response;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.FieldDefaults;
 
 import java.math.BigDecimal;
 
 @Getter
 @Setter
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class ProductResponse {
-    private String name;
+    String name;
 
-    private BigDecimal price;
-    private Integer discountInPercent;
+    String imageUrl;
 
-    public BigDecimal discountedPrice;
+    BigDecimal price;
+    Integer discountInPercent;
+    BigDecimal discountedPrice;
 }

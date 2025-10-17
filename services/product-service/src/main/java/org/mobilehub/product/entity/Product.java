@@ -54,4 +54,16 @@ public class Product {
 
         return price.multiply(multiplier);
     }
+
+    public String getMainImage() {
+        if (images == null || images.isEmpty()) {
+            return "";
+        }
+
+        return images.stream()
+                .filter(ProductImage::isMain)
+                .map(ProductImage::getUrl)
+                .findFirst()
+                .orElse(images.getFirst().getUrl());
+    }
 }

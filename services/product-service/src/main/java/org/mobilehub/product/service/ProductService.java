@@ -53,6 +53,7 @@ public class ProductService {
         ImageUploadEvent event = new ImageUploadEvent();
         event.setProductId(product.getId());
         event.setFiles(MediaConverter.convertToBase64(files));
+        event.setFolder(String.format("products/%s",  product.getId().toString()));
 
         kafkaTemplate.send(ImageTopics.IMAGE_UPLOAD, event);
 
@@ -70,17 +71,39 @@ public class ProductService {
 
     public ProductResponse getProductResponse(Long id)
     {
-        return productMapper.toProductResponse(getProduct(id));
+        var product = getProduct(id);
+        var response =  productMapper.toProductResponse(product);
+        response.setImageUrl(product.getMainImage());
+        return response;
     }
 
     public ProductPreviewResponse getProductPreview(Long id)
     {
-        return productMapper.toProductPreviewResponse(getProduct(id));
+        var product = getProduct(id);
+        var response =  productMapper.toProductPreviewResponse(product);
+        response.setImageUrl(product.getMainImage());
+        return response;
     }
 
     public ProductDetailResponse getProductDetail(Long id)
     {
-        return productMapper.toProductDetailResponse(getProduct(id));
+        var product = getProduct(id);
+        var response =  productMapper.toProductDetailResponse(product);
+        response.setMainImageUrl(
+                product.getImages().stream()
+                        .filter(ProductImage::isMain)
+                        .findFirst()
+                        .map(ProductImage::getUrl)
+                        .orElse(null)
+        );
+
+        response.setOtherImageUrls(
+                product.getImages().stream()
+                        .filter(img -> !img.isMain())
+                        .map(ProductImage::getUrl)
+                        .toList()
+        );
+        return response;
     }
 
     public Product getProduct(Long id)
