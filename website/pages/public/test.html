@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Chi tiết sản phẩm | MobileHub</title>
+
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <!-- Shared styles (same as trangchu) -->
+  <link rel="stylesheet" href="../../assets/css/home.css">
+
+  <!-- PDP overrides: minimal, only to implement requested UX -->
+  <style>
+    /* Layout */
+    .pdp-container { display:grid; grid-template-columns: 1fr 420px; gap:24px; max-width:var(--container-max); margin:18px auto; padding:0 20px 40px; }
+    @media (max-width:900px){ .pdp-container{ grid-template-columns:1fr; padding:0 16px } }
+
+    .gallery, .pdp-info, .desc, .specs, .reviews { background:#fff; border-radius:12px; padding:18px; box-shadow:var(--shadow); }
+
+    /* Main image & thumbs */
+    .main-image{ width:100%; height:420px; display:flex; align-items:center; justify-content:center; overflow:hidden; border-radius:12px; background:linear-gradient(135deg,#f3f4f6,#fff); }
+    .main-image img{ max-width:100%; max-height:100%; object-fit:contain }
+    .thumbs{ display:flex; gap:10px; margin-top:12px; overflow-x:auto }
+    .thumbs button{ border:0; background:transparent; padding:0; width:84px; height:64px; border-radius:8px; overflow:hidden; cursor:pointer; box-shadow:0 4px 14px rgba(16,24,40,0.04) }
+    .thumbs img{ width:100%; height:100%; object-fit:cover; display:block }
+
+    /* Variants */
+    .variants { display:flex; gap:8px; flex-wrap:wrap; margin:6px 0 }
+    .variant-btn { padding:8px 12px; border-radius:8px; border:1px solid rgba(0,0,0,0.06); cursor:pointer; background:#fff; font-weight:600; }
+    .variant-btn.active { border-color:var(--brand-primary); box-shadow:0 8px 22px rgba(221,0,0,0.12); }
+
+    .color-swatch { width:36px; height:36px; border-radius:8px; border:1px solid rgba(0,0,0,0.06); display:inline-block; vertical-align:middle; }
+    .color-wrap { display:flex; gap:10px; align-items:center; }
+
+    /* Compact qty (non-intrusive) */
+    .qty-compact { display:flex; gap:8px; align-items:center; }
+    .qty-compact button { width:36px; height:36px; border-radius:8px; border:1px solid rgba(0,0,0,0.06); background:#fff; cursor:pointer; font-weight:700; }
+    .qty-compact .num { min-width:44px; text-align:center; padding:8px 6px; border-radius:8px; border:1px solid rgba(0,0,0,0.04); background:#fbfbfb; font-weight:700; }
+
+    /* Action buttons row: make all buttons consistent size when adding Instalment */
+    .action-row { display:flex; gap:10px; align-items:center; }
+    .btn-lg { padding:10px 14px; border-radius:10px; font-weight:800; }
+
+    /* Accordion style similar to screenshots */
+    .accordion { display:flex; flex-direction:column; gap:10px; margin-top:8px; }
+    .acc-item { border-radius:12px; overflow:hidden; background:#f7fafc; box-shadow:none; }
+    .acc-head { display:flex; align-items:center; justify-content:space-between; padding:14px 16px; cursor:pointer; }
+    .acc-head h4 { margin:0; font-size:16px; font-weight:700; color:var(--text); }
+    .acc-head .chev { transition: transform 180ms ease; color:var(--muted); }
+    .acc-body { background:#fff; padding:12px 16px; display:none; border-top:1px solid rgba(0,0,0,0.04); }
+    .acc-body.open { display:block; }
+    .specs table { width:100%; border-collapse:collapse; }
+    .specs td { padding:12px 8px; border-bottom:1px dashed rgba(0,0,0,0.04); vertical-align:top; }
+    .specs td:first-child { color: #0ea5e9; font-weight:700; width:40%; } /* key in blue as in screenshot */
+
+    /* Reviews write button position */
+    .reviews .write-review { margin-top:12px; }
+
+    /* Small responsive tweaks to make action row wrap nicely */
+    @media (max-width:640px){ .action-row{ flex-wrap:wrap; } .pdp-container{ padding:0 12px } }
+  </style>
+</head>
+<body>
+  <!-- Header (kept identical to trangchu) -->
+  <header class="topbar" id="topbar" role="banner">
+    <div class="container topbar-inner">
+      <a href="index.html" class="logo" aria-label="MobileHub - Trang chủ">
+        <svg class="logo-mark" width="48" height="48" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+          <rect width="120" height="120" rx="18" fill="#DD0000" />
+          <g transform="translate(14,18)" fill="#ffffff">
+            <circle cx="10" cy="10" r="6"></circle>
+            <circle cx="34" cy="10" r="6"></circle>
+            <circle cx="58" cy="10" r="6"></circle>
+            <rect x="6" y="40" width="62" height="12" rx="6"></rect>
+          </g>
+        </svg>
+        <div class="logo-text">
+          <div class="brand">MobileHub</div>
+          <div class="brand-sub">Điện thoại • Phụ kiện</div>
+        </div>
+      </a>
+
+      <div class="search-wrap" role="search" aria-label="Tìm sản phẩm">
+        <input id="searchInput" type="search" placeholder="Tìm điện thoại, model, mã..." aria-label="Tìm sản phẩm" />
+        <button class="icon-btn" aria-label="Tìm kiếm"><i class="fa fa-magnifying-glass"></i></button>
+      </div>
+
+      <nav class="top-actions" aria-label="Tài khoản và giỏ hàng">
+        <a href="login.html" class="action" id="loginLink" aria-label="Đăng nhập"><i class="fa fa-user"></i><span class="label">Đăng nhập</span></a>
+        <a href="cart.html" class="action" id="cartLink" aria-label="Giỏ hàng"><i class="fa fa-shopping-cart"></i><span class="label">Giỏ hàng</span></a>
+      </nav>
+    </div>
+  </header>
+
+  <nav class="main-nav" id="mainNav" role="navigation" aria-label="Main navigation">
+    <div class="container nav-inner">
+      <ul class="menu" role="menubar" aria-label="Danh mục">
+        <li><a class="nav-item" role="menuitem" tabindex="0" href="#"><i class="fa fa-mobile-screen-button"></i><span>Điện thoại</span></a></li>
+        <li><a class="nav-item" role="menuitem" tabindex="0" href="#"><i class="fa fa-tablet"></i><span>Tablet</span></a></li>
+        <li><a class="nav-item" role="menuitem" tabindex="0" href="#"><i class="fa fa-headphones"></i><span>Phụ kiện</span></a></li>
+        <li><a class="nav-item" role="menuitem" tabindex="0" href="#"><i class="fa fa-bolt"></i><span>Sạc & Pin</span></a></li>
+        <li><a class="nav-item" role="menuitem" tabindex="0" href="#"><i class="fa fa-tags"></i><span>Khuyến mãi</span></a></li>
+        <li><a class="nav-item" role="menuitem" tabindex="0" href="#"><i class="fa fa-cog"></i><span>Dịch vụ</span></a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="pdp-container" id="mainContent">
+    <!-- Left: gallery -->
+    <section class="gallery" aria-label="Hình ảnh sản phẩm">
+      <div class="breadcrumb muted" style="margin-bottom:10px"> <a href="index.html">Trang chủ</a> &nbsp;/&nbsp; <a href="sanpham.html">Điện thoại</a> &nbsp;/&nbsp; <span id="bcTitle">Sản phẩm</span></div>
+
+      <div class="main-image" id="mainImage">
+        <img src="https://via.placeholder.com/900x600?text=No+Image" alt="">
+      </div>
+
+      <div class="thumbs" id="thumbs"></div>
+    </section>
+
+    <!-- Right: info -->
+    <aside class="pdp-info" aria-label="Thông tin sản phẩm">
+      <div class="muted">SKU: <strong id="skuVal">-</strong></div>
+      <h1 id="pTitle">Sản phẩm</h1>
+
+      <div class="rating" aria-hidden="true">
+        <div class="stars" id="stars">★★★★★</div>
+        <div class="muted" id="reviewCount">(0 đánh giá)</div>
+      </div>
+
+      <div class="price-row">
+        <div class="price" id="pPrice">0₫</div>
+        <div class="old" id="pOld"></div>
+      </div>
+
+      <div class="muted" id="pShort"></div>
+
+      <!-- capacity -->
+      <div style="margin-top:10px">
+        <div style="font-weight:700; margin-bottom:8px">Chọn dung lượng</div>
+        <div class="variants" id="capacityWrap" role="list"></div>
+      </div>
+
+      <!-- color -->
+      <div style="margin-top:10px">
+        <div style="font-weight:700; margin-bottom:8px">Chọn màu</div>
+        <div id="colorWrap" class="color-wrap" role="list"></div>
+      </div>
+
+      <!-- compact quantity + actions -->
+      <div style="display:flex; gap:12px; align-items:center; margin-top:12px">
+        <div class="qty-compact" aria-label="Số lượng">
+          <button id="qtyDec" aria-label="Giảm">-</button>
+          <div class="num" id="qtyDisplay">1</div>
+          <button id="qtyInc" aria-label="Tăng">+</button>
+        </div>
+
+        <div class="action-row" style="margin-left:auto">
+          <button class="btn btn-primary btn-lg" id="addCart">Thêm vào giỏ</button>
+          <button class="btn btn-primary btn-lg" id="buyNow">Mua ngay</button>
+          <button class="btn btn-secondary btn-lg" id="instalment">Mua trả góp</button>
+        </div>
+      </div>
+
+      <div class="muted" id="stockInfo" style="margin-top:8px">Tình trạng: <strong id="stockVal">-</strong></div>
+
+      <div style="margin-top:12px; display:flex; gap:8px; align-items:center">
+        <button class="icon-btn" id="shareBtn" aria-label="Chia sẻ"><i class="fa fa-share-nodes"></i></button>
+        <button class="icon-btn" id="favBtn" aria-label="Thêm yêu thích"><i class="fa-regular fa-heart"></i></button>
+      </div>
+    </aside>
+
+    <!-- Full-width: description, specs, reviews -->
+    <section style="grid-column:1 / -1">
+      <div class="desc">
+        <h3>Mô tả sản phẩm</h3>
+        <p id="longDesc">—</p>
+      </div>
+
+      <div class="specs">
+        <h3>Thông số kỹ thuật</h3>
+        <div class="accordion" id="accordion">
+          <!-- injected -->
+        </div>
+      </div>
+
+      <div class="reviews">
+        <h3>Đánh giá</h3>
+        <div id="reviewsList" style="display:flex; flex-direction:column; gap:12px; margin-top:8px"></div>
+        <div class="write-review"><button class="btn btn-primary" id="openReview">Viết đánh giá</button></div>
+      </div>
+
+      <div class="related" style="margin-top:18px">
+        <h3 class="section-title">Sản phẩm liên quan</h3>
+        <div class="related-grid" id="relatedGrid"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div class="brand">MobileHub</div>
+      <div class="spacer"></div>
+      <div class="muted">© MobileHub demo</div>
+    </div>
+  </footer>
+
+  <!-- reuse home.js (keeps homepage mock in sync) -->
+  <script src="../../assets/js/home.js"></script>
+
+  <!-- PDP script (improved per your requirements) -->
+  <script>
+    (function(){
+      // Keep mock consistent with home.js
+      const mockProducts = [
+        { id:"v1", name:"Vphone Pro 6 - 256GB", price:19990000, oldPrice:21990000, images:["https://via.placeholder.com/900x600?text=Vphone+Pro+6","https://via.placeholder.com/900x600?text=Vphone+Pro+6+2"], tags:["new"], status:"available", sku:"VPHONE-PRO-6-256", desc:"Vphone Pro 6 - Màn hình 6.7\", camera 108MP, pin 5000mAh.", specs: { "Cấu hình & Bộ nhớ": { "Hệ điều hành": "Android 15", "Chip xử lý (CPU)": "Snapdragon 6 Gen 4 5G 8 nhân", "Tốc độ CPU": "2.3 GHz", "RAM": "8 GB", "Dung lượng lưu trữ": "256 GB" }, "Camera & Màn hình": {"Camera chính":"108MP","Camera phụ":"12MP","Màn hình":"6.7 inch OLED"}, "Pin & Sạc": {"Dung lượng pin":"5000mAh","Sạc":"65W"}, "Tiện ích":{"Cổng":"USB-C, NFC"}, "Kết nối":{"Bluetooth":"5.3"} }, variants: { capacity:["128GB","256GB"], color:[{label:'Đen', value:'#111827'},{label:'Xanh', value:'#0ea5e9'},{label:'Đỏ', value:'#dd0000'}] } },
+        { id:"v2", name:"Vphone X - 128GB", price:13990000, images:["https://via.placeholder.com/900x600?text=Vphone+X"], status:"available", sku:"VPHONE-X-128", desc:"Vphone X - Mỏng nhẹ.", specs: {"Cấu hình & Bộ nhớ":{"Hệ điều hành":"Android 14","RAM":"8GB","Dung lượng lưu trữ":"128GB"}}, variants:{ capacity:["64GB","128GB"], color:[{label:'Tím',value:'#7c3aed'},{label:'Xám',value:'#6b7280'}] } }
+      ];
+
+      function getParam(name){ return new URLSearchParams(location.search).get(name); }
+      const id = getParam('id') || getParam('product') || 'v1';
+
+      function formatPrice(v){ if(v==null||v==='') return ''; try{return new Intl.NumberFormat('vi-VN').format(Number(v)) + '₫'}catch(e){return String(v)+'₫'} }
+
+      const productsPool = (window.__MOCK_PRODUCTS__ && window.__MOCK_PRODUCTS__.length) ? window.__MOCK_PRODUCTS__ : mockProducts;
+      const p = productsPool.find(x=>String(x.id)===String(id)) || mockProducts[0];
+
+      // Render basics
+      document.getElementById('bcTitle').textContent = p.name;
+      document.getElementById('pTitle').textContent = p.name;
+      document.getElementById('skuVal').textContent = p.sku || p.id;
+      document.getElementById('pPrice').textContent = p.price ? formatPrice(p.price) : 'Liên hệ';
+      document.getElementById('pOld').textContent = p.oldPrice ? formatPrice(p.oldPrice) : '';
+      document.getElementById('pShort').textContent = p.desc || '';
+      document.getElementById('stockVal').textContent = (p.status==='available') ? 'Còn hàng' : (p.status==='coming_soon' ? 'Sắp có hàng' : 'Hết hàng');
+      document.getElementById('longDesc').textContent = p.desc || '';
+
+      // Images
+      const mainImg = document.querySelector('#mainImage img');
+      const thumbs = document.getElementById('thumbs');
+      (p.images || [p.image || 'https://via.placeholder.com/900x600?text=No+Image']).forEach((src,i)=>{
+        if(i===0) mainImg.src = src;
+        const btn = document.createElement('button');
+        btn.innerHTML = '<img src="'+src+'" alt="'+(p.name||'')+'"/>';
+        btn.addEventListener('click', ()=>{ mainImg.src = src; });
+        thumbs.appendChild(btn);
+      });
+
+      // Capacity variants
+      const capWrap = document.getElementById('capacityWrap'); const capacityList = (p.variants && p.variants.capacity) || [];
+      let selectedCap = capacityList[0] || null;
+      capacityList.forEach(c=>{
+        const b = document.createElement('button'); b.className='variant-btn'; b.textContent=c;
+        b.addEventListener('click', ()=>{ document.querySelectorAll('#capacityWrap .variant-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); selectedCap=c; });
+        if(c===selectedCap) b.classList.add('active'); capWrap.appendChild(b);
+      });
+
+      // Color variants (swatches)
+      const colorWrap = document.getElementById('colorWrap'); const colorList = (p.variants && p.variants.color) || [];
+      let selectedColor = colorList[0] ? colorList[0].label : null;
+      colorList.forEach(c=>{
+        const btn = document.createElement('button'); btn.className='variant-btn'; btn.style.display='flex'; btn.style.alignItems='center'; btn.style.gap='8px';
+        const sw = document.createElement('span'); sw.className='color-swatch'; sw.style.background = c.value; sw.title = c.label;
+        btn.appendChild(sw); const txt = document.createElement('span'); txt.textContent = c.label; btn.appendChild(txt);
+        btn.addEventListener('click', ()=>{ document.querySelectorAll('#colorWrap .variant-btn').forEach(x=>x.classList.remove('active')); btn.classList.add('active'); selectedColor=c.label; });
+        if(c.label===selectedColor) btn.classList.add('active'); colorWrap.appendChild(btn);
+      });
+
+      // Accordion for specs (closed by default)
+      const accordion = document.getElementById('accordion'); const specs = p.specs || {};
+      Object.keys(specs).forEach(sectionTitle=>{
+        const item = document.createElement('div'); item.className='acc-item';
+        item.innerHTML = '<div class="acc-head"><h4>'+sectionTitle+'</h4><div class="chev"><i class="fa fa-chevron-down"></i></div></div><div class="acc-body"></div>';
+        const body = item.querySelector('.acc-body');
+        const rows = specs[sectionTitle];
+        if(typeof rows === 'object'){
+          const table = document.createElement('table'); const tbody = document.createElement('tbody');
+          Object.keys(rows).forEach(k=>{ const tr = document.createElement('tr'); tr.innerHTML = '<td>'+k+'</td><td>'+rows[k]+'</td>'; tbody.appendChild(tr); });
+          table.appendChild(tbody); body.appendChild(table);
+        } else { body.textContent = rows; }
+        accordion.appendChild(item);
+        const head = item.querySelector('.acc-head'); head.addEventListener('click', ()=>{
+          const open = body.classList.toggle('open');
+          const chev = head.querySelector('.chev i');
+          if(open) chev.style.transform = 'rotate(180deg)'; else chev.style.transform = 'rotate(0deg)';
+        });
+      });
+
+      // Related products
+      const relatedGrid = document.getElementById('relatedGrid');
+      const related = productsPool.filter(x=>x.id!==p.id).slice(0,4);
+      relatedGrid.innerHTML = related.map(r=>{
+        const price = r.price ? formatPrice(r.price) : '<span class="muted">Liên hệ</span>';
+        return `
+          <article class="product-card" role="article" aria-label="${r.name}">
+            <div class="img-wrap"><img src="${(r.images&&r.images[0])||r.image||'https://via.placeholder.com/420x260?text=No+Image'}" alt="${r.name}"/></div>
+            <div class="product-info"><h4 class="product-title">${r.name}</h4><div class="price-row"><div class="price">${price}</div></div>
+              <div style="display:flex; gap:8px; margin-top:8px"><button class="btn btn-primary" data-pid="${r.id}">Mua ngay</button> <a class="btn btn-secondary" href="product.html?id=${encodeURIComponent(r.id)}">Xem</a></div>
+            </div>
+          </article>
+        `;
+      }).join('');
+
+      // Quantity (compact)
+      let qty = 1; const qtyDisplay = document.getElementById('qtyDisplay'); qtyDisplay.textContent = qty;
+      document.getElementById('qtyInc').addEventListener('click', ()=>{ qty = Math.min(99, qty+1); qtyDisplay.textContent = qty; });
+      document.getElementById('qtyDec').addEventListener('click', ()=>{ qty = Math.max(1, qty-1); qtyDisplay.textContent = qty; });
+
+      // Cart: localStorage simple
+      function getCart(){ try{ return JSON.parse(localStorage.getItem('mh_cart')||'[]') }catch(e){return []} }
+      function saveCart(c){ localStorage.setItem('mh_cart', JSON.stringify(c)); }
+
+      document.getElementById('addCart').addEventListener('click', ()=>{
+        const cart = getCart(); const existing = cart.find(i=>i.id===p.id && i.capacity===selectedCap && i.color===selectedColor);
+        if(existing) existing.qty += qty; else cart.push({ id:p.id, name:p.name, price:p.price, qty, capacity:selectedCap, color:selectedColor });
+        saveCart(cart); alert('Đã thêm vào giỏ hàng');
+      });
+
+      document.getElementById('buyNow').addEventListener('click', ()=>{
+        localStorage.setItem('mh_cart', JSON.stringify([{ id:p.id, name:p.name, price:p.price, qty, capacity:selectedCap, color:selectedColor }])); location.href='cart.html';
+      });
+
+      // Instalment: present clear CTA + simple calc (demo)
+      document.getElementById('instalment').addEventListener('click', ()=>{
+        const months = Number(prompt('Chọn số tháng trả góp (3,6,9,12):','6')) || 6;
+        const fee = 0.02; // demo interest
+        const principal = p.price || 0;
+        const monthly = Math.ceil((principal*(1+fee)) / months);
+        alert(`Trả góp ${months} tháng — khoảng ${new Intl.NumberFormat('vi-VN').format(monthly)}₫/tháng (demo).`);
+      });
+
+      // share & favorite
+      document.getElementById('shareBtn').addEventListener('click', ()=>{ if(navigator.share){ navigator.share({ title:p.name, text:p.desc, url:location.href }).catch(()=>{}); } else { navigator.clipboard?.writeText(location.href).then(()=>alert('Đã sao chép liên kết')); }});
+      const favBtn = document.getElementById('favBtn');
+      function isFav(){ const f = JSON.parse(localStorage.getItem('mh_fav')||'[]'); return f.includes(p.id); }
+      function renderFav(){ favBtn.innerHTML = isFav() ? '<i class="fa fa-heart" style="color:#ff4444"></i>' : '<i class="fa-regular fa-heart"></i>'; }
+      favBtn.addEventListener('click', ()=>{ const f = JSON.parse(localStorage.getItem('mh_fav')||'[]'); if(isFav()){ const idx=f.indexOf(p.id); if(idx>-1) f.splice(idx,1); } else f.push(p.id); localStorage.setItem('mh_fav', JSON.stringify(f)); renderFav(); }); renderFav();
+
+      // Reviews (localStorage) + "Viết đánh giá" button near reviews
+      const reviewsKey = 'mh_reviews_'+p.id;
+      function loadReviews(){ try{ return JSON.parse(localStorage.getItem(reviewsKey)||'[]') }catch(e){return[]} }
+      function saveReviews(arr){ localStorage.setItem(reviewsKey, JSON.stringify(arr)); }
+      function renderReviews(){ const list = loadReviews(); const el = document.getElementById('reviewsList'); if(!list.length){ el.innerHTML = '<div class="muted">Chưa có đánh giá nào. Hãy là người đầu tiên!</div>'; } else { el.innerHTML = list.map(r=>`<div style="background:#fff;padding:12px;border-radius:8px;box-shadow:0 6px 18px rgba(16,24,40,0.04)"><div style="display:flex;gap:8px;align-items:center"><strong>${r.name}</strong><div class="muted" style="font-size:13px"> - ${'★'.repeat(r.rating)}</div></div><div class="muted" style="margin-top:6px">${r.comment}</div></div>`).join(''); } }
+      renderReviews();
+
+      document.getElementById('openReview').addEventListener('click', ()=>{
+        // quick modal-like prompt (demo) — can replace with a proper modal quickly
+        const name = prompt('Tên của bạn:'); if(!name) return;
+        const rating = Number(prompt('Đánh giá (1-5):','5')) || 5;
+        const comment = prompt('Nội dung đánh giá:') || '';
+        const arr = loadReviews(); arr.unshift({ name, rating: Math.max(1, Math.min(5, rating)), comment }); saveReviews(arr); renderReviews(); alert('Cảm ơn đánh giá của bạn!');
+      });
+
+      // add basic JSON-LD
+      const ld = { "@context":"https://schema.org/","@type":"Product","name":p.name,"image":(p.images||[]).slice(0,5),"description":p.desc||"","sku":p.sku||p.id,"offers":{"@type":"Offer","priceCurrency":"VND","price":p.price||0,"availability": p.status==='available' ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',"url":location.href} };
+      const s = document.createElement('script'); s.type='application/ld+json'; s.textContent = JSON.stringify(ld); document.head.appendChild(s);
+    })();
+  </script>
+</body>
+</html>
