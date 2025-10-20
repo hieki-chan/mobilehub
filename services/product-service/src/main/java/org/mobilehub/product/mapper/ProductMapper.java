@@ -6,6 +6,7 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
 import org.mobilehub.product.dto.request.CreateProductRequest;
 import org.mobilehub.product.dto.request.UpdateProductRequest;
+import org.mobilehub.product.dto.response.ProductCartResponse;
 import org.mobilehub.product.dto.response.ProductDetailResponse;
 import org.mobilehub.product.dto.response.ProductPreviewResponse;
 import org.mobilehub.product.dto.response.ProductResponse;
@@ -26,6 +27,9 @@ public interface ProductMapper {
 
     @Mapping(target = "discountInPercent", source = "discount", qualifiedByName = "mapDiscountToInteger")
     ProductDetailResponse toProductDetailResponse(Product product);
+
+    @Mapping(target = "discountInPercent", source = "discount", qualifiedByName = "mapDiscountToInteger")
+    ProductCartResponse toProductCartResponse(Product product);
 
     void updateProduct(@MappingTarget Product product, UpdateProductRequest updateRequest);
 

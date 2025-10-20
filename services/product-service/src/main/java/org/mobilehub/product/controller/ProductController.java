@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.mobilehub.product.dto.request.CreateProductRequest;
 import org.mobilehub.product.dto.request.UpdateProductRequest;
+import org.mobilehub.product.dto.response.ProductCartResponse;
 import org.mobilehub.product.dto.response.ProductDetailResponse;
 import org.mobilehub.product.dto.response.ProductPreviewResponse;
 import org.mobilehub.product.dto.response.ProductResponse;
@@ -36,6 +37,11 @@ public class ProductController {
             @RequestPart("files") MultipartFile[] files) {
         ProductResponse created = productService.createProduct(request, Arrays.stream(files).toList());
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
+    @GetMapping("{productId}/cart")
+    public ResponseEntity<ProductCartResponse> getProductCart(@PathVariable Long productId) {
+        return ResponseEntity.ok(productService.getProductCartResponse(productId));
     }
 
     @PutMapping("/update/{productId}")

@@ -2,6 +2,7 @@ package org.mobilehub.product.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.mobilehub.product.dto.response.ProductCartResponse;
 import org.mobilehub.product.mapper.ProductSpecMapper;
 import org.mobilehub.product.repository.ProductSpecRepository;
 import org.mobilehub.shared.common.converter.MediaConverter;
@@ -104,6 +105,12 @@ public class ProductService {
                         .toList()
         );
         return response;
+    }
+
+
+    public ProductCartResponse getProductCartResponse(Long productId) {
+        var product = getProduct(productId);
+        return productMapper.toProductCartResponse(product);
     }
 
     public Product getProduct(Long id)

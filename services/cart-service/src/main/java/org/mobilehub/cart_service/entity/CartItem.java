@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @Builder
 public class CartItem {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -23,9 +24,16 @@ public class CartItem {
 
     private Long productId;
 
+    private String productName;
+
+    private String thumbnailUrl;
+
+    private BigDecimal price;
+
     private int quantity;
 
-    public double getSubtotal(){
-        return price.doubleValue() * quantity;
+    public BigDecimal getSubtotal() {
+        if (price == null) return BigDecimal.ZERO;
+        return price.multiply(BigDecimal.valueOf(quantity));
     }
 }
