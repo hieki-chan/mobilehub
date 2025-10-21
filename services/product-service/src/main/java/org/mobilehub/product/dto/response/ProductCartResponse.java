@@ -9,7 +9,7 @@ import lombok.experimental.FieldDefaults;
 @Getter @Setter @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ProductCartResponse {
     String name;
-    String color;
+    String material;
     String imageUrl;
     BigDecimal price;
     Integer discountInPercent;

@@ -97,6 +97,7 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-openfeign</artifactId>
+            <version>5.0.0-M2</version>
         </dependency>
 
         <!-- Shared internal modules -->
@@ -112,12 +113,7 @@
             <artifactId>common</artifactId>
             <version>1.0.0</version>
         </dependency>
-        <dependency>
-            <groupId>org.mobilehub</groupId>
-            <artifactId>product-service</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-            <scope>compile</scope>
-        </dependency>
+
     </dependencies>
 
     <dependencyManagement>

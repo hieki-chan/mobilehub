@@ -10,6 +10,7 @@ import org.mobilehub.product.dto.response.ProductDetailResponse;
 import org.mobilehub.product.dto.response.ProductPreviewResponse;
 import org.mobilehub.product.dto.response.ProductResponse;
 import org.mobilehub.product.service.ProductService;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -61,6 +62,15 @@ public class ProductController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("")
+    public ResponseEntity<Page<ProductResponse>> getProducts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    )
+    {
+        return ResponseEntity.ok(productService.getProducts(page, size));
+    }
+
     // endregion
 
     @GetMapping("{productId}")
@@ -82,7 +92,7 @@ public class ProductController {
     }
 
     // region Client-side APIs
-    @GetMapping
+    @GetMapping("/discounted")
     public ResponseEntity<List<ProductResponse>> getDiscountedProducts()
     {
         var discountedProducts = productService.getDiscountedProducts();

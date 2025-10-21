@@ -21,6 +21,10 @@ import org.mobilehub.shared.contracts.media.ImageDeleteEvent;
 import org.mobilehub.shared.contracts.media.ImageTopics;
 import org.mobilehub.shared.contracts.media.ImageUploadEvent;
 import org.mobilehub.shared.contracts.media.ImageUploadedEvent;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -141,6 +145,15 @@ public class ProductService {
                 .map(productMapper::toProductResponse)
                 .toList();
     }
+
+    public Page<ProductResponse> getProducts(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+
+        Page<Product> pageData = productRepository.findAll(pageable);
+
+        return pageData.map(productMapper::toProductResponse);
+    }
+
 
     @Transactional
     @KafkaListener(topics = ImageTopics.IMAGE_UPLOADED)

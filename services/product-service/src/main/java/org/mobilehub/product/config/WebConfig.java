@@ -20,6 +20,6 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
-        converters.add(0, multipartConverter);
+        converters.addFirst(multipartConverter);
     }
 }
