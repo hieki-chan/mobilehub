@@ -1,9 +1,7 @@
 package org.mobilehub.cart_service.mapper;
 
 import org.mapstruct.*;
-import org.mobilehub.cart_service.dto.CartAddRequest;
-import org.mobilehub.cart_service.dto.CartDTO;
-import org.mobilehub.cart_service.dto.CartItemDTO;
+import org.mobilehub.cart_service.dto.*;
 import org.mobilehub.cart_service.entity.Cart;
 import org.mobilehub.cart_service.entity.CartItem;
 
@@ -16,9 +14,10 @@ public interface CartMapper {
     // ✅ Entity → DTO: CartItem
     @Mapping(target = "subtotal",
             expression = "java(calculateSubtotal(entity))")
+    @Mapping(target = "product", ignore = true) // sẽ set trong CartService sau
     CartItemDTO toCartItemDTO(CartItem entity);
 
-    // ✅ DTO → Entity: CartItem (từ request thêm mới)
+    // ✅ DTO → Entity: CartItem (từ request)
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "cart", ignore = true)
     CartItem toCartItem(CartAddRequest request);
@@ -36,7 +35,6 @@ public interface CartMapper {
     // 🧮 Helper methods
     // ==============================
 
-    // ✅ Tính tổng tiền từng item
     default BigDecimal calculateSubtotal(CartItem entity) {
         if (entity == null || entity.getPrice() == null || entity.getQuantity() == 0) {
             return BigDecimal.ZERO;
@@ -44,7 +42,6 @@ public interface CartMapper {
         return entity.getPrice().multiply(BigDecimal.valueOf(entity.getQuantity()));
     }
 
-    // ✅ Tính tổng tiền của cả giỏ
     default BigDecimal calculateTotal(Cart entity) {
         if (entity == null || entity.getItems() == null) {
             return BigDecimal.ZERO;

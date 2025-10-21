@@ -37,22 +37,32 @@ public class CartService {
         Cart cart = cartRepository.findByUserId(userId)
                 .orElseGet(() -> cartRepository.save(Cart.builder().userId(userId).build()));
 
-        return cartMapper.toCartDTO(cart);
+        CartDTO dto = cartMapper.toCartDTO(cart);
+
+        // ✅ Gắn ProductCartResponse cho từng item
+        dto.getItems().forEach(item -> {
+            ProductCartResponse product = productClient.getProductById(item.getProductId());
+            item.setProduct(product);
+            item.setSubtotal(
+                    product.getDiscountedPrice()
+                            .multiply(BigDecimal.valueOf(item.getQuantity()))
+            );
+        });
+
+        dto.setTotalAmount(cartMapper.calculateTotal(cart));
+        return dto;
     }
 
 
-    public CartDTO addItemToCart(Long userId, CartAddRequest request) {
 
+    public CartDTO addItemToCart(Long userId, CartAddRequest request) {
         Cart cart = cartRepository.findByUserId(userId)
                 .orElseGet(() -> cartRepository.save(Cart.builder().userId(userId).build()));
 
-
         ProductCartResponse productInfo = productClient.getProductById(request.getProductId());
-
         if (productInfo == null) {
             throw new RuntimeException("Không thể lấy thông tin sản phẩm từ Product Service");
         }
-
 
         Optional<CartItem> existingOpt = cart.getItems().stream()
                 .filter(i -> i.getProductId().equals(request.getProductId()))
@@ -80,10 +90,21 @@ public class CartService {
             cart.getItems().add(newItem);
         }
 
-
         Cart saved = cartRepository.save(cart);
-        return cartMapper.toCartDTO(saved);
+        CartDTO dto = cartMapper.toCartDTO(saved);
+
+        // ✅ Gắn ProductCartResponse cho từng item
+        dto.getItems().forEach(item -> {
+            ProductCartResponse product = productClient.getProductById(item.getProductId());
+            item.setProduct(product);
+            item.setSubtotal(product.getDiscountedPrice()
+                    .multiply(BigDecimal.valueOf(item.getQuantity())));
+        });
+
+        dto.setTotalAmount(cartMapper.calculateTotal(saved));
+        return dto;
     }
+
 
     public CartItemDTO updateItemQuantity(Long itemId, int quantity) {
         if (quantity <= 0) {
