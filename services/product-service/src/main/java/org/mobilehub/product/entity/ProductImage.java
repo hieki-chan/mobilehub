@@ -20,7 +20,7 @@ public class ProductImage {
     String publicId;
 
     @Column
-    String url;
+    String imageUrl;
 
     @Column
     boolean isMain;

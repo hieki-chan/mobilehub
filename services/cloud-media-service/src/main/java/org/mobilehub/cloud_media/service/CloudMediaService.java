@@ -24,7 +24,6 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
@@ -57,7 +56,7 @@ public class CloudMediaService {
                 ImageUploadedEvent uploadedEvent = new ImageUploadedEvent();
                 uploadedEvent.setProductId(event.getProductId());
                 uploadedEvent.setPublicId(publicId);
-                uploadedEvent.setUrl(url);
+                uploadedEvent.setImageUrl(url);
                 uploadedEvent.setMain(isDefault);
                 isDefault = false;
 

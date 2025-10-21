@@ -98,14 +98,14 @@ public class ProductService {
                 product.getImages().stream()
                         .filter(ProductImage::isMain)
                         .findFirst()
-                        .map(ProductImage::getUrl)
+                        .map(ProductImage::getImageUrl)
                         .orElse(null)
         );
 
         response.setOtherImageUrls(
                 product.getImages().stream()
                         .filter(img -> !img.isMain())
-                        .map(ProductImage::getUrl)
+                        .map(ProductImage::getImageUrl)
                         .toList()
         );
         return response;

@@ -62,8 +62,8 @@ public class Product {
 
         return images.stream()
                 .filter(ProductImage::isMain)
-                .map(ProductImage::getUrl)
+                .map(ProductImage::getImageUrl)
                 .findFirst()
-                .orElse(images.getFirst().getUrl());
+                .orElse(images.getFirst().getImageUrl());
     }
 }

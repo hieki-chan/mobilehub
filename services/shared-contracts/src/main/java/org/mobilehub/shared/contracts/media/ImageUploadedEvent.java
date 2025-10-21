@@ -7,6 +7,6 @@ import lombok.Data;
 public class ImageUploadedEvent {
     private Long productId;
     private String publicId;
-    private String url;
+    private String imageUrl;
     private boolean isMain;
 }

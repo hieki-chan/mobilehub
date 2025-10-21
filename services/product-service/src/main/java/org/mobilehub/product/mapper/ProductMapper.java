@@ -40,8 +40,6 @@ public interface ProductMapper {
 
     // EVENT MAPPING
     @Mapping(target = "product", source = "productId")
-    @Mapping(target = "publicId", source = "publicId")
-    @Mapping(target = "isMain", constant = "false")
     ProductImage toProductImage(ImageUploadedEvent event);
 
     default Product mapProduct(Long productId) {
