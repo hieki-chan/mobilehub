@@ -1,7 +1,5 @@
 server:
-  port: 8085
-  servlet:
-    context-path: /cart
+  port: 8083
 
 spring:
   application:
@@ -21,3 +19,18 @@ spring:
       hibernate:
         format_sql: true
 
+  cloud:
+    compatibility-verifier:
+      enabled: false
+
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 3000
+        readTimeout: 5000
+        loggerLevel: full
+
+services:
+  product:
+    url: http://localhost:8087/api/products
