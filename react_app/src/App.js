@@ -1,24 +1,26 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Header from "./components/Header";
-import Users from "./pages/Users";
-import Products from "./pages/Products";
+import ThanhTieuDe from "./components/ThanhTieuDe";
+import NguoiDung from "./pages/NguoiDung";
+import SanPham from "./pages/SanPham";
 
-function App() {
+function UngDung() {
   return (
     <Router>
-      <Header />
+      <ThanhTieuDe />
       <Routes>
         <Route
           path="/"
           element={
-            <div className="text-center p-5">Welcome to Electro Dashboard</div>
+            <div className="text-center p-5">
+              Chào mừng đến trang quản lý Electro
+            </div>
           }
         />
-        <Route path="/users" element={<Users />} />
-        <Route path="/products" element={<Products />} />
+        <Route path="/nguoi-dung" element={<NguoiDung />} />
+        <Route path="/san-pham" element={<SanPham />} />
       </Routes>
     </Router>
   );
 }
 
-export default App;
+export default UngDung;
