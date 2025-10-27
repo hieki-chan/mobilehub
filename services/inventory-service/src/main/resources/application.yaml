@@ -1,0 +1,31 @@
+server:
+  port: 8086
+
+spring:
+  application:
+    name: order-service
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/mobilehub_inventory
+    username: root
+    password: root1234!
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
+    consumer:
+      group-id: inventory-service
+      # Cho phép converter deserialize các class trong module shared
+      properties:
+        spring.json.trusted.packages: "org.mobilehub.shared.*"
+    listener:
+      # tuỳ chọn: số luồng consumer (cân bằng với partitions)
+      concurrency: 3
