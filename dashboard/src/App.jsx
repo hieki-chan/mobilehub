@@ -1,26 +1,44 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import ThanhTieuDe from "./components/ThanhTieuDe";
-import NguoiDung from "./pages/NguoiDung";
-import SanPham from "./pages/SanPham";
+import React from 'react'
+import { Routes, Route } from 'react-router-dom'
 
-function UngDung() {
+import Sidebar from './components/common_components/Sidebar'
+
+import OverviewPage from './pages/OverviewPage'
+import ProductsPage from './pages/ProductsPage'
+import UsersPage from './pages/UsersPage'
+import SalesPage from './pages/SalesPage'
+import OrdersPage from './pages/OrdersPage'
+import AnalyticsPage from './pages/AnalyticsPage'
+import SettingsPage from './pages/SettingsPage'
+
+
+
+const App = () => {
   return (
-    <Router>
-      <ThanhTieuDe />
+    <div className='flex h-screen bg-gray-900 text-gray-100 overflow-hidden'>
+
+      {/* BACKGROUND SETTINGS */}
+      <div className='fixed inset-0 z-0'>
+        <div className='absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 opacity-80' />
+        <div className='absolute inset-0 backdrop-blur-3xl' />
+      </div>
+
+
+      <Sidebar />
+
+
       <Routes>
-        <Route
-          path="/"
-          element={
-            <div className="text-center p-5">
-              Chào mừng đến trang quản lý Electro
-            </div>
-          }
-        />
-        <Route path="/nguoi-dung" element={<NguoiDung />} />
-        <Route path="/san-pham" element={<SanPham />} />
+        <Route path='/' element={<OverviewPage />} />
+        <Route path='/products' element={<ProductsPage />} />
+        <Route path='/users' element={<UsersPage />} />
+        <Route path='/sales' element={<SalesPage />} />
+        <Route path='/orders' element={<OrdersPage />} />
+        <Route path='/analytics' element={<AnalyticsPage />} />
+        <Route path='/settings' element={<SettingsPage />} />
       </Routes>
-    </Router>
-  );
+
+    </div>
+  )
 }
 
-export default UngDung;
+export default App
