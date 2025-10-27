@@ -1,6 +1,7 @@
 package org.mobilehub.product.service;
 
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
+//import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.mobilehub.product.dto.response.ProductCartResponse;
 import org.mobilehub.product.mapper.ProductSpecMapper;
@@ -82,6 +83,7 @@ public class ProductService {
         return response;
     }
 
+    @Transactional(readOnly = true)
     public ProductPreviewResponse getProductPreview(Long id)
     {
         var product = getProduct(id);

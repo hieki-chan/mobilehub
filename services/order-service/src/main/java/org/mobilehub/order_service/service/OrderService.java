@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -36,7 +37,7 @@ public class OrderService {
         order.setShippingAddress("Địa chỉ mặc định " + request.getUserId());
         order.setPaymentMethod(request.getPaymentMethod());
         order.setStatus(OrderStatus.PENDING);
-        order.setCreatedAt(LocalDateTime.now());
+        order.setCreatedAt(Instant.now());
 
         // Tạo danh sách sản phẩm từ request
         List<OrderItem> items = request.getItems().stream()
