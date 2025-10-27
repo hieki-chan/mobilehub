@@ -21,9 +21,6 @@ public class User {
     @Column(name = "email", unique = true, nullable = false)
     String email;
 
-    @Column(name = "phone-number", unique = true)
-    String phoneNumber;
-
     @Column(name = "username", nullable = false,  unique = true)
     String username;
 
@@ -31,7 +28,10 @@ public class User {
     String password;
 
     @Enumerated(EnumType.STRING)
-    private SignInProvider provider;
+    SignInProvider provider;
+
+    @Enumerated(EnumType.STRING)
+    Role role;
 
     private LocalDateTime createdAt;
     //private LocalDateTime updatedAt;
@@ -46,7 +46,4 @@ public class User {
     protected void onUpdate() {
         //updatedAt = LocalDateTime.now();
     }
-
-    @OneToOne()
-    Role role;
 }

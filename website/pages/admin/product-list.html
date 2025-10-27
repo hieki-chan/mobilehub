@@ -96,14 +96,38 @@
                 required
               />
             </div>
+            <!-- Product specification fields (user enters specs, not spec id) -->
             <div class="mb-3">
-              <label for="productSpec" class="form-label">Spec ID</label>
-              <input
-                type="number"
-                class="form-control"
-                id="productSpec"
-                required
-              />
+              <label class="form-label">Thông số kỹ thuật</label>
+              <div class="row g-2">
+                <div class="col-6">
+                  <input type="text" class="form-control mb-2" id="spec_brand" placeholder="Brand" />
+                  <input type="text" class="form-control mb-2" id="spec_cpu" placeholder="CPU" />
+                  <input type="text" class="form-control mb-2" id="spec_cpu_speed" placeholder="CPU speed" />
+                  <input type="text" class="form-control mb-2" id="spec_ram" placeholder="RAM" />
+                  <input type="text" class="form-control mb-2" id="spec_storage_cap" placeholder="Storage capacity" />
+                  <input type="text" class="form-control mb-2" id="spec_os" placeholder="OS" />
+                </div>
+                <div class="col-6">
+                  <input type="text" class="form-control mb-2" id="spec_battery_cap" placeholder="Battery capacity" />
+                  <input type="text" class="form-control mb-2" id="spec_front_cam" placeholder="Front camera" />
+                  <input type="text" class="form-control mb-2" id="spec_rear_cam" placeholder="Rear camera" />
+                  <input type="text" class="form-control mb-2" id="spec_gpu" placeholder="GPU" />
+                  <input type="text" class="form-control mb-2" id="spec_screen_res" placeholder="Screen resolution" />
+                  <input type="text" class="form-control mb-2" id="spec_size_weight" placeholder="Size / Weight" />
+                </div>
+                <div class="col-12">
+                  <input type="text" class="form-control mb-2" id="spec_features" placeholder="Features (comma separated)" />
+                  <input type="text" class="form-control mb-2" id="spec_material" placeholder="Material" />
+                  <input type="text" class="form-control mb-2" id="spec_release_date" placeholder="Release date" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Images (one URL per line) -->
+            <div class="mb-3">
+              <label for="productImages" class="form-label">Ảnh sản phẩm (mỗi dòng 1 URL)</label>
+              <textarea class="form-control" id="productImages" rows="3" placeholder="https://..."></textarea>
             </div>
             <button type="submit" class="btn btn-primary w-100">
               Thêm sản phẩm

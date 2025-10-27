@@ -1,7 +1,7 @@
 (function () {
     // 1. Tạo div menu ở đầu body
     var menuDiv = document.getElementById("sidebar");
-    menuDiv.setAttribute("w3-include-html", "/admin_dashboard/dist/menu/menu.html");
+    menuDiv.setAttribute("w3-include-html", "/website/admin_dashboard/dist/menu/menu.html");
     document.addEventListener("DOMContentLoaded", function () {
         document.body.prepend(menuDiv);
     });

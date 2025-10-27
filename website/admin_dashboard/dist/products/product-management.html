@@ -269,7 +269,7 @@
                                         <td><input type="checkbox"></td>
                                         <td>
                                             <img style="width: 80px; height: 100px; object-fit: cover;"
-                                                src="/assets/images/anh_bia.png" alt="Ảnh sản phẩm">
+                                                src="../assets/images/bg/4853433.jpg" alt="Ảnh sản phẩm">
                                         </td>
                                         <td>Samsung Galaxy S100</td>
                                         <td>Samsung</td>
@@ -293,9 +293,10 @@
                                         <td><input type="checkbox"></td>
                                         <td>
                                             <img style="width: 80px; height: 100px; object-fit: cover;"
-                                                src="https://res.cloudinary.com/dvxbjkujw/image/upload/v1760507775/products/fg85n2bwix7bgsjjp3u2.jpg" alt="Ảnh sản phẩm">
+                                                src="https://res.cloudinary.com/dvxbjkujw/image/upload/v1760507775/products/fg85n2bwix7bgsjjp3u2.jpg"
+                                                alt="Ảnh sản phẩm">
                                         </td>
-                                        <td>Samsung  S200</td>
+                                        <td>Samsung S200</td>
                                         <td>Apple</td>
                                         <td>17/10/2025</td>
                                         <td>999,999 vnd</td>
@@ -358,6 +359,65 @@
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="../services/product-service.js"></script>
 
+
+    <script>
+        async function loadProducts(page = 0, size = 10) {
+            try {
+                const res = await axios.get(`http://localhost:8082/api/products?page=${page}&size=${size}`);
+                const data = res.data;
+                const products = data?.content ?? [];
+                console.log(data);
+                console.log(products);
+
+                if (!Array.isArray(products)) {
+                    console.error("API không đúng format Page<T>:", data);
+                    return;
+                }
+
+                const tbody = document.querySelector('#table1 tbody');
+                tbody.innerHTML = '';
+
+                products.forEach(p => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+        <td><input type="checkbox"></td>
+        <td>
+            <img style="width: 80px; height: 100px; object-fit: cover;"
+                src="${p.imageUrl ?? '/assets/images/placeholder.png'}" alt="Ảnh sản phẩm">
+        </td>
+        <td>${p.name}</td>
+        <td>---</td> <!-- brand chưa có -->
+        <td>---</td> <!-- releaseDate chưa có -->
+        <td>${formatPrice(p.discountedPrice ?? p.price)} vnd</td>
+        <td>---</td> <!-- view count -->
+        <td>---</td> <!-- comments -->
+        <td><span class="badge bg-success">Active</span></td>
+        <td>
+            <button class="btn btn-outline-primary btn-sm"><i class="bi bi-eye"></i></button>
+            <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
+            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+        </td>
+    `;
+                    tbody.appendChild(row);
+                });
+
+
+            } catch (err) {
+                console.error("Lỗi khi load sản phẩm", err);
+                if (err.response) {
+                    console.error("Backend trả về:", err.response.data);
+                }
+            }
+        }
+
+        function formatPrice(value) {
+    if (!value && value !== 0) return '0';
+    return Number(value).toLocaleString('vi-VN'); // ví dụ: 1000000 → "1.000.000"
+}
+
+
+        document.addEventListener('DOMContentLoaded', () => loadProducts());
+    </script>
 </body>
 
 </html>
