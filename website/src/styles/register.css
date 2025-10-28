@@ -1,0 +1,204 @@
+.register-page {
+    min-height: calc(100vh - var(--topbar-h));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 36px 18px;
+    background: var(--bg);
+}
+
+/* Card */
+.register-card {
+    width: 100%;
+    max-width: 400px;
+    background: #fff;
+    border-radius: 12px;
+    padding: 22px;
+    box-shadow: var(--shadow);
+    border: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+/* Headings */
+.register-card h2 {
+    font-size: 20px;
+    margin: 0 0 6px;
+}
+
+.register-card .muted {
+    color: var(--muted);
+    font-size: 14px;
+    margin-bottom: 12px;
+}
+
+/* Errors */
+.form-error {
+    background: #fff3f3;
+    border: 1px solid rgba(221, 0, 0, 0.08);
+    color: #b91c1c;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    font-weight: 600;
+}
+
+/* ================= Form Fields ================= */
+.register-form .field {
+    margin-bottom: 12px;
+}
+
+.register-form .label {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 6px;
+}
+
+.register-form .input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    font-size: 14px;
+    transition: border-color 0.2s;
+}
+
+.register-form .input:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.register-form .checkbox-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.register-form .checkbox-container input[type="checkbox"] {
+    margin-right: 8px;
+}
+
+.register-form .submit-button {
+    width: 100%;
+    padding: 12px;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.register-form .submit-button:hover {
+    background: var(--primary-dark);
+}
+
+.register-form .submit-button:disabled {
+    background: var(--muted);
+    cursor: not-allowed;
+}
+
+.register-link {
+    color: var(--primary);
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.register-card h2 {
+    font-size: 20px;
+    margin: 0 0 6px;
+}
+
+.register-card .muted {
+    color: var(--muted);
+    font-size: 14px;
+    margin-bottom: 12px;
+}
+
+.register {
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 12px;
+}
+
+.register-link:hover {
+    text-decoration: none;
+}
+
+/* ================= Login Form Inputs ================= */
+.register-form input[type="email"],
+.register-form input[type="password"],
+.register-form input[type="tel"],
+.register-form .input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    font-size: 14px;
+    transition: border-color 0.2s;
+}
+
+.register-form .input:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+/* form row & checkbox */
+.form-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.checkbox {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    font-size: 14px;
+    color: var(--muted);
+}
+
+/* ================= Buttons ================= */
+.btn {
+    padding: 9px 12px;
+    border-radius: 10px;
+    background: var(--primary);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.btn:hover {
+    box-shadow: 0 8px 20px rgba(16, 24, 40, 0.1);
+    transform: translateY(-2px);
+}
+
+.btn:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: #fff;
+    border: none;
+}
+
+.btn-primary:hover {
+    background: var(--primary-dark);
+}
+
+.btn-primary:disabled {
+    background: var(--muted);
+    cursor: not-allowed;
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+.btn.full {
+    width: 100%;
+}

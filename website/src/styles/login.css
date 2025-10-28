@@ -1,0 +1,366 @@
+/* ================= Global ================= */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* root variables */
+:root {
+  --brand-primary: #dd0000;
+  --muted: #6b7280;
+  --shadow: 0 8px 28px rgba(16, 24, 40, 0.08);
+  --bg: #f7f7f7;
+  --container-max: 1280px;
+  --topbar-h: 60px;
+}
+
+/* ================= Page layout ================= */
+.login-page {
+  min-height: calc(100vh - var(--topbar-h));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 36px 18px;
+  background: var(--bg);
+}
+
+/* Card */
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 22px;
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+/* Headings */
+.login-card h2 {
+  font-size: 20px;
+  margin: 0 0 6px;
+}
+
+.login-card .muted {
+  color: var(--muted);
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+/* Errors */
+.form-error {
+  background: #fff3f3;
+  border: 1px solid rgba(221, 0, 0, 0.08);
+  color: #b91c1c;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+/* ================= Form Fields ================= */
+.login-form .field {
+  margin-bottom: 12px;
+}
+
+.login-form .label {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.login-form input[type="email"],
+.login-form input[type="password"],
+.login-form input[type="tel"],
+.login-form input[type="text"] {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  outline: none;
+  font-size: 14px;
+  background: #fff;
+  box-shadow: 0 6px 18px rgba(16, 24, 40, 0.02);
+  transition: box-shadow .15s ease, border-color .15s ease;
+}
+
+.login-form input:focus {
+  border-color: rgba(221, 0, 0, 0.9);
+  box-shadow: 0 8px 20px rgba(221, 0, 0, 0.06);
+}
+
+/* form row & checkbox */
+.form-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.checkbox {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+/* ================= Buttons ================= */
+.btn {
+  padding: 9px 12px;
+  border-radius: 10px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.btn.full {
+  width: 100%;
+}
+
+/* Primary CTA */
+.btn-primary {
+  background: var(--brand-primary);
+  color: #fff;
+  border: none;
+  box-shadow: 0 8px 24px rgba(221, 0, 0, 0.14);
+}
+
+.btn-primary:hover {
+  background: #c70000;
+}
+
+/* subtle secondary */
+.btn.secondary {
+  background: #fff;
+  color: #111;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+/* Divider */
+.divider {
+  margin: 12px 0;
+  text-align: center;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+/* ================= Google Sign-in ================= */
+.login-google {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+/* fallback style for GSI not ready */
+.google-fallback {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.google-fallback img {
+  width: 18px;
+  height: 18px;
+  display: inline-block;
+}
+
+/* ensure button container width */
+.login-google>div,
+.login-google>.google-fallback {
+  width: 100%;
+  max-width: 360px;
+  display: flex;
+  justify-content: center;
+}
+
+/* ================= Phone / OTP ================= */
+.otp-section {
+  margin-top: 8px;
+}
+
+.otp-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.otp-input {
+  width: 160px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  outline: none;
+  font-size: 14px;
+}
+
+.otp-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.otp-note {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* small muted text */
+.small {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* ================= Misc / Utility ================= */
+.label-truncate {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+}
+
+.cart-badge {
+  display: inline-block;
+  min-width: 20px;
+  padding: 2px 6px;
+  margin-left: 6px;
+  background: #fff;
+  color: var(--brand-primary);
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 12px;
+}
+
+/* ================= Responsive ================= */
+@media (max-width: 900px) {
+  .login-card {
+    padding: 18px;
+  }
+
+  .login-form input[type="email"],
+  .login-form input[type="password"],
+  .login-form input[type="tel"] {
+    font-size: 15px;
+  }
+
+  .login-google>div {
+    max-width: 320px;
+  }
+}
+
+@media (max-width: 520px) {
+  .login-card {
+    margin: 0 12px;
+    width: calc(100% - 24px);
+  }
+
+  .otp-input {
+    width: 120px;
+  }
+
+  .login-google>div {
+    max-width: 100%;
+    padding: 0 12px;
+    box-sizing: border-box;
+  }
+
+  .login-form input[type="email"],
+  .login-form input[type="password"],
+  .login-form input[type="tel"] {
+    width: 100%;
+  }
+}
+
+/* ================= Modal Overrides ================= */
+.phone-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.phone-form {
+  position: relative;
+  background: #fff;
+  padding: 18px;
+  border-radius: 8px;
+  min-width: 320px;
+  max-width: 90%;
+  z-index: 1001;
+}
+
+.phone-close {
+  position: absolute;
+  right: 8px;
+  top: 6px;
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.phone-login-form {
+  text-align: center;
+  margin-top: 8px;
+  height: 40px;
+} 
+
+.phone-login-btn {
+  width: 220px;
+  height: 40px;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+  border-color: rgba(0, 0, 0, 0.1);
+  font-family: "Google Sans", arial, sans-serif;
+  font-weight: 200;
+  font-size: 14px;
+  text-overflow: ellipsis;
+}
+
+.phone-login-btn:hover {
+  background-color: rgba(154, 205, 235, 0.15);
+}
+
+.forgot-password {
+  margin-top: 12px;
+  display: block;
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.7);
+  text-align: right;
+  text-decoration: none;
+}
+
+.register {
+  margin-top: 16px;
+  font-size: 14px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.register-link {
+  color: var(--brand-primary);
+  text-decoration: none;
+  font-weight: 600;
+  cursor: pointer;
+}
