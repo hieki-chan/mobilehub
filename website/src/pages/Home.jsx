@@ -53,6 +53,13 @@ export default function Home() {
     document.body.style.overflow = ''
   }
 
+  // --- START: Dữ liệu cho mục mới ---
+  // Giả lập "Gợi ý": Lấy các sản phẩm giá rẻ (dưới 20 triệu)
+  const suggestedProducts = products.filter(p => p.price < 20000000 && p.status === 'available').slice(0, 4)
+  // Giả lập "Bán chạy": Lấy các sản phẩm đang giảm giá (có oldPrice)
+  const bestSellerProducts = products.filter(p => p.oldPrice && p.status === 'available').slice(0, 4)
+  // --- END: Dữ liệu cho mục mới ---
+
   return (
     <div>
       {/* Hero */}
@@ -114,6 +121,49 @@ export default function Home() {
             products.map(p => <ProductCard key={p.id} p={p} onQuickView={openQuickView} />)
           ))}
         </section>
+
+        {/* === START: Mục Gợi ý cho bạn === */}
+        {suggestedProducts.length > 0 && (
+          <>
+            <h3 className="section-title" style={{marginTop: '24px'}}>Gợi ý cho bạn</h3>
+            <section className="products-grid" aria-label="Sản phẩm gợi ý">
+              {loading ? (
+                Array.from({ length: suggestedProducts.length }).map((_, i) => (
+                  <div className="skeleton-card" key={i} aria-hidden="true">
+                    <div className="skel-rect skel-img"></div>
+                    <div className="skel-rect skel-line"></div>
+                    <div className="skel-rect skel-btn"></div>
+                  </div>
+                ))
+              ) : (
+                suggestedProducts.map(p => <ProductCard key={p.id} p={p} onQuickView={openQuickView} />)
+              )}
+            </section>
+          </>
+        )}
+        {/* === END: Mục Gợi ý cho bạn === */}
+
+
+        {/* === START: Mục Bán chạy === */}
+        {bestSellerProducts.length > 0 && (
+          <>
+            <h3 className="section-title" style={{marginTop: '24px'}}>Bán chạy</h3>
+            <section className="products-grid" aria-label="Sản phẩm bán chạy">
+              {loading ? (
+                Array.from({ length: bestSellerProducts.length }).map((_, i) => (
+                  <div className="skeleton-card" key={i} aria-hidden="true">
+                    <div className="skel-rect skel-img"></div>
+                    <div className="skel-rect skel-line"></div>
+                    <div className="skel-rect skel-btn"></div>
+                  </div>
+                ))
+              ) : (
+                bestSellerProducts.map(p => <ProductCard key={p.id} p={p} onQuickView={openQuickView} />)
+              )}
+            </section>
+          </>
+        )}
+        {/* === END: Mục Bán chạy === */}
 
         {/* Mọi người cũng tìm kiếm */}
         
