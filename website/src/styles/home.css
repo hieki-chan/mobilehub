@@ -116,26 +116,6 @@ img {
     color: rgba(255, 255, 255, 0.9);
 }
 
-/* Search */
-.search-wrap {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-}
-
-.search-wrap input[type="search"] {
-    width: 70%;
-    max-width: 720px;
-    padding: 10px 14px;
-    border-radius: 999px;
-    border: 1px solid rgba(0, 0, 0, 0.06);
-    outline: none;
-    font-size: 15px;
-    background: #fff;
-    box-shadow: 0 6px 18px rgba(16, 24, 40, 0.04);
-}
 
 .icon-btn {
     background: transparent;

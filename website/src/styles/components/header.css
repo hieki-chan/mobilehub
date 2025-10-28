@@ -1,0 +1,150 @@
+/* Header & Topbar */
+.topbar {
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: var(--topbar-h);
+  background: var(--brand-primary);
+  display: flex;
+  align-items: center;
+  z-index: 12000;
+  
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  transition: box-shadow var(--transition), background var(--transition);
+}
+
+.topbar-inner {
+  height: 100%;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  width: 100%;
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 0 20px;
+  justify-content: space-around;
+}
+
+/* Logo */
+.logo {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  text-decoration: none;
+  color: #fff;
+}
+
+.logo-mark {
+  flex: 0 0 auto;
+}
+
+.logo-text .brand {
+  font-weight: 800;
+  font-size: 16px;
+  color: #fff;
+}
+
+.logo-text .brand-sub {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Search */
+.search-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.search-wrap input[type="search"] {
+    width: 70%;
+    max-width: 720px;
+    padding: 10px 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    outline: none;
+    font-size: 15px;
+    background: #fff;
+    box-shadow: 0 6px 18px rgba(16, 24, 40, 0.04);
+}
+
+
+/* Top actions (user menu, cart) */
+.top-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.top-actions .action {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  color: #fff;
+  background: transparent;
+  font-weight: 700;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.top-actions .action .label {
+  display: inline-block;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.top-actions .action.welcome {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.cart-badge {
+  display: inline-block;
+  min-width: 20px;
+  padding: 2px 6px;
+  margin-left: 6px;
+  background: #fff;
+  color: var(--brand-primary);
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 12px;
+}
+
+.icon-btn {
+  background: transparent;
+  border: 0;
+  font-size: 16px;
+  cursor: pointer;
+  color: #fff;
+  padding: 8px;
+  border-radius: 8px;
+  transition: background 0.2s ease;
+}
+
+.icon-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Responsive */
+@media (max-width: 760px) {
+  .top-actions .action .label {
+    display: none;
+  }
+  
+  .logo-text .brand-sub {
+    display: none;
+  }
+  
+  .logo-text .brand {
+    font-size: 15px;
+  }
+}

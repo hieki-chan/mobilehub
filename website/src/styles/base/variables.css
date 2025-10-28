@@ -1,0 +1,23 @@
+/* CSS Variables - Shared across application */
+:root {
+  /* Colors */
+  --brand-primary: #dd0000;
+  --brand-accent: #ff4444;
+  --brand-accent-2: #ff7777;
+  --bg: #f7f7f7;
+  --text: #0b1220;
+  --muted: #6b7280;
+  
+  /* Layout */
+  --container-max: 1280px;
+  --topbar-h: 60px;
+  --menubar-h: 40px;
+  
+  /* Effects */
+  --radius: 12px;
+  --shadow: 0 8px 28px rgba(16, 24, 40, 0.08);
+  --shadow-sm: 0 6px 18px rgba(16, 24, 40, 0.04);
+  --shadow-lg: 0 20px 60px rgba(7, 10, 15, 0.4);
+  --gap: 16px;
+  --transition: 220ms cubic-bezier(.2, .9, .3, 1);
+}

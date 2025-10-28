@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PhoneLogin from '../components/PhoneLogin'
 import GoogleLogin from '../components/GoogleLogin'
-import '../styles/login.css'
+import '../styles/pages/login.css'
 
 // mockSignIn
 export async function mockSignIn({ email, password }) {

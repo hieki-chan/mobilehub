@@ -2,7 +2,7 @@ import { useState } from "react";
 import GoogleLogin from "../components/GoogleLogin";
 import PhoneLogin from "../components/PhoneLogin";
 import { useNavigate } from "react-router-dom";
-import '../styles/register.css'
+
 
 export default function Register() {
     const [remember, setRemember] = useState(true)

@@ -1,0 +1,33 @@
+.container {
+  width: 100%;
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.section-title {
+  font-size: 20px;
+  margin: 8px 0 12px;
+  font-weight: 700;
+}
+
+.page-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Responsive container */
+@media (max-width: 640px) {
+  .container {
+    padding: 0 12px;
+  }
+}

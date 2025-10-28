@@ -2,7 +2,7 @@ import React, { useMemo } from 'react'
 import { useLocation } from 'react-router-dom'
 import { products as mockProducts } from '../data/products'
 import ProductCard from '../components/ProductCard'
-import '../styles/home.css'
+
 
 function useQuery() {
   return new URLSearchParams(useLocation().search)

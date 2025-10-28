@@ -12,7 +12,7 @@ import RelatedProducts from '../components/RelatedProducts'
 import useCart from '../hooks/useCart'
 import useFav from '../hooks/useFav'
 import { formatPrice } from '../utils/formatPrice'
-import '../styles/product-detail.css' // make sure file exists
+import '../styles/pages/product-detail.css'
 
 export default function ProductDetail(){
   const { id } = useParams()
