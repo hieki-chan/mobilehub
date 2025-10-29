@@ -1,16 +1,25 @@
 import React, { useEffect, useState } from "react";
-import { BarChart2, DollarSign, Settings, ShoppingBag, ShoppingCart, TrendingUp, Users, Menu } from "lucide-react";
+import {
+  BarChart2,
+  DollarSign,
+  Settings,
+  ShoppingBag,
+  ShoppingCart,
+  TrendingUp,
+  Users,
+  Menu,
+} from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Link, useLocation } from "react-router-dom";
 
 const SIDEBAR_ITEMS = [
-  { name: "Overview", icon: BarChart2, color: "#6366f1", href: "/" },
-  { name: "Products", icon: ShoppingBag, color: "#8B5CF6", href: "/products" },
-  { name: "Users", icon: Users, color: "#EC4899", href: "/users" },
-  { name: "Sales", icon: DollarSign, color: "#10B981", href: "/sales" },
-  { name: "Orders", icon: ShoppingCart, color: "#F59E0B", href: "/orders" },
-  { name: "Analytics", icon: TrendingUp, color: "#3B82F6", href: "/analytics" },
-  { name: "Settings", icon: Settings, color: "#6EE7B7", href: "/settings" },
+  { name: "Tổng quan", icon: BarChart2, color: "#6366f1", href: "/" },
+  { name: "Sản phẩm", icon: ShoppingBag, color: "#8B5CF6", href: "/products" },
+  { name: "Người dùng", icon: Users, color: "#EC4899", href: "/users" },
+  { name: "Doanh số", icon: DollarSign, color: "#10B981", href: "/sales" },
+  { name: "Đơn hàng", icon: ShoppingCart, color: "#F59E0B", href: "/orders" },
+  { name: "Phân tích", icon: TrendingUp, color: "#3B82F6", href: "/analytics" },
+  { name: "Cài đặt", icon: Settings, color: "#6EE7B7", href: "/settings" },
 ];
 
 const Sidebar = () => {
@@ -29,13 +38,16 @@ const Sidebar = () => {
     handleMediaQueryChange(mediaQuery);
     mediaQuery.addEventListener("change", handleMediaQueryChange);
 
-    return () => mediaQuery.removeEventListener("change", handleMediaQueryChange);
+    return () =>
+      mediaQuery.removeEventListener("change", handleMediaQueryChange);
   }, []);
 
   return (
     <>
       <motion.div
-        className={`relative z-10 transition-all duration-200 ease-in-out flex-shrink-0 ${isSidebarOpen ? 'w-64' : 'w-20'}`}
+        className={`relative z-10 transition-all duration-200 ease-in-out flex-shrink-0 ${
+          isSidebarOpen ? "w-64" : "w-20"
+        }`}
         animate={{ width: isSidebarOpen ? 220 : 80 }}
         transition={{ duration: 0.1 }}
       >
@@ -57,16 +69,17 @@ const Sidebar = () => {
                 <Link key={item.href} to={item.href}>
                   <motion.div
                     className={`flex items-center font-medium p-4 mb-2 text-sm rounded-lg transition-colors
-                                            ${isActive
-                        ? 'bg-gray-700 text-white shadow-lg border border-gray-600'
-                        : 'hover:bg-gray-700/50'
-                      }`}
+                                            ${
+                                              isActive
+                                                ? "bg-gray-700 text-white shadow-lg border border-gray-600"
+                                                : "hover:bg-gray-700/50"
+                                            }`}
                   >
                     <item.icon
                       size={20}
                       style={{
-                        color: isActive ? '#fff' : item.color,
-                        minWidth: "20px"
+                        color: isActive ? "#fff" : item.color,
+                        minWidth: "20px",
                       }}
                     />
                     <AnimatePresence>
