@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Edit, Search, Trash2, X, ChevronLeft, ChevronRight, UserPlus } from 'lucide-react';
+import { Edit, Search, Trash2, X, ChevronLeft, ChevronRight, UserPlus, LayoutGrid, Table } from 'lucide-react';
+import { showPopupConfirm } from '../common_components/PopupConfirm';
+
 
 const Product_Data = [
     { id: 1, name: "Wireless Earbuds", category: "Electronics", price: 59.99, stock: 143, sales: 1200 },
@@ -20,15 +22,19 @@ const Product_Data = [
     { id: 15, name: "Desk Lamp", category: "Home Decor", price: 39.99, stock: 110, sales: 300 },
 ];
 
-const ProductTable = () => {
+const ProductTable = ({ onAddClick, onEditClick }) => {
     const [searchTerm, setSearchTerm] = useState("");
     const [filteredProducts, setFilteredProducts] = useState(Product_Data);
-    const [isEditModalOpen, setEditModalOpen] = useState(false);
-    const [isAddModalOpen, setAddModalOpen] = useState(false);
-    const [editProduct, setEditProduct] = useState(null);
     const [newProduct, setNewProduct] = useState({ name: "", category: "", price: "", stock: "", sales: "" });
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 5;
+    const itemsPerPage = 12;
+    const [viewMode, setViewMode] = useState('table') // <— thêm chế độ hiển thị
+    const [selectedProducts, setSelectedProducts] = useState([]);   // <— thêm trạng thái sản phẩm đã chọn
+    const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });  // <— thêm trạng thái sắp xếp
+
+    const [isDialogOpen, setDialogOpen] = useState(false);
+    const [productToDelete, setProductToDelete] = useState(null);
+
 
     const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
 
@@ -43,15 +49,43 @@ const ProductTable = () => {
         setCurrentPage(1);
     };
 
-    const handleEdit = (product) => {
-        setEditProduct(product);
-        setEditModalOpen(true);
+    const handleSort = (key) => {
+        let direction = 'asc';
+        if (sortConfig.key === key && sortConfig.direction === 'asc') {
+            direction = 'desc';
+        }
+
+        const sorted = [...filteredProducts].sort((a, b) => {
+            if (a[key] < b[key]) return direction === 'asc' ? -1 : 1;
+            if (a[key] > b[key]) return direction === 'asc' ? 1 : -1;
+            return 0;
+        });
+
+        setFilteredProducts(sorted);
+        setSortConfig({ key, direction });
     };
 
-    const handleDelete = (productId) => {
-        const updatedProducts = filteredProducts.filter(product => product.id !== productId);
-        setFilteredProducts(updatedProducts);
+    const handleEdit = (product) => {
+        onEditClick(product);
     };
+
+    const handleDelete = async (productId) => {
+        const product = filteredProducts.find(p => p.id === productId);
+
+        const confirmed = await showPopupConfirm(
+            "Xác nhận xoá sản phẩm",
+            `Bạn có chắc chắn muốn xoá "${product.name}" khỏi danh sách không?`
+        );
+
+        if (confirmed) {
+            setFilteredProducts(prev => prev.filter(p => p.id !== productId));
+        }
+        else
+        {
+
+        }
+    };
+
     const handleAdd = () => {
         const newId = filteredProducts.length > 0 ? Math.max(...filteredProducts.map(product => product.id)) + 1 : 1;
         const productToAdd = { ...newProduct, id: newId, price: parseFloat(newProduct.price), stock: parseInt(newProduct.stock), sales: parseInt(newProduct.sales) };
@@ -70,6 +104,8 @@ const ProductTable = () => {
     };
 
 
+
+
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
     const getCurrentPageProducts = () => {
         const start = (currentPage - 1) * itemsPerPage;
@@ -83,72 +119,182 @@ const ProductTable = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.2, delay: 0.2 }}
         >
-            {/* Header and Search */}
+            {/* ======================= Header and Search ==================*/}
             <div className='flex justify-between items-center mb-6'>
-                <h2 className='text-xl font-semibold text-gray-100'>Product List</h2>
+                <h2 className='text-xl font-semibold text-gray-100'>Danh sách sản phẩm</h2>
+            </div>
+
+            {/* ====================== Controls ===============================*/}
+            <div className='flex justify-between items-center mb-6'>
+                <button
+                    onClick={() => setViewMode(viewMode === 'table' ? 'grid' : 'table')}
+                    className='flex items-center gap-2 bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded-lg transition'
+                >
+                    {viewMode === 'table' ? <LayoutGrid size={18} /> : <Table size={18} />}
+                    {viewMode === 'table' ? 'Grid view' : 'Table view'}
+                </button>
 
                 <div className='relative flex items-center'>
                     <Search className='absolute left-3 text-gray-400 sm:left-2.5 top-2.5' size={20} />
                     <input
                         type="text"
-                        placeholder='Search Product...'
+                        placeholder='Tìm kiếm sản phẩm...'
                         className='bg-gray-700 text-white placeholder-gray-400 rounded-lg pl-10 pr-4 py-2 w-full sm:w-auto focus:outline-none focus:ring-2 focus:ring-blue-500'
                         onChange={SearchHandler}
                         value={searchTerm}
                     />
                 </div>
+
+                <button
+                    onClick={onAddClick}
+                    className='flex items-center gap-2 bg-blue-600 hover:bg-blue-800 text-white px-4 py-2 rounded-lg transition'
+                >
+                    <UserPlus size={20} /> Thêm sản phẩm
+                </button>
             </div>
 
-            <div className='overflow-x-auto'>
-                <table className='min-w-full divide-y divide-gray-400'>
-                    <thead>
-                        <tr>
-                            <th className='px-6 py-3 text-left text-sm font-medium text-gray-300 uppercase tracking-wider'>Name</th>
-                            <th className='px-6 py-3 text-left text-sm font-medium text-gray-300 uppercase tracking-wider'>Category</th>
-                            <th className='px-6 py-3 text-left text-sm font-medium text-gray-300 uppercase tracking-wider'>Price</th>
-                            <th className='px-6 py-3 text-left text-sm font-medium text-gray-300 uppercase tracking-wider'>Stock</th>
-                            <th className='px-6 py-3 text-left text-sm font-medium text-gray-300 uppercase tracking-wider'>Sales</th>
-                            <th className='px-6 py-3 text-left text-sm font-medium text-gray-300 uppercase tracking-wider'>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody className='divide-y divide-gray-500'>
-                        {getCurrentPageProducts().map((product) => (
-                            <motion.tr
-                                key={product.id}
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                transition={{ duration: 1.1, delay: 0.2 }}
-                            >
-                                <td className='px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-100 flex gap-2 items-center'>
-                                    <img src="https://images.unsplash.com/photo-1627989580309-bfaf3e58af6f?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8d2lyZWxlc3MlMjBlYXJidWRzfGVufDB8fDB8fHww" alt="Product_Image"
-                                        className='rounded-full size-10'
-                                    />
-                                    {product.name}
-                                </td>
-                                <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-100'>{product.category}</td>
-                                <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-100'>$ {product.price.toFixed(2)}</td>
-                                <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-100'>{product.stock}</td>
-                                <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-100'>{product.sales}</td>
-                                <td className='px-6 py-4 whitespace-nowrap text-sm font-medium h-full'>
-                                    <div className='flex items-center gap-4 h-full'>
-                                        <button onClick={() => setAddModalOpen(true)} className='text-green-500 hover:text-green-700'>
-                                            <UserPlus size={20} />
-                                        </button>
-                                        <button onClick={() => handleEdit(product)} className='text-blue-500 hover:text-blue-700'>
-                                            <Edit size={18} />
-                                        </button>
-                                        <button onClick={() => handleDelete(product.id)} className='text-red-500 hover:text-red-700'>
-                                            <Trash2 size={18} />
-                                        </button>
+            {/* ========== VIEW SWITCH ========== */}
+            {viewMode === 'table' ? (
+                /*================================== TABLE MODE ==============================*/
+                <div className='overflow-x-auto'>
+                    <table className='min-w-full divide-y divide-gray-400'>
+                        <thead>
+                            <tr>
+                                {/* Checkbox chọn tất cả */}
+                                <th className='w-12 py-3'>
+                                    <div className='flex justify-center'>
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedProducts.length === filteredProducts.length}
+                                            onChange={(e) => {
+                                                if (e.target.checked) {
+                                                    setSelectedProducts(filteredProducts.map(p => p.id))
+                                                } else {
+                                                    setSelectedProducts([])
+                                                }
+                                            }}
+                                            className="accent-blue-500 w-4 h-4 cursor-pointer"
+                                        />
                                     </div>
-                                </td>
-                            </motion.tr>
+                                </th>
 
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+                                {/* Các tiêu đề có thể sắp xếp */}
+                                {[
+                                    { key: 'id', label: 'Mã' },
+                                    { key: 'name', label: 'Tên sản phẩm' },
+                                    { key: 'category', label: 'Danh mục' },
+                                    { key: 'price', label: 'Giá tiền' },
+                                    { key: 'stock', label: 'Kho' },
+                                    { key: 'sales', label: 'Khuyến mãi' }
+                                ].map(({ key, label }) => (
+                                    <th
+                                        key={key}
+                                        onClick={() => handleSort(key)}
+                                        className='px-6 py-3 text-left text-sm font-medium text-gray-300 uppercase tracking-wider cursor-pointer select-none hover:text-blue-400'
+                                    >
+                                        {label}
+                                        {sortConfig.key === key && (
+                                            <span className="ml-1 text-blue-400">
+                                                {sortConfig.direction === 'asc' ? '▲' : '▼'}
+                                            </span>
+                                        )}
+                                    </th>
+                                ))}
 
+                                <th className='px-6 py-3 text-left text-sm font-medium text-gray-300 uppercase tracking-wider'></th>
+                            </tr>
+                        </thead>
+
+                        <tbody className='divide-y divide-gray-500'>
+                            {getCurrentPageProducts().map((product) => (
+                                <motion.tr
+                                    key={product.id}
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ duration: 0.3 }}
+                                    className='odd:bg-gray-800 even:bg-gray-700 hover:bg-gray-600 transition-colors'
+                                >
+                                    {/* Checkbox từng dòng */}
+                                    <td className='px-4 py-4'>
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedProducts.includes(product.id)}
+                                            onChange={(e) => {
+                                                if (e.target.checked) {
+                                                    setSelectedProducts([...selectedProducts, product.id]);
+                                                } else {
+                                                    setSelectedProducts(selectedProducts.filter(id => id !== product.id));
+                                                }
+                                            }}
+                                            className="accent-blue-500 w-4 h-4 cursor-pointer"
+                                        />
+                                    </td>
+
+                                    <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-100'>{product.id}</td>
+                                    <td className='px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-100 flex gap-2 items-center'>
+                                        <img
+                                            src="https://images.unsplash.com/photo-1627989580309-bfaf3e58af6f?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3"
+                                            alt="Product_Image"
+                                            className='rounded-full size-10'
+                                        />
+                                        {product.name}
+                                    </td>
+                                    <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-100'>{product.category}</td>
+                                    <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-100'>{product.price.toLocaleString('vi-VN')}₫</td>
+                                    <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-100'>{product.stock}</td>
+                                    <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-100'>{product.sales}</td>
+                                    <td className='px-6 py-4 whitespace-nowrap text-sm font-medium h-full'>
+                                        <div className='flex items-center gap-4 h-full'>
+                                            <button onClick={() => handleEdit(product)} className='text-blue-500 hover:text-blue-700'>
+                                                <Edit size={18} />
+                                            </button>
+                                            <button onClick={() => handleDelete(product.id)} className='text-red-500 hover:text-red-700'>
+                                                <Trash2 size={18} />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </motion.tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+
+            ) : (
+                /* ================================= GRID MODE =================================== */
+                <motion.div
+                    className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5'
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.2 }}
+                >
+                    {getCurrentPageProducts().map((p) => (
+                        <motion.div
+                            key={p.id}
+                            className='w-80 h-256 bg-gray-700 rounded-xl p-4 flex flex-col items-center shadow-lg hover:shadow-2xl transition'
+                            whileHover={{ scale: 1.05 }}
+                        >
+                            <img
+                                src='https://images.unsplash.com/photo-1627989580309-bfaf3e58af6f?w=300'
+                                alt={p.name}
+                                className='w-45 h-64 object-cover rounded-lg mb-3'
+                            />
+                            <h3 className='text-lg font-semibold text-gray-100'>{p.name}</h3>
+                            <p className='text-gray-400 text-sm'>{p.category}</p>
+                            <p className='text-blue-400 text-md font-bold mt-2'>$ {p.price.toFixed(2)}</p>
+                            <p className='text-sm text-gray-400 mt-1'>Kho: {p.stock}</p>
+
+                            <div className='flex gap-3 mt-3'>
+                                <button onClick={() => handleEdit(p)} className='text-blue-400 hover:text-blue-600'>
+                                    <Edit size={18} />
+                                </button>
+                                <button onClick={() => handleDelete(p.id)} className='text-red-400 hover:text-red-600'>
+                                    <Trash2 size={18} />
+                                </button>
+                            </div>
+                        </motion.div>
+                    ))}
+                </motion.div>
+            )}
 
             {/* Enhanced Pagination Controls */}
             <div className='flex flex-col md:flex-row justify-between mt-4 space-x-2 items-center'>
@@ -160,7 +306,7 @@ const ProductTable = () => {
                     >
                         <ChevronLeft size={18} />
                     </button>
-                    <span className='mx-2 text-sm font-medium text-gray-100'>Page {currentPage} of {totalPages}</span>
+                    <span className='mx-2 text-sm font-medium text-gray-100'>Trang {currentPage} / {totalPages}</span>
                     <button
                         onClick={() => paginate(currentPage + 1)}
                         disabled={currentPage === totalPages}
@@ -170,176 +316,8 @@ const ProductTable = () => {
                     </button>
                 </div>
 
-                <div className='text-sm font-medium text-gray-300 tracking-wider mt-5 md:mt-0'>Total Products: {filteredProducts.length}</div>
+                <div className='text-sm font-medium text-gray-300 tracking-wider mt-5 md:mt-0'>Tổng sản phẩm: {filteredProducts.length}</div>
             </div>
-
-
-
-            {/* Edit model pop up */}
-
-            {isEditModalOpen && (
-                <div className='fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50'>
-                    <motion.div
-                        className='bg-gray-800 rounded-lg shadow-lg p-6 max-w-xl w-full'
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ duration: 0.3 }}
-                    >
-
-                        <h1 className='text-2xl font-semibold text-gray-100 mb-3 underline tracking-wider'>Edit Product</h1>
-
-                        {/* Responsive grid layout for fields */}
-                        <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                            <div className='flex flex-col space-y-1'>
-                                <label className='text-sm text-gray-300'>Product Name</label>
-                                <input
-                                    type='text'
-                                    value={editProduct.name}
-                                    onChange={(e) => setEditProduct({ ...editProduct, name: e.target.value })}
-                                    className='w-full px-4 py-2 bg-gray-700 text-white rounded-md'
-                                />
-                            </div>
-
-                            <div className='flex flex-col space-y-1'>
-                                <label className='text-sm text-gray-300'>Category</label>
-                                <input
-                                    type='text'
-                                    value={editProduct.category}
-                                    onChange={(e) => setEditProduct({ ...editProduct, category: e.target.value })}
-                                    className='w-full px-4 py-2 bg-gray-700 text-white rounded-md'
-                                />
-                            </div>
-
-                            <div className='flex flex-col space-y-1'>
-                                <label className='text-sm text-gray-300'>Price</label>
-                                <input
-                                    type='number'
-                                    value={editProduct.price}
-                                    onChange={(e) => setEditProduct({ ...editProduct, price: parseFloat(e.target.value) })}
-                                    className='w-full px-4 py-2 bg-gray-700 text-white rounded-md'
-                                />
-                            </div>
-
-                            <div className='flex flex-col space-y-1'>
-                                <label className='text-sm text-gray-300'>Stock</label>
-                                <input
-                                    type='number'
-                                    value={editProduct.stock}
-                                    onChange={(e) => setEditProduct({ ...editProduct, stock: parseInt(e.target.value, 10) })}
-                                    className='w-full px-4 py-2 bg-gray-700 text-white rounded-md'
-                                />
-                            </div>
-
-                            <div className='flex flex-col space-y-1 md:col-span-2'>
-                                <label className='text-sm text-gray-300'>Sales</label>
-                                <input
-                                    type='number'
-                                    value={editProduct.sales}
-                                    onChange={(e) => setEditProduct({ ...editProduct, sales: parseInt(e.target.value, 10) })}
-                                    className='w-full px-4 py-2 bg-gray-700 text-white rounded-md'
-                                />
-                            </div>
-                        </div>
-
-                        <div className='flex justify-end mt-5 space-x-2'>
-                            <button
-                                onClick={() => setEditModalOpen(false)}
-                                className='bg-gray-600 hover:bg-red-500 text-gray-100 px-4 py-2 rounded-md'
-                            >
-                                <X size={22} />
-                            </button>
-                            <button
-                                onClick={handleSave}
-                                className='bg-blue-600 hover:bg-blue-800 text-white text-md px-4 py-2 rounded-md w-24'
-                            >
-                                Save
-                            </button>
-                        </div>
-                    </motion.div>
-                </div>
-            )}
-
-
-            {/* Add Product Modal */}
-            {isAddModalOpen && (
-                <div className='fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50'>
-                    <motion.div
-                        className='bg-gray-800 rounded-lg shadow-lg p-6 max-w-xl w-full'
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ duration: 0.3 }}
-                    >
-                        <h1 className='text-2xl font-semibold text-gray-100 mb-4 underline tracking-wider'>Add New Product</h1>
-
-                        <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-
-                            <div className='flex flex-col space-y-1'>
-                                <label className='text-sm text-gray-300'>Product Name</label>
-                                <input
-                                    type="text"
-                                    value={newProduct.name}
-                                    onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
-                                    placeholder='Product Name'
-                                    className='w-full px-4 py-2 bg-gray-700 text-white rounded-md'
-                                />
-                            </div>
-
-                            <div className='flex flex-col space-y-1'>
-                                <label className='text-sm text-gray-300'>Product Category</label>
-                                <input
-                                    type="text"
-                                    value={newProduct.category}
-                                    onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
-                                    placeholder='Category'
-                                    className='w-full px-4 py-2 bg-gray-700 text-white rounded-md'
-                                />
-                            </div>
-
-                            <div className='flex flex-col space-y-1'>
-                                <label className='text-sm text-gray-300'>Product Price</label>
-                                <input
-                                    type="number"
-                                    value={newProduct.price}
-                                    onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
-                                    placeholder='Price'
-                                    className='w-full px-4 py-2 bg-gray-700 text-white rounded-md'
-                                />
-                            </div>
-
-                            <div className='flex flex-col space-y-1'>
-                                <label className='text-sm text-gray-300'>Product Stock</label>
-                                <input
-                                    type="number"
-                                    value={newProduct.stock}
-                                    onChange={(e) => setNewProduct({ ...newProduct, stock: e.target.value })}
-                                    placeholder='Stock'
-                                    className='w-full px-4 py-2 bg-gray-700 text-white rounded-md'
-                                />
-                            </div>
-
-                            <div className='flex flex-col space-y-1'>
-                                <label className='text-sm text-gray-300'>Product Sales</label>
-                                <input
-                                    type="number"
-                                    value={newProduct.sales}
-                                    onChange={(e) => setNewProduct({ ...newProduct, sales: e.target.value })}
-                                    placeholder='Sales'
-                                    className='w-full px-4 py-2 bg-gray-700 text-white rounded-md'
-                                />
-                            </div>
-                        </div>
-
-                        <div className='flex justify-end mt-5 space-x-2'>
-                            <button onClick={() => setAddModalOpen(false)} className='bg-gray-600 hover:bg-red-500 text-gray-100 px-4 py-2 rounded-md'>
-                                <X size={22} />
-                            </button>
-                            <button onClick={handleAdd} className='bg-blue-600 hover:bg-blue-800 text-white text-md px-4 py-3 rounded-md w-32'>
-                                Add Product
-                            </button>
-                        </div>
-                    </motion.div>
-                </div>
-            )}
         </motion.div>
     );
 };

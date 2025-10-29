@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { BarChart2, DollarSign, Settings, ShoppingBag, ShoppingCart, TrendingUp, Users, Menu } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 const SIDEBAR_ITEMS = [
     { name: "Overview", icon: BarChart2, color: "#6366f1", href: "/" },
@@ -15,7 +15,8 @@ const SIDEBAR_ITEMS = [
 
 const Sidebar = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-    const [isMobile, setIsMobile] = useState(false); // State to track mobile devices
+    const [isMobile, setIsMobile] = useState(false);
+    const location = useLocation(); // Get current route
 
     useEffect(() => {
         const mediaQuery = window.matchMedia("(max-width: 768px)");
@@ -34,8 +35,9 @@ const Sidebar = () => {
     return (
         <>
             <motion.div
-                className={`relative z-10 transition-all duration-300 ease-in-out flex-shrink-0 ${isSidebarOpen ? 'w-64' : 'w-20'}`}
+                className={`relative z-10 transition-all duration-200 ease-in-out flex-shrink-0 ${isSidebarOpen ? 'w-64' : 'w-20'}`}
                 animate={{ width: isSidebarOpen ? 220 : 80 }}
+                transition={{ duration: 0.1 }}
             >
                 <div className="h-full bg-gray-800 bg-opacity-50 backdrop-blur-md p-4 flex flex-col border-r border-gray-700">
                     <motion.button
@@ -49,28 +51,41 @@ const Sidebar = () => {
                     </motion.button>
 
                     <nav className="mt-8 flex-grow">
-                        {SIDEBAR_ITEMS.map((item) => (
-                            <Link key={item.href} to={item.href}>
-                                <motion.div
-                                    className="flex items-center font-medium p-4 mb-2 text-sm rounded-lg hover:bg-gray-700 transition-colors"
-                                >
-                                    <item.icon size={20} style={{ color: item.color, minWidth: "20px" }} />
-                                    <AnimatePresence>
-                                        {isSidebarOpen && (
-                                            <motion.span
-                                                className="ml-4 whitespace-nowrap"
-                                                initial={{ opacity: 0, width: 0 }}
-                                                animate={{ opacity: 1, width: "auto" }}
-                                                exit={{ opacity: 0, width: 0 }}
-                                                transition={{ duration: 0.2, delay: 0.3 }}
-                                            >
-                                                {item.name}
-                                            </motion.span>
-                                        )}
-                                    </AnimatePresence>
-                                </motion.div>
-                            </Link>
-                        ))}
+                        {SIDEBAR_ITEMS.map((item) => {
+                            const isActive = location.pathname === item.href;
+                            return (
+                                <Link key={item.href} to={item.href}>
+                                    <motion.div
+                                        className={`flex items-center font-medium p-4 mb-2 text-sm rounded-lg transition-colors
+                                            ${isActive 
+                                                ? 'bg-gray-700 text-white shadow-lg border border-gray-600' 
+                                                : 'hover:bg-gray-700/50'
+                                            }`}
+                                    >
+                                        <item.icon 
+                                            size={20} 
+                                            style={{ 
+                                                color: isActive ? '#fff' : item.color,
+                                                minWidth: "20px"
+                                            }} 
+                                        />
+                                        <AnimatePresence>
+                                            {isSidebarOpen && (
+                                                <motion.span
+                                                    className="ml-4 whitespace-nowrap"
+                                                    initial={{ opacity: 0, width: 0 }}
+                                                    animate={{ opacity: 1, width: "auto" }}
+                                                    exit={{ opacity: 0, width: 0 }}
+                                                    transition={{ duration: 0.05 }}
+                                                >
+                                                    {item.name}
+                                                </motion.span>
+                                            )}
+                                        </AnimatePresence>
+                                    </motion.div>
+                                </Link>
+                            );
+                        })}
                     </nav>
                 </div>
             </motion.div>

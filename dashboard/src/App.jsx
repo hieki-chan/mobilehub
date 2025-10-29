@@ -10,6 +10,7 @@ import SalesPage from './pages/SalesPage'
 import OrdersPage from './pages/OrdersPage'
 import AnalyticsPage from './pages/AnalyticsPage'
 import SettingsPage from './pages/SettingsPage'
+import Header from './components/common_components/Header'
 
 
 
