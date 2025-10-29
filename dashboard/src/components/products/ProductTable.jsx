@@ -130,8 +130,8 @@ const ProductTable = ({ onAddClick, onEditClick }) => {
                     onClick={() => setViewMode(viewMode === 'table' ? 'grid' : 'table')}
                     className='flex items-center gap-2 bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded-lg transition'
                 >
-                    {viewMode === 'table' ? <LayoutGrid size={18} /> : <Table size={18} />}
-                    {viewMode === 'table' ? 'Grid view' : 'Table view'}
+                    {viewMode !== 'table' ? <LayoutGrid size={18} /> : <Table size={18} />}
+                    {viewMode === 'table' ? '' : ''}
                 </button>
 
                 <div className='relative flex items-center'>

@@ -3,11 +3,11 @@ import { AlertTriangle, DollarSign, Package, TrendingUp } from 'lucide-react'
 import React, { useState } from 'react'
 import ProductFormModal from '../components/products/ProductFormModal'
 
-import Header from '../components/common_components/Header'
-import StatCards from '../components/common_components/StatCards'
-import ProductTable from '../components/products/ProductTable'
-import SalesTrendChart from "../components/products/SalesTrendChart"
-import CategoryDistributionChart from '../components/overview/CategoryDistributionChart'
+import Header from "../components/common_components/Header";
+import StatCards from "../components/common_components/StatCards";
+import ProductTable from "../components/products/ProductTable";
+import SalesTrendChart from "../components/products/SalesTrendChart";
+import CategoryDistributionChart from "../components/overview/CategoryDistributionChart";
 
 const ProductsPage = () => {
 
@@ -42,6 +42,10 @@ const ProductsPage = () => {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1 }}
+          className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-7"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1 }}
         >
           <StatCards name="Tổng sản phẩm" icon={Package} value="4,321" color="#6366f1" />
           <StatCards name="Top Selling" icon={TrendingUp} value="69" color="#10b981" />
@@ -59,9 +63,11 @@ const ProductsPage = () => {
 
 
         {/* CHARTS */}
+        {/* CHARTS */}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           <SalesTrendChart />
+          <CategoryDistributionChart />
           <CategoryDistributionChart />
         </div>
 
@@ -76,8 +82,7 @@ const ProductsPage = () => {
 
       </main>
     </div>
+  );
+};
 
-  )
-}
-
-export default ProductsPage
+export default ProductsPage;
