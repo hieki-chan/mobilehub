@@ -22,7 +22,7 @@ const Product_Data = [
     { id: 15, name: "Desk Lamp", category: "Home Decor", price: 39.99, stock: 110, sales: 300 },
 ];
 
-const ProductTable = ({ onAddClick, onEditClick }) => {
+const ProductDatabase = ({ onAddClick, onEditClick }) => {
     const [searchTerm, setSearchTerm] = useState("");
     const [filteredProducts, setFilteredProducts] = useState(Product_Data);
     const [newProduct, setNewProduct] = useState({ name: "", category: "", price: "", stock: "", sales: "" });
@@ -74,7 +74,7 @@ const ProductTable = ({ onAddClick, onEditClick }) => {
 
         const confirmed = await showPopupConfirm(
             "Xác nhận xoá sản phẩm",
-            `Bạn có chắc chắn muốn xoá "${product.name}" khỏi danh sách không?`
+            `Bạn có chắc chắn muốn xoá "${product.name}" không?\nHành động này không thể hoàn tác.`,
         );
 
         if (confirmed) {
@@ -181,7 +181,7 @@ const ProductTable = ({ onAddClick, onEditClick }) => {
                                 {/* Các tiêu đề có thể sắp xếp */}
                                 {[
                                     { key: 'id', label: 'Mã' },
-                                    { key: 'name', label: 'Tên sản phẩm' },
+                                    { key: 'name', label: 'Sản phẩm' },
                                     { key: 'category', label: 'Danh mục' },
                                     { key: 'price', label: 'Giá tiền' },
                                     { key: 'stock', label: 'Kho' },
@@ -322,4 +322,4 @@ const ProductTable = ({ onAddClick, onEditClick }) => {
     );
 };
 
-export default ProductTable;
+export default ProductDatabase;
