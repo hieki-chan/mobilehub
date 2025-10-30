@@ -141,11 +141,15 @@ const Header = ({
 
                     <button
                       onClick={() => {
+                        // Đóng menu
                         setOpen(false);
-                        openUserProfile();
-                        (
-                          onLogout || (() => console.log("Đăng xuất clicked"))
-                        )();
+
+                        // Xóa thông tin đăng nhập
+                        localStorage.removeItem("isLoggedIn");
+                        localStorage.removeItem("username");
+
+                        // Chuyển hướng về trang login
+                        navigate("/login");
                       }}
                       className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 w-full text-left"
                     >
