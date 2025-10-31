@@ -10,8 +10,8 @@ const ProductTabs = ({ newProduct, setNewProduct }) => {
       {/* ===== TAB HEADER ===== */}
       <div className="flex gap-2 border-b border-gray-700">
         {[
-          { id: 'info', label: '📄 Thông tin sản phẩm' },
-          { id: 'discount', label: '💸 Giá & khuyến mãi' },
+          { id: 'info', label: 'Thông tin sản phẩm' },
+          { id: 'discount', label: 'Giá & khuyến mãi' },
         ].map((tab) => (
           <button
             key={tab.id}
