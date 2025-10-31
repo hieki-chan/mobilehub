@@ -7,6 +7,13 @@ const LoginPage = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  // Nếu đã đăng nhập thì tự quay lại trang chủ
+  useEffect(() => {
+    const loggedIn = localStorage.getItem("isLoggedIn") === "true";
+    if (loggedIn) {
+      navigate("/");
+    }
+  }, [navigate]);
 
   // 🧠 Khi trang load, kiểm tra xem có lưu username cũ không
   useEffect(() => {

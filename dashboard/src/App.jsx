@@ -1,45 +1,68 @@
-import React from 'react'
-import { Routes, Route } from 'react-router-dom'
+import React from "react";
+//sua
+import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 
-import Sidebar from './components/common_components/Sidebar'
+import Sidebar from "./components/common_components/Sidebar";
 
-import OverviewPage from './pages/OverviewPage'
-import ProductsPage from './pages/ProductsPage'
-import UsersPage from './pages/UsersPage'
-import SalesPage from './pages/SalesPage'
-import OrdersPage from './pages/OrdersPage'
-import AnalyticsPage from './pages/AnalyticsPage'
-import SettingsPage from './pages/SettingsPage'
-import Header from './components/common_components/Header'
+import OverviewPage from "./pages/OverviewPage";
+import ProductsPage from "./pages/ProductsPage";
+import UsersPage from "./pages/UsersPage";
+import SalesPage from "./pages/SalesPage";
+import OrdersPage from "./pages/OrdersPage";
+import AnalyticsPage from "./pages/AnalyticsPage";
+import SettingsPage from "./pages/SettingsPage";
+//them
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 
-
+import Header from "./components/common_components/Header";
 
 const App = () => {
-  return (
-    <div className='flex h-screen bg-gray-900 text-gray-100 overflow-hidden'>
+  //them 3 dong
+  const location = useLocation();
+  const noSidebarRoutes = ["/login", "/forgot-password", "/register"];
+  const hideSidebar = noSidebarRoutes.includes(location.pathname);
+  // 🟢 Giả lập trạng thái đăng nhập
+  const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
 
+  return (
+    <div className="flex h-screen bg-gray-900 text-gray-100 overflow-hidden">
       {/* BACKGROUND SETTINGS */}
-      <div className='fixed inset-0 z-0'>
-        <div className='absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 opacity-80' />
-        <div className='absolute inset-0 backdrop-blur-3xl' />
+      <div className="fixed inset-0 z-0">
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 opacity-80" />
+        <div className="absolute inset-0 backdrop-blur-3xl" />
       </div>
 
+      {!hideSidebar && <Sidebar />}
 
-      <Sidebar />
+      {/* 🟢 Bọc vùng nội dung */}
+      <div className="flex-1 relative z-10 overflow-y-auto">
+        <Routes>
+          {/* Trang mặc định */}
+          <Route
+            path="/"
+            element={
+              isLoggedIn ? <OverviewPage /> : <Navigate to="/login" replace />
+            }
+          />
 
+          {/* Trang đăng nhập & quên mật khẩu */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
-      <Routes>
-        <Route path='/' element={<OverviewPage />} />
-        <Route path='/products' element={<ProductsPage />} />
-        <Route path='/users' element={<UsersPage />} />
-        <Route path='/sales' element={<SalesPage />} />
-        <Route path='/orders' element={<OrdersPage />} />
-        <Route path='/analytics' element={<AnalyticsPage />} />
-        <Route path='/settings' element={<SettingsPage />} />
-      </Routes>
-
+          {/* Các trang còn lại */}
+          <Route path="/products" element={<ProductsPage />} />
+          <Route path="/users" element={<UsersPage />} />
+          <Route path="/sales" element={<SalesPage />} />
+          <Route path="/orders" element={<OrdersPage />} />
+          <Route path="/analytics" element={<AnalyticsPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+        </Routes>
+      </div>
     </div>
-  )
-}
+  );
+};
 
-export default App
+export default App;

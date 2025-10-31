@@ -10,7 +10,9 @@ import {
   Menu,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Link, useLocation } from "react-router-dom";
+
+//sua
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 const SIDEBAR_ITEMS = [
   { name: "Tổng quan", icon: BarChart2, color: "#6366f1", href: "/" },
@@ -26,6 +28,13 @@ const Sidebar = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const location = useLocation(); // Get current route
+  //them
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem("isLoggedIn");
+    navigate("/login");
+  };
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 768px)");
@@ -100,6 +109,13 @@ const Sidebar = () => {
               );
             })}
           </nav>
+          {/* 🟢 Nút Đăng xuất */}
+          <button
+            onClick={handleLogout}
+            className="mt-auto flex items-center justify-center w-full p-3 text-sm font-medium rounded-lg bg-red-600 hover:bg-red-700 text-white transition"
+          >
+            Đăng xuất
+          </button>
         </div>
       </motion.div>
     </>
