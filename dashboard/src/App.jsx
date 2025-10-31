@@ -32,8 +32,7 @@ const App = () => {
 
       {!hideSidebar && <Sidebar />}
 
-      <div className="flex-1 relative z-10 overflow-y-auto">
-        <Routes>
+     <Routes>
           {/* Public routes */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
@@ -50,7 +49,6 @@ const App = () => {
             <Route path="/settings" element={<SettingsPage />} />
           </Route>
         </Routes>
-      </div>
     </div>
   );
 };
