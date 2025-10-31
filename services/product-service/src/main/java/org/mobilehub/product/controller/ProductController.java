@@ -32,7 +32,7 @@ public class ProductController {
     private final ProductService productService;
 
     // region Admin-side APIs
-    @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ProductResponse> createProduct(
             @Valid @RequestPart("request") CreateProductRequest request,
             @RequestPart("files") MultipartFile[] files) {
@@ -40,12 +40,12 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
-    @GetMapping("{productId}/cart")
+    @GetMapping("/{productId}/cart")
     public ResponseEntity<ProductCartResponse> getProductCart(@PathVariable Long productId) {
         return ResponseEntity.ok(productService.getProductCartResponse(productId));
     }
 
-    @PutMapping("/update/{productId}")
+    @PutMapping("/{productId}")
     public ResponseEntity<ProductResponse> updateProduct(
             @PathVariable Long productId,
             @RequestBody UpdateProductRequest updateRequest
@@ -54,7 +54,7 @@ public class ProductController {
         return ResponseEntity.ok(updated);
     }
 
-    @DeleteMapping("/delete/{productId}")
+    @DeleteMapping("/{productId}")
     public ResponseEntity<Map<String, String>> deleteProduct(@PathVariable Long productId) {
         productService.deleteProduct(productId);
         Map<String, String> response = new HashMap<>();
@@ -62,7 +62,7 @@ public class ProductController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("")
+    @GetMapping
     public ResponseEntity<Page<ProductResponse>> getProducts(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
@@ -73,19 +73,19 @@ public class ProductController {
 
     // endregion
 
-    @GetMapping("{productId}")
+    @GetMapping("/{productId}")
     public ResponseEntity<ProductResponse> getProduct(@PathVariable Long productId)
     {
         return ResponseEntity.ok(productService.getProductResponse(productId));
     }
 
-    @GetMapping("{productId}/preview")
+    @GetMapping("/{productId}/preview")
     public ResponseEntity<ProductPreviewResponse> getProductPreview(@PathVariable Long productId)
     {
         return ResponseEntity.ok(productService.getProductPreview(productId));
     }
 
-    @GetMapping("{productId}/detail")
+    @GetMapping("/{productId}/detail")
     public ResponseEntity<ProductDetailResponse> getProductDetail(@PathVariable Long productId)
     {
         return ResponseEntity.ok(productService.getProductDetail(productId));

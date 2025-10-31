@@ -20,6 +20,9 @@ public class CreateProductRequest {
     @DecimalMin(value = "0.0", inclusive = true, message = "Price must be positive")
     private BigDecimal price;
 
+    // discount
+    private CreateDiscountRequest discount;
+
     // spec
     @NotBlank(message = "Operating system (os) is required")
     private String os;
