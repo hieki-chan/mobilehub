@@ -3,7 +3,7 @@ export const products = [
   {
     id: "v1",
     name: "Vphone Pro 6 - 256GB",
-    price: 19990000,
+    price: 19990050,
     oldPrice: 21990000,
     images: [
       "https://via.placeholder.com/900x600?text=Vphone+Pro+6",
