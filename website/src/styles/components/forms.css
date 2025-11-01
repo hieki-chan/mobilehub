@@ -58,8 +58,8 @@ textarea {
 .form-row {
   display: flex;
   justify-content: space-between;
+  margin-top: 8px;
   align-items: center;
-  margin-bottom: 12px;
   gap: 12px;
 }
 

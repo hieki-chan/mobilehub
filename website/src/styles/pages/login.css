@@ -23,7 +23,6 @@
   margin: 0 0 6px;
 }
 
-
 .forgot-password {
   margin-top: 12px;
   display: block;
@@ -85,6 +84,33 @@
   display: flex;
   gap: 8px;
   margin-top: 8px;
+}
+
+/* Form success message */
+.form-success {
+  background: #f0fdf4;
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  color: #15803d;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.form-success small {
+  display: block;
+  margin-top: 6px;
+  font-weight: 400;
+}
+
+.login-form .field:last-of-type {
+  margin-bottom: 18px;
+}
+
+.login-form .btn.full {
+  margin-top: 18px;
 }
 
 /* Responsive */

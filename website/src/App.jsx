@@ -5,6 +5,7 @@ import Footer from './components/Footer'
 import Home from './pages/Home'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import ForgotPassword from './pages/ForgotPassword'
 import ProductDetail from './pages/ProductDetail'
 import Cart from './pages/Cart'
 import SearchResults from './pages/SearchResults'
@@ -14,19 +15,23 @@ export default function App(){
   const hideFooterPaths = ['/product/','/cart','/search']
   const currentPath = window.location.pathname
   const hideFooter = hideFooterPaths.some(p => currentPath.startsWith(p))
+  
   return (
-    <>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Header />
-      <Routes>
-        <Route path="/" element={<Home/>} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/product/:id" element={<ProductDetail/>} />
-        <Route path="/cart" element={<Cart />} />
-        <Route path="/search" element={<SearchResults />} /> 
-        <Route path='/profile' element={<Profile />} />
-      </Routes>
+      <div style={{ flex: 1 }}>
+        <Routes>
+          <Route path="/" element={<Home/>} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/product/:id" element={<ProductDetail/>} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/search" element={<SearchResults />} /> 
+          <Route path='/profile' element={<Profile />} />
+        </Routes>
+      </div>
       {!hideFooter && <Footer />}
-    </>
+    </div>
   )
 }
