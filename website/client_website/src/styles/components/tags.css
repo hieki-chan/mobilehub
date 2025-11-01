@@ -1,0 +1,74 @@
+/* Tags & Badges */
+.tags-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.tag {
+  display: inline-block;
+  padding: 8px 12px;
+  background: #f3f4f6;
+  color: var(--text);
+  border-radius: 999px;
+  font-size: 13px;
+  text-decoration: none;
+  border: 1px solid rgba(0, 0, 0, 0.03);
+  transition: background 180ms, transform 160ms;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 500;
+}
+
+.tag:hover {
+  background: #e9fbff;
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.badge {
+  background: var(--brand-accent);
+  color: #fff;
+  font-weight: 700;
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 12px;
+  display: inline-block;
+}
+
+.badge.sale {
+  background: #ef4444;
+}
+
+.badge.new {
+  background: #10b981;
+}
+
+/* Popular searches section */
+.popular-searches {
+  margin: 18px auto;
+  background: #fff;
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: var(--shadow-sm);
+  width: 100%;
+  max-width: var(--container-max);
+}
+
+.popular-title {
+  font-size: 18px;
+  margin: 0 0 10px;
+  font-weight: 700;
+}
+
+/* Responsive */
+@media (max-width: 420px) {
+  .tags-wrap {
+    gap: 8px;
+  }
+  
+  .tag {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+}
