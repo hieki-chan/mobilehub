@@ -1,7 +1,12 @@
-import { motion } from 'framer-motion'
-import { AlertTriangle, DollarSign, Package, TrendingUp } from 'lucide-react'
-import React, { useState } from 'react'
-import ProductFormModal from '../components/products/ProductFormModal'
+import { motion } from "framer-motion";
+import {
+  AlertTriangle,
+  DollarSign,
+  Package,
+  TrendingUp,
+} from "lucide-react";
+import React, { useState } from "react";
+import ProductFormModal from "../components/products/ProductFormModal";
 
 import Header from "../components/common_components/Header";
 import StatCards from "../components/common_components/StatCards";
@@ -10,71 +15,95 @@ import SalesTrendChart from "../components/products/SalesTrendChart";
 import CategoryDistributionChart from "../components/overview/CategoryDistributionChart";
 
 const ProductsPage = () => {
+  const [isAddModalOpen, setAddModalOpen] = useState(false);
+  const [editingProductId, setEditingProductId] = useState(null);
+  const [reloadFlag, setReloadFlag] = useState(false);
 
-  const [isAddModalOpen, setAddModalOpen] = useState(false)
-  const [newProduct, setNewProduct] = useState({})
+  // ✅ Khi tạo hoặc cập nhật xong thì reload danh sách
+  const handleReload = () => {
+    setAddModalOpen(false);
+    setEditingProductId(null);
+    setReloadFlag((prev) => !prev);
+  };
 
-  const handleAdd = () => {
-    console.log('Tạo sản phẩm:', newProduct)
-    setAddModalOpen(false)
-    setNewProduct({})
-  }
-
+  // ✅ Mở modal thêm mới
   const openAddModal = () => {
-    setAddModalOpen(true)
-    setNewProduct({})
-  }
+    setEditingProductId(null);
+    setAddModalOpen(true);
+  };
 
-  const openEditModal = (product) => {
-    setAddModalOpen(true)
-    setNewProduct(product)
-  }
+  // ✅ Mở modal chỉnh sửa
+  const openEditModal = (productId) => {
+    setEditingProductId(productId);
+    setAddModalOpen(true);
+  };
 
   return (
-    <div className={`flex-1 relative z-10 bg-gray-900 ${isAddModalOpen ? 'overflow-visible' : 'overflow-auto'}`}>
-      <Header title="Sản phẩm " />
+    <div
+      className={`flex-1 relative z-10 bg-gray-900 ${
+        isAddModalOpen ? "overflow-visible" : "overflow-auto"
+      }`}
+    >
+      <Header title="Sản phẩm" />
 
-
-      {/* STAT DATA  */}
-      <main className={`relative mx-auto py-6 px-4 lg:px-8 ${isAddModalOpen ? 'overflow-visible' : 'overflow-auto'}`}>
+      <main
+        className={`relative mx-auto py-6 px-4 lg:px-8 ${
+          isAddModalOpen ? "overflow-visible" : "overflow-auto"
+        }`}
+      >
+        {/* ===== Thống kê tổng quan ===== */}
         <motion.div
           className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-7"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1 }}
         >
-          <StatCards name="Tổng sản phẩm" icon={Package} value="4,321" color="#6366f1" />
-          <StatCards name="Top Selling" icon={TrendingUp} value="69" color="#10b981" />
-          <StatCards name="Low Stock" icon={AlertTriangle} value="32" color="#f59e0b" />
-          <StatCards name="Total Revenue" icon={DollarSign} value="$654,310" color="#ef4444" />
+          <StatCards
+            name="Tổng sản phẩm"
+            icon={Package}
+            value="4,321"
+            color="#6366f1"
+          />
+          <StatCards
+            name="Top Selling"
+            icon={TrendingUp}
+            value="69"
+            color="#10b981"
+          />
+          <StatCards
+            name="Low Stock"
+            icon={AlertTriangle}
+            value="32"
+            color="#f59e0b"
+          />
+          <StatCards
+            name="Total Revenue"
+            icon={DollarSign}
+            value="$654,310"
+            color="#ef4444"
+          />
         </motion.div>
 
+        {/* ===== Bảng sản phẩm ===== */}
+        <ProductDatabase
+          onAddClick={openAddModal}
+          onEditClick={(product) => openEditModal(product.id)}
+          reloadFlag={reloadFlag}
+        />
 
-        {/* PRODUCT DATABASE */}
-
-        <ProductDatabase 
-          onAddClick={() => openAddModal()} 
-          onEditClick={(product) => openEditModal(product)}
-          />
-
-
-        {/* CHARTS */}
-        {/* CHARTS */}
-
+        {/* ===== Biểu đồ ===== */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           <SalesTrendChart />
           <CategoryDistributionChart />
         </div>
 
+        {/* ===== Form Modal (Add / Edit) ===== */}
         <ProductFormModal
-          product={newProduct}
+          productId={editingProductId}
           isOpen={isAddModalOpen}
           onClose={() => setAddModalOpen(false)}
-          onSubmit={handleAdd}
-          newProduct={newProduct}
-          setNewProduct={setNewProduct}
+          onSubmitSuccess={handleReload}
         />
-
       </main>
     </div>
   );

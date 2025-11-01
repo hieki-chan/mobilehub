@@ -1,30 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Edit, Search, Trash2, X, ChevronLeft, ChevronRight, UserPlus, LayoutGrid, Table } from 'lucide-react';
 import { showPopupConfirm } from '../common_components/PopupConfirm';
+import { fetchAdminProducts, deleteAdminProduct } from '../../api/ProductApi';
 
 
-const Product_Data = [
-    { id: 1, name: "Wireless Earbuds", category: "Electronics", price: 59.99, stock: 143, sales: 1200 },
-    { id: 2, name: "Leather Wallet", category: "Accessories", price: 39.99, stock: 89, sales: 900 },
-    { id: 3, name: "Smart Watch", category: "Electronics", price: 399.99, stock: 56, sales: 650 },
-    { id: 4, name: "Yoga Mat", category: "Fitness", price: 299.99, stock: 220, sales: 950 },
-    { id: 5, name: "Coffee Maker", category: "Home Usage", price: 49.99, stock: 190, sales: 720 },
-    { id: 6, name: "Running Shoes", category: "Footwear", price: 89.99, stock: 120, sales: 430 },
-    { id: 7, name: "Gaming Headset", category: "Electronics", price: 69.99, stock: 65, sales: 780 },
-    { id: 8, name: "Cookware Set", category: "Kitchen", price: 109.99, stock: 45, sales: 580 },
-    { id: 9, name: "Bluetooth Speaker", category: "Electronics", price: 29.99, stock: 200, sales: 1150 },
-    { id: 10, name: "Vacuum Cleaner", category: "Home Appliances", price: 149.99, stock: 30, sales: 390 },
-    { id: 11, name: "Portable Charger", category: "Electronics", price: 19.99, stock: 300, sales: 1400 },
-    { id: 12, name: "Hand Mixer", category: "Kitchen", price: 79.99, stock: 50, sales: 275 },
-    { id: 13, name: "Electric Toothbrush", category: "Personal Care", price: 89.99, stock: 80, sales: 640 },
-    { id: 14, name: "Laptop Stand", category: "Office Supplies", price: 45.99, stock: 120, sales: 350 },
-    { id: 15, name: "Desk Lamp", category: "Home Decor", price: 39.99, stock: 110, sales: 300 },
-];
-
-const ProductDatabase = ({ onAddClick, onEditClick }) => {
+const ProductDatabase = ({ onAddClick, onEditClick, reloadFlag }) => {
     const [searchTerm, setSearchTerm] = useState("");
-    const [filteredProducts, setFilteredProducts] = useState(Product_Data);
+    const [filteredProducts, setFilteredProducts] = useState([]);
     const [newProduct, setNewProduct] = useState({ name: "", category: "", price: "", stock: "", sales: "" });
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 12;
@@ -36,16 +19,46 @@ const ProductDatabase = ({ onAddClick, onEditClick }) => {
     const [productToDelete, setProductToDelete] = useState(null);
 
 
+    useEffect(() => {
+        fetchAdminProducts(0, 10)
+            .then((data) => {
+                console.log("📦 Received from API:", data);
+
+                if (data && data.content) {
+                    const normalized = data.content.map(item => ({
+                        id: item.id ?? 0,
+                        name: item.name ?? "Chưa có tên",
+                        category: item.category ?? "Không xác định",
+                        price: item.price ?? 0,
+                        stock: item.stock ?? 0,
+                        sales: item.discountInPercent ?? 0,
+                        status: item.status ?? "Không xác định",
+                        imageUrl: item.imageUrl && item.imageUrl.trim() !== ""
+                            ? item.imageUrl
+                            : "https://via.placeholder.com/100x100?text=No+Image"
+                    }));
+
+                    setFilteredProducts(normalized);
+                    console.table(normalized);
+                }
+            })
+            .catch((err) => {
+                console.error("🚨 Failed to load products:", err);
+            });
+    }, [reloadFlag]);
+
+
     const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
 
     const SearchHandler = (e) => {
         const term = e.target.value.toLowerCase();
         setSearchTerm(term);
-        const filtered = Product_Data.filter(product =>
-            product.name.toLowerCase().includes(term) ||
-            product.category.toLowerCase().includes(term)
+        setFilteredProducts(prev =>
+            prev.filter(product =>
+                product.name.toLowerCase().includes(term) ||
+                product.category.toLowerCase().includes(term)
+            )
         );
-        setFilteredProducts(filtered);
         setCurrentPage(1);
     };
 
@@ -70,19 +83,20 @@ const ProductDatabase = ({ onAddClick, onEditClick }) => {
     };
 
     const handleDelete = async (productId) => {
-        const product = filteredProducts.find(p => p.id === productId);
-
         const confirmed = await showPopupConfirm(
             "Xác nhận xoá sản phẩm",
-            `Bạn có chắc chắn muốn xoá "${product.name}" không?\nHành động này không thể hoàn tác.`,
+            `Bạn có chắc chắn muốn xoá "${product.name}" không?`
         );
 
-        if (confirmed) {
-            setFilteredProducts(prev => prev.filter(p => p.id !== productId));
-        }
-        else
-        {
+        if (!confirmed) return;
 
+        try {
+            await deleteAdminProduct(productId);
+            alert("🗑️ Xoá sản phẩm thành công!");
+            setFilteredProducts((prev) => prev.filter((p) => p.id !== productId)); // xoá trong UI luôn
+        } catch (err) {
+            console.error("❌ Lỗi xoá sản phẩm:", err);
+            alert("Xoá thất bại!");
         }
     };
 
@@ -102,8 +116,6 @@ const ProductDatabase = ({ onAddClick, onEditClick }) => {
         setFilteredProducts(updatedProducts);
         setEditModalOpen(false);
     };
-
-
 
 
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
@@ -185,7 +197,8 @@ const ProductDatabase = ({ onAddClick, onEditClick }) => {
                                     { key: 'category', label: 'Danh mục' },
                                     { key: 'price', label: 'Giá tiền' },
                                     { key: 'stock', label: 'Kho' },
-                                    { key: 'sales', label: 'Khuyến mãi' }
+                                    { key: 'sales', label: 'Khuyến mãi' },
+                                    { key: 'status', label: 'Trạng thái' },
                                 ].map(({ key, label }) => (
                                     <th
                                         key={key}
@@ -233,7 +246,7 @@ const ProductDatabase = ({ onAddClick, onEditClick }) => {
                                     <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-100'>{product.id}</td>
                                     <td className='px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-100 flex gap-2 items-center'>
                                         <img
-                                            src="https://images.unsplash.com/photo-1627989580309-bfaf3e58af6f?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3"
+                                            src={product.imageUrl}
                                             alt="Product_Image"
                                             className='rounded-full size-10'
                                         />
@@ -243,6 +256,17 @@ const ProductDatabase = ({ onAddClick, onEditClick }) => {
                                     <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-100'>{product.price.toLocaleString('vi-VN')}₫</td>
                                     <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-100'>{product.stock}</td>
                                     <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-100'>{product.sales}</td>
+                                    <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-100'>
+                                        <span
+                                            className={`px-3 py-1 rounded-full text-xs font-semibold 
+                                            ${product.status === "ACTIVE"
+                                                        ? "bg-green-700 text-green-100"
+                                                        : "bg-red-700 text-red-100"
+                                                    }`}
+                                            >
+                                            {product.status == 'ACTIVE' ? 'Hoạt động' : 'Ngừng hoạt động'}
+                                        </span>
+                                    </td>
                                     <td className='px-6 py-4 whitespace-nowrap text-sm font-medium h-full'>
                                         <div className='flex items-center gap-4 h-full'>
                                             <button onClick={() => handleEdit(product)} className='text-blue-500 hover:text-blue-700'>
@@ -262,32 +286,33 @@ const ProductDatabase = ({ onAddClick, onEditClick }) => {
             ) : (
                 /* ================================= GRID MODE =================================== */
                 <motion.div
-                    className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5'
+                    className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 w-full'
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.2 }}
                 >
-                    {getCurrentPageProducts().map((p) => (
+                    {getCurrentPageProducts().map((product) => (
                         <motion.div
-                            key={p.id}
-                            className='w-80 h-256 bg-gray-700 rounded-xl p-4 flex flex-col items-center shadow-lg hover:shadow-2xl transition'
+                            key={product.id}
+                            className='w-full max-w-xs bg-gray-700 rounded-xl p-4 flex flex-col items-center shadow-lg hover:shadow-2xl transition mx-auto'
                             whileHover={{ scale: 1.05 }}
                         >
                             <img
-                                src='https://images.unsplash.com/photo-1627989580309-bfaf3e58af6f?w=300'
-                                alt={p.name}
+                                src={product.imageUrl}
+                                alt={product.name}
                                 className='w-45 h-64 object-cover rounded-lg mb-3'
                             />
-                            <h3 className='text-lg font-semibold text-gray-100'>{p.name}</h3>
-                            <p className='text-gray-400 text-sm'>{p.category}</p>
-                            <p className='text-blue-400 text-md font-bold mt-2'>$ {p.price.toFixed(2)}</p>
-                            <p className='text-sm text-gray-400 mt-1'>Kho: {p.stock}</p>
+                            <p className='text-gray-400 text-xs mb-1'>#{product.id}</p>
+                            <h3 className='text-lg font-semibold text-gray-100'>{product.name}</h3>
+                            <p className='text-gray-400 text-sm'>{product.category}</p>
+                            <p className='text-blue-400 text-md font-bold mt-2'>{product.price.toLocaleString('vi-VN')}₫</p>
+                            <p className='text-sm text-gray-400 mt-1'>Kho: {product.stock}</p>
 
                             <div className='flex gap-3 mt-3'>
-                                <button onClick={() => handleEdit(p)} className='text-blue-400 hover:text-blue-600'>
+                                <button onClick={() => handleEdit(product)} className='text-blue-400 hover:text-blue-600'>
                                     <Edit size={18} />
                                 </button>
-                                <button onClick={() => handleDelete(p.id)} className='text-red-400 hover:text-red-600'>
+                                <button onClick={() => handleDelete(product.id)} className='text-red-400 hover:text-red-600'>
                                     <Trash2 size={18} />
                                 </button>
                             </div>

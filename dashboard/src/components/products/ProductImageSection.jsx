@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react"
 import Cropper from "react-easy-crop"
-import { X, Star, Crop as CropIcon } from "lucide-react"
+import { X, Star, Upload, Crop as CropIcon } from "lucide-react"
 
 const ProductImageSection = ({ newProduct, setNewProduct }) => {
   const [croppingImage, setCroppingImage] = useState(null)
@@ -10,17 +10,15 @@ const ProductImageSection = ({ newProduct, setNewProduct }) => {
 
   // === xử lý upload ảnh ===
   const handleFileChange = (e) => {
-  const files = Array.from(e.target.files)
-  if (!files.length) return
+    const file = e.target.files?.[0]
+    if (!file) return
 
-  // reset input file để có thể upload lại cùng ảnh
-  e.target.value = ""
+    // reset input file để có thể upload lại cùng ảnh
+    e.target.value = ""
 
-  // đọc file đầu tiên để crop
-  const file = files[0]
-  const url = URL.createObjectURL(file)
-  setCroppingImage({ file, url, rest: files.slice(1) })
-}
+    const url = URL.createObjectURL(file)
+    setCroppingImage({ file, url })
+  }
 
   // === xử lý crop ===
   const onCropComplete = useCallback((_, croppedAreaPixels) => {
@@ -36,12 +34,8 @@ const ProductImageSection = ({ newProduct, setNewProduct }) => {
     const url = URL.createObjectURL(file)
 
     // thêm ảnh crop vào danh sách
-    const newImages = [...(newProduct.images || []), file, ...(croppingImage.rest || [])]
-    const newPreviews = [
-      ...(newProduct.imagePreviews || []),
-      url,
-      ...(croppingImage.rest || []).map((f) => URL.createObjectURL(f))
-    ]
+    const newImages = [...(newProduct.images || []), file]
+    const newPreviews = [...(newProduct.imagePreviews || []), url]
 
     // Nếu chưa có ảnh chính → ảnh đầu tiên mặc định là chính
     const mainImage = newProduct.mainImage || url
@@ -88,7 +82,6 @@ const ProductImageSection = ({ newProduct, setNewProduct }) => {
       <input
         id="file-upload"
         type="file"
-        multiple
         accept="image/*"
         className="hidden"
         onChange={handleFileChange}
@@ -97,9 +90,10 @@ const ProductImageSection = ({ newProduct, setNewProduct }) => {
       {/* Nút upload */}
       <label
         htmlFor="file-upload"
-        className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-medium text-sm rounded-md cursor-pointer hover:bg-blue-700 transition-all duration-200"
+        className="inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium text-sm rounded-xl cursor-pointer shadow-md hover:scale-[1.02] active:scale-95 transition-all duration-200"
       >
-        📤 Tải ảnh lên
+        <Upload size={18} />
+        <span>Tải ảnh lên</span>
       </label>
 
       {/* Danh sách ảnh */}
@@ -108,11 +102,10 @@ const ProductImageSection = ({ newProduct, setNewProduct }) => {
           {newProduct.imagePreviews.map((src, i) => (
             <div
               key={i}
-              className={`relative rounded-lg overflow-hidden border-2 transition ${
-                newProduct.mainImage === src
-                  ? "border-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.6)]"
-                  : "border-gray-700"
-              }`}
+              className={`relative rounded-lg overflow-hidden border-2 transition ${newProduct.mainImage === src
+                ? "border-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.6)]"
+                : "border-gray-700"
+                }`}
             >
               <div className="aspect-[3/4] w-full overflow-hidden">
                 <img
@@ -135,11 +128,10 @@ const ProductImageSection = ({ newProduct, setNewProduct }) => {
               <button
                 type="button"
                 onClick={() => handleSetMain(src)}
-                className={`absolute bottom-1 left-1 flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium transition ${
-                  newProduct.mainImage === src
-                    ? "bg-blue-600 text-white"
-                    : "bg-black/50 text-gray-200 hover:bg-blue-700 hover:text-white"
-                }`}
+                className={`absolute bottom-1 left-1 flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium transition ${newProduct.mainImage === src
+                  ? "bg-blue-600 text-white"
+                  : "bg-black/50 text-gray-200 hover:bg-blue-700 hover:text-white"
+                  }`}
               >
                 <Star size={12} />
                 {newProduct.mainImage === src ? "Ảnh chính" : "Đặt làm chính"}

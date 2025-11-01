@@ -1,16 +1,18 @@
 import { useEffect } from "react"
+import {Input, Textarea} from "../common_components/FormInput"
+
 
 const ProductDiscountTab = ({ newProduct, setNewProduct }) => {
   // ✅ Tự động tính giá sau khi giảm khi giá hoặc % thay đổi
   useEffect(() => {
-    const price = parseFloat(newProduct.price) || 0
-    const discountPercent = parseFloat(newProduct.discountPercent) || 0
-    const discountedPrice = price - (price * discountPercent) / 100
+    const price = parseFloat(newProduct.price) || 0;
+    const discountPercent = parseFloat(newProduct.discount?.valueInPercent) || 0;
+    const discountedPrice = price - (price * discountPercent) / 100;
     setNewProduct((prev) => ({
       ...prev,
       discountPrice: discountedPrice > 0 ? Math.round(discountedPrice) : 0,
-    }))
-  }, [newProduct.price, newProduct.discountPercent])
+    }));
+  }, [newProduct.price, newProduct.discount?.valueInPercent]);
 
   return (
     <div className="space-y-6">
@@ -34,7 +36,7 @@ const ProductDiscountTab = ({ newProduct, setNewProduct }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <Input
           label="Phần trăm giảm (%)"
-          keyName="discountPercent"
+          keyName="discount.valueInPercent"
           type="number"
           min={0}
           max={100}
@@ -63,75 +65,21 @@ const ProductDiscountTab = ({ newProduct, setNewProduct }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <Input
           label="Ngày bắt đầu"
-          keyName="discountStart"
+          keyName="discount.startDate"
           type="date"
           newProduct={newProduct}
           setNewProduct={setNewProduct}
         />
         <Input
           label="Ngày kết thúc"
-          keyName="discountEnd"
+          keyName="discount.endDate"
           type="date"
           newProduct={newProduct}
           setNewProduct={setNewProduct}
         />
       </div>
-
-      {/* ===== Hàng 4: Ghi chú ===== */}
-      <Textarea
-        label="Ghi chú khuyến mãi"
-        keyName="discountNote"
-        rows={2}
-        newProduct={newProduct}
-        setNewProduct={setNewProduct}
-      />
     </div>
-  )
-}
+  );
+};
 
-export default ProductDiscountTab
-
-// === COMPONENTS DÙNG CHUNG ===
-const Input = ({
-  label,
-  keyName,
-  type = "text",
-  min,
-  max,
-  newProduct,
-  setNewProduct,
-}) => (
-  <div>
-    <label className="text-sm text-gray-300 block mb-1">{label}</label>
-    <input
-      type={type}
-      min={min}
-      max={max}
-      className="w-full px-3 py-2 rounded-md bg-gray-800 text-white focus:ring-2 focus:ring-blue-500 outline-none"
-      value={newProduct[keyName] || ""}
-      onChange={(e) => {
-        let val = e.target.value
-        if (type === "number") {
-          const num = parseFloat(val)
-          if (min !== undefined && num < min) val = min
-          if (max !== undefined && num > max) val = max
-        }
-        setNewProduct({ ...newProduct, [keyName]: val })
-      }}
-    />
-  </div>
-)
-
-const Textarea = ({ label, keyName, rows, newProduct, setNewProduct }) => (
-  <div>
-    <label className="text-sm text-gray-300 block mb-1">{label}</label>
-    <textarea
-      rows={rows}
-      className="w-full px-3 py-2 rounded-md bg-gray-800 text-white focus:ring-2 focus:ring-blue-500 outline-none"
-      value={newProduct[keyName] || ""}
-      onChange={(e) =>
-        setNewProduct({ ...newProduct, [keyName]: e.target.value })
-      }
-    ></textarea>
-  </div>
-)
+export default ProductDiscountTab;
