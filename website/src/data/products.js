@@ -51,7 +51,7 @@ export const products = [
     variants: { capacity: ["64GB", "128GB"], color: [{ label: "Tím", value: "#7c3aed" }, { label: "Xám", value: "#6b7280" }] }
   },
   {
-    id: "v1",
+    id: "v3",
     name: "Vphone Pro 6 - 256GB",
     price: 19990000,
     oldPrice: 21990000,
@@ -90,7 +90,7 @@ export const products = [
     }
   },
   {
-    id: "v1",
+    id: "v4",
     name: "Vphone Pro 6 - 256GB",
     price: 19990000,
     oldPrice: 21990000,
@@ -129,7 +129,7 @@ export const products = [
     }
   },
   {
-    id: "v1",
+    id: "v5",
     name: "Vphone Pro 6 - 256GB",
     price: 19990000,
     oldPrice: 21990000,
@@ -168,7 +168,7 @@ export const products = [
     }
   },
   {
-    id: "v1",
+    id: "v6",
     name: "Vphone Pro 6 - 256GB",
     price: 19990000,
     oldPrice: 21990000,
@@ -207,7 +207,7 @@ export const products = [
     }
   },
   {
-    id: "v1",
+    id: "v7",
     name: "Vphone Pro 6 - 256GB",
     price: 19990000,
     oldPrice: 21990000,
@@ -246,7 +246,7 @@ export const products = [
     }
   },
   {
-    id: "v1",
+    id: "v8",
     name: "Vphone Pro 6 - 256GB",
     price: 19990000,
     oldPrice: 21990000,

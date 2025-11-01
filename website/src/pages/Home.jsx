@@ -1,5 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react'
 import ProductCard from '../components/ProductCard'
+import { useNavigate } from 'react-router-dom'
+import { formatPrice } from '../utils/formatPrice'
+
 import '../styles/pages/home.css'
 
 const mockProducts = [
@@ -41,7 +44,7 @@ export default function Home() {
   }, [current])
 
   const openQuickView = (id) => {
-    const p = products.find(x => String(x.id) === String(id))
+    const p = mockProducts.find(x => String(x.id) === String(id))
     if (!p) return alert('Không tìm thấy sản phẩm')
     setModalProduct(p)
     setModalOpen(true)
