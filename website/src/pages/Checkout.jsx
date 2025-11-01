@@ -7,20 +7,23 @@ import '../styles/pages/checkout.css'
 export default function Checkout() {
   const navigate = useNavigate()
   const { cart, total, clear } = useCart()
-  
+  const [provinces, setProvinces] = useState([])
+  const [districts, setDistricts] = useState([])
+  const [wards, setWards] = useState([])
+
   const [formData, setFormData] = useState({
     fullName: '',
     phone: '',
     email: '',
     address: '',
-    city: '',
-    district: '',
-    ward: '',
+    cityCode: '',
+    cityCodeCode: '',
+    wardCode: '',
     note: '',
     paymentMethod: 'cod',
     shippingMethod: 'standard'
   })
-  
+
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
 
@@ -29,7 +32,7 @@ export default function Checkout() {
     if (!cart || cart.length === 0) {
       navigate('/')
     }
-    
+
     // Lấy thông tin user nếu đã đăng nhập
     const userStr = localStorage.getItem('user')
     if (userStr) {
@@ -45,14 +48,76 @@ export default function Checkout() {
         // ignore
       }
     }
-    
+
     document.title = 'Thanh toán | MobileHub'
   }, [cart, navigate])
+  useEffect(() => {
+    fetch('https://provinces.open-api.vn/api/p/')
+      .then(res => res.json())
+      .then(data => setProvinces(data))
+      .catch(err => console.error("Lỗi tải Tỉnh/Thành:", err))
+  }, [])
+  useEffect(() => {
+
+    setDistricts([])
+    setWards([])
+    setFormData(prev => ({ ...prev, districtCode: '', wardCode: '' }))
+
+    if (!formData.cityCode) return // Không gọi API nếu chưa chọn tỉnh
+
+
+    fetch(`https://provinces.open-api.vn/api/p/${formData.cityCode}?depth=2`)
+      .then(res => res.json())
+      .then(data => {
+
+        setDistricts(data.districts)
+      })
+      .catch(err => console.error("Lỗi tải Quận/Huyện:", err))
+
+  }, [formData.cityCode])
+
+  useEffect(() => {
+
+    setWards([])
+    setFormData(prev => ({ ...prev, wardCode: '' }))
+
+    if (!formData.districtCode) return // Không gọi API nếu chưa chọn huyện
+
+    fetch(`https://provinces.open-api.vn/api/d/${formData.districtCode}?depth=2`)
+      .then(res => res.json())
+      .then(data => {
+        // API trả về object có key là wards
+        setWards(data.wards)
+      })
+      .catch(err => console.error("Lỗi tải Phường/Xã:", err))
+
+  }, [formData.districtCode])
 
   const handleChange = (e) => {
     const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
-    // Xóa lỗi khi user nhập lại
+
+    // Khi người dùng thay đổi Tỉnh/Thành phố
+    if (name === 'cityCode') {
+      // Khi chọn tỉnh mới, tự động reset Huyện/Xã về rỗng
+      setFormData(prev => ({
+        ...prev,
+        cityCode: value,
+        districtCode: '',
+        wardCode: ''
+      }))
+    }
+    // Khi người dùng thay đổi Quận/Huyện
+    else if (name === 'districtCode') {
+      setFormData(prev => ({
+        ...prev,
+        districtCode: value,
+        wardCode: ''
+      }))
+    }
+    else {
+      setFormData(prev => ({ ...prev, [name]: value }))
+    }
+
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }))
     }
@@ -60,7 +125,7 @@ export default function Checkout() {
 
   const validate = () => {
     const newErrors = {}
-    
+
     if (!formData.fullName.trim()) newErrors.fullName = 'Vui lòng nhập họ tên'
     if (!formData.phone.trim()) newErrors.phone = 'Vui lòng nhập số điện thoại'
     else if (!/^[0-9]{10,11}$/.test(formData.phone.trim())) {
@@ -71,29 +136,29 @@ export default function Checkout() {
       newErrors.email = 'Email không hợp lệ'
     }
     if (!formData.address.trim()) newErrors.address = 'Vui lòng nhập địa chỉ'
-    if (!formData.city.trim()) newErrors.city = 'Vui lòng chọn Tỉnh/Thành phố'
-    if (!formData.district.trim()) newErrors.district = 'Vui lòng chọn Quận/Huyện'
-    if (!formData.ward.trim()) newErrors.ward = 'Vui lòng chọn Phường/Xã'
-    
+    if (!formData.cityCode.trim()) newErrors.cityCode = 'Vui lòng chọn Tỉnh/Thành phố'
+    if (!formData.districtCode.trim()) newErrors.districtCode = 'Vui lòng chọn Quận/Huyện'
+    if (!formData.wardCode.trim()) newErrors.wardCode = 'Vui lòng chọn Phường/Xã'
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
+
     if (!validate()) {
       alert('Vui lòng điền đầy đủ thông tin')
       return
     }
-    
+
     setLoading(true)
-    
+
     // Giả lập gọi API
     setTimeout(() => {
       // Tạo mã đơn hàng
       const orderId = 'MH' + Date.now()
-      
+
       // Lưu đơn hàng (demo - thực tế sẽ gọi API)
       const order = {
         id: orderId,
@@ -105,17 +170,17 @@ export default function Checkout() {
         createdAt: new Date().toISOString(),
         status: 'pending'
       }
-      
+
       // Lưu vào localStorage (demo)
       const orders = JSON.parse(localStorage.getItem('orders') || '[]')
       orders.push(order)
       localStorage.setItem('orders', JSON.stringify(orders))
-      
+
       // Xóa giỏ hàng
       clear()
-      
+
       setLoading(false)
-      
+
       // Chuyển đến trang thành công
       alert(`Đặt hàng thành công! Mã đơn hàng: ${orderId}`)
       navigate('/')
@@ -143,15 +208,15 @@ export default function Checkout() {
       <div className="checkout-content">
         <div className="checkout-left">
           <h2 className="section-title">Thông tin giao hàng</h2>
-          
+
           <form onSubmit={handleSubmit} className="checkout-form">
             <div className="form-section">
               <h3>Thông tin người nhận</h3>
-              
+
               <label className="field">
                 <div className="label">Họ và tên <span className="required">*</span></div>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   name="fullName"
                   value={formData.fullName}
                   onChange={handleChange}
@@ -163,8 +228,8 @@ export default function Checkout() {
               <div className="form-row-2">
                 <label className="field">
                   <div className="label">Số điện thoại <span className="required">*</span></div>
-                  <input 
-                    type="tel" 
+                  <input
+                    type="tel"
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
@@ -175,8 +240,8 @@ export default function Checkout() {
 
                 <label className="field">
                   <div className="label">Email <span className="required">*</span></div>
-                  <input 
-                    type="email" 
+                  <input
+                    type="email"
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
@@ -189,11 +254,11 @@ export default function Checkout() {
 
             <div className="form-section">
               <h3>Địa chỉ giao hàng</h3>
-              
+
               <label className="field">
                 <div className="label">Địa chỉ cụ thể <span className="required">*</span></div>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   name="address"
                   value={formData.address}
                   onChange={handleChange}
@@ -203,44 +268,59 @@ export default function Checkout() {
               </label>
 
               <div className="form-row-3">
+                {/* TỈNH/THÀNH PHỐ */}
                 <label className="field">
                   <div className="label">Tỉnh/Thành phố <span className="required">*</span></div>
-                  <select name="city" value={formData.city} onChange={handleChange}>
+                  <select name="cityCode" value={formData.cityCode} onChange={handleChange}>
                     <option value="">Chọn Tỉnh/TP</option>
-                    <option value="Hà Nội">Hà Nội</option>
-                    <option value="TP. Hồ Chí Minh">TP. Hồ Chí Minh</option>
-                    <option value="Đà Nẵng">Đà Nẵng</option>
-                    <option value="Hải Phòng">Hải Phòng</option>
+                    {/* Lặp qua danh sách Provinces đã được tải từ API */}
+                    {provinces.map(p => (
+                      <option key={p.code} value={p.code}>{p.name}</option>
+                    ))}
                   </select>
-                  {errors.city && <div className="field-error">{errors.city}</div>}
+                  {errors.cityCode && <div className="field-error">{errors.cityCode}</div>}
                 </label>
 
+                {/* QUẬN/HUYỆN */}
                 <label className="field">
                   <div className="label">Quận/Huyện <span className="required">*</span></div>
-                  <select name="district" value={formData.district} onChange={handleChange}>
+                  <select
+                    name="districtCode"
+                    value={formData.districtCode}
+                    onChange={handleChange}
+                    disabled={!formData.cityCode || districts.length === 0} 
+                  >
                     <option value="">Chọn Quận/Huyện</option>
-                    <option value="Quận 1">Quận 1</option>
-                    <option value="Quận 2">Quận 2</option>
-                    <option value="Quận 3">Quận 3</option>
+                    {/* Lặp qua danh sách Districts đã được lọc */}
+                    {districts.map(d => (
+                      <option key={d.code} value={d.code}>{d.name}</option>
+                    ))}
                   </select>
-                  {errors.district && <div className="field-error">{errors.district}</div>}
+                  {errors.districtCode && <div className="field-error">{errors.districtCode}</div>}
                 </label>
 
+                {/* PHƯỜNG/XÃ */}
                 <label className="field">
                   <div className="label">Phường/Xã <span className="required">*</span></div>
-                  <select name="ward" value={formData.ward} onChange={handleChange}>
+                  <select
+                    name="wardCode"
+                    value={formData.wardCode}
+                    onChange={handleChange}
+                    disabled={!formData.districtCode || wards.length === 0} 
+                  >
                     <option value="">Chọn Phường/Xã</option>
-                    <option value="Phường 1">Phường 1</option>
-                    <option value="Phường 2">Phường 2</option>
-                    <option value="Phường 3">Phường 3</option>
+                    {/* Lặp qua danh sách Wards đã được lọc */}
+                    {wards.map(w => (
+                      <option key={w.code} value={w.code}>{w.name}</option>
+                    ))}
                   </select>
-                  {errors.ward && <div className="field-error">{errors.ward}</div>}
+                  {errors.wardCode && <div className="field-error">{errors.wardCode}</div>}
                 </label>
               </div>
 
               <label className="field">
                 <div className="label">Ghi chú (tùy chọn)</div>
-                <textarea 
+                <textarea
                   name="note"
                   value={formData.note}
                   onChange={handleChange}
@@ -252,10 +332,10 @@ export default function Checkout() {
 
             <div className="form-section">
               <h3>Phương thức vận chuyển</h3>
-              
+
               <label className="radio-option">
-                <input 
-                  type="radio" 
+                <input
+                  type="radio"
                   name="shippingMethod"
                   value="standard"
                   checked={formData.shippingMethod === 'standard'}
@@ -269,8 +349,8 @@ export default function Checkout() {
               </label>
 
               <label className="radio-option">
-                <input 
-                  type="radio" 
+                <input
+                  type="radio"
                   name="shippingMethod"
                   value="express"
                   checked={formData.shippingMethod === 'express'}
@@ -286,10 +366,10 @@ export default function Checkout() {
 
             <div className="form-section">
               <h3>Phương thức thanh toán</h3>
-              
+
               <label className="radio-option">
-                <input 
-                  type="radio" 
+                <input
+                  type="radio"
                   name="paymentMethod"
                   value="cod"
                   checked={formData.paymentMethod === 'cod'}
@@ -302,8 +382,8 @@ export default function Checkout() {
               </label>
 
               <label className="radio-option">
-                <input 
-                  type="radio" 
+                <input
+                  type="radio"
                   name="paymentMethod"
                   value="bank"
                   checked={formData.paymentMethod === 'bank'}
@@ -316,8 +396,8 @@ export default function Checkout() {
               </label>
 
               <label className="radio-option">
-                <input 
-                  type="radio" 
+                <input
+                  type="radio"
                   name="paymentMethod"
                   value="momo"
                   checked={formData.paymentMethod === 'momo'}
@@ -335,7 +415,7 @@ export default function Checkout() {
         <div className="checkout-right">
           <div className="order-summary">
             <h3>Đơn hàng của bạn</h3>
-            
+
             <div className="summary-items">
               {cart.map((item, idx) => (
                 <div key={idx} className="summary-item">
@@ -372,8 +452,8 @@ export default function Checkout() {
               <span className="total-price">{formatPrice(finalTotal)}</span>
             </div>
 
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="btn btn-primary btn-xl"
               onClick={handleSubmit}
               disabled={loading}
@@ -381,8 +461,8 @@ export default function Checkout() {
               {loading ? 'Đang xử lý...' : 'Đặt hàng'}
             </button>
 
-            <button 
-              type="button" 
+            <button
+              type="button"
               className="btn btn-secondary"
               style={{ marginTop: 10, width: '100%' }}
               onClick={() => navigate('/cart')}
