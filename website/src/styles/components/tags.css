@@ -15,11 +15,15 @@
   text-decoration: none;
   border: 1px solid rgba(0, 0, 0, 0.03);
   transition: background 180ms, transform 160ms;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 500;
 }
 
 .tag:hover {
   background: #e9fbff;
   transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .badge {

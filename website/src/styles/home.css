@@ -366,6 +366,7 @@ img {
     display: flex;
     flex-direction: column;
     min-height: 260px;
+    min-width: 200px;
 }
 
 .img-wrap {

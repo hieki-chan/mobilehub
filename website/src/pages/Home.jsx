@@ -53,6 +53,10 @@ export default function Home() {
     document.body.style.overflow = ''
   }
 
+  const navigateToSearch = (term) => {
+    navigate(`/search?q=${encodeURIComponent(term)}`)
+  }
+
   // --- START: Dữ liệu cho mục mới ---
   // Giả lập "Gợi ý": Lấy các sản phẩm giá rẻ (dưới 20 triệu)
   const suggestedProducts = products.filter(p => p.price < 20000000 && p.status === 'available').slice(0, 4)
