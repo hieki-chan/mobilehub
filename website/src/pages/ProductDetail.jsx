@@ -14,7 +14,7 @@ import useFav from '../hooks/useFav'
 import { formatPrice } from '../utils/formatPrice'
 import '../styles/pages/product-detail.css'
 
-export default function ProductDetail(){
+export default function ProductDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const pool = (window.__MOCK_PRODUCTS__ && window.__MOCK_PRODUCTS__.length) ? window.__MOCK_PRODUCTS__ : mockProducts
@@ -26,7 +26,7 @@ export default function ProductDetail(){
   const { add } = useCart()
   const { isFav, toggle } = useFav()
 
-  useEffect(()=> { document.title = p.name + ' | MobileHub' }, [p.name])
+  useEffect(() => { document.title = p.name + ' | MobileHub' }, [p.name])
 
   // fix: do NOT call hook in render or call add on mount
   const onAddCart = (item) => { add(item); alert('Đã thêm vào giỏ hàng') }
@@ -52,13 +52,30 @@ export default function ProductDetail(){
 
         <ActionButtons product={p} qty={qty} capacity={capacity} color={color} onAddCart={onAddCart} onBuyNow={onBuyNow} />
 
-        <div className="muted" id="stockInfo">Tình trạng: <strong id="stockVal">{p.status === 'available' ? 'Còn hàng' : (p.status === 'coming_soon' ? 'Sắp có' : 'Hết hàng')}</strong></div>
+        <div className="stock-info-row">
+          <div className="muted" id="stockInfo">Tình trạng: <strong id="stockVal">{p.status === 'available' ? 'Còn hàng' : (p.status === 'coming_soon' ? 'Sắp có' : 'Hết hàng')}</strong></div>
+          <div className="social-actions">
+            <button
+              className={`social-btn favorite-btn ${isFav(p.id) ? 'active' : ''}`}
+              onClick={() => toggle(p.id)}
+              aria-pressed={isFav(p.id)}
+            >
+              <i className={isFav(p.id) ? "fa fa-heart" : "fa-regular fa-heart"}></i>
+            </button>
 
-        <div className="social" style={{ marginTop: 8 }}>
-          <button className="icon-btn" onClick={() => { /* share already in ActionButtons */ }}><i className="fa fa-share-nodes"></i></button>
-          <button className="icon-btn" onClick={() => toggle(p.id)} aria-pressed={isFav(p.id)}>
-            {isFav(p.id) ? <i className="fa fa-heart" style={{ color:'#ff4444' }}></i> : <i className="fa-regular fa-heart"></i>}
-          </button>
+            <button
+              className="social-btn share-btn"
+              onClick={() => {
+                if (navigator.share) {
+                  navigator.share({ title: p.name, text: p.desc, url: location.href }).catch(() => { });
+                } else {
+                  navigator.clipboard?.writeText(location.href).then(() => alert('Đã sao chép liên kết'));
+                }
+              }}
+            >
+              <i className="fa fa-share-nodes"></i>
+            </button>
+          </div>
         </div>
       </aside>
 

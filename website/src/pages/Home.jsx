@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import ProductCard from '../components/ProductCard'
+import '../styles/pages/home.css'
 
 const mockProducts = [
   { id: "v1", name: "Vphone Pro 6 - 256GB", price: 19990000, oldPrice: 21990000, image: "https://via.placeholder.com/420x260?text=Vphone+Pro+6", tags: ["new"], status: "available", desc: "Vphone Pro 6 - Màn hình 6.7\", camera 108MP, pin 5000mAh." },
@@ -56,6 +57,18 @@ export default function Home() {
   const navigateToSearch = (term) => {
     navigate(`/search?q=${encodeURIComponent(term)}`)
   }
+  const popularTerms = [
+    'Vphone Pro 6',
+    'Vphone X',
+    'iPhone 17',
+    'Samsung S25',
+    'Pixel 9',
+    'Điện thoại chơi game',
+    'Camera phone',
+    'Pin dự phòng',
+    'Ốp lưng',
+    'Sạc 65W',
+  ];
 
   // --- START: Dữ liệu cho mục mới ---
   // Giả lập "Gợi ý": Lấy các sản phẩm giá rẻ (dưới 20 triệu)
@@ -99,7 +112,7 @@ export default function Home() {
 
           <div className="carousel-dots" aria-label="Chọn slide">
             {[0, 1, 2].map(i => (
-              <button key={i} aria-label={`Slide ${i+1}`} className={i === current ? 'active' : ''} onClick={() => setCurrent(i)}></button>
+              <button key={i} aria-label={`Slide ${i + 1}`} className={i === current ? 'active' : ''} onClick={() => setCurrent(i)}></button>
             ))}
           </div>
         </div>
@@ -129,7 +142,7 @@ export default function Home() {
         {/* === START: Mục Gợi ý cho bạn === */}
         {suggestedProducts.length > 0 && (
           <>
-            <h3 className="section-title" style={{marginTop: '24px'}}>Gợi ý cho bạn</h3>
+            <h3 className="section-title" style={{ marginTop: '24px' }}>Gợi ý cho bạn</h3>
             <section className="products-grid" aria-label="Sản phẩm gợi ý">
               {loading ? (
                 Array.from({ length: suggestedProducts.length }).map((_, i) => (
@@ -151,7 +164,7 @@ export default function Home() {
         {/* === START: Mục Bán chạy === */}
         {bestSellerProducts.length > 0 && (
           <>
-            <h3 className="section-title" style={{marginTop: '24px'}}>Bán chạy</h3>
+            <h3 className="section-title" style={{ marginTop: '24px' }}>Bán chạy</h3>
             <section className="products-grid" aria-label="Sản phẩm bán chạy">
               {loading ? (
                 Array.from({ length: bestSellerProducts.length }).map((_, i) => (
@@ -170,20 +183,20 @@ export default function Home() {
         {/* === END: Mục Bán chạy === */}
 
         {/* Mọi người cũng tìm kiếm */}
-        
+
         <section className="popular-searches container" aria-label="Mọi người cũng tìm kiếm">
           <h4 className="popular-title">Mọi người cũng tìm kiếm</h4>
           <div className="tags-wrap">
-            <a href="#" className="tag">Vphone Pro 6</a>
-            <a href="#" className="tag">Vphone X</a>
-            <a href="#" className="tag">iPhone 17</a>
-            <a href="#" className="tag">Samsung S25</a>
-            <a href="#" className="tag">Pixel 9</a>
-            <a href="#" className="tag">Điện thoại chơi game</a>
-            <a href="#" className="tag">Camera phone</a>
-            <a href="#" className="tag">Pin dự phòng</a>
-            <a href="#" className="tag">Ốp lưng</a>
-            <a href="#" className="tag">Sạc 65W</a>
+            {popularTerms.map((term, index) => (
+              <a
+                key={index} 
+                onClick={() => navigateToSearch(term)}
+                className="tag"
+                href={`/search?q=${encodeURIComponent(term)}`} 
+              >
+                {term}
+              </a>
+            ))}
           </div>
         </section>
       </main>

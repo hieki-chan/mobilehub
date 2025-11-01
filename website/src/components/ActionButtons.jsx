@@ -24,12 +24,12 @@ export default function ActionButtons({ product, qty, capacity, color, onAddCart
           <div style={{ fontWeight:700, marginRight:8 }}>{/* qty controlled outside */}</div>
         </div>
       </div>
-      <div className="action-row" style={{ marginTop: 10 }}>
-        <button className="btn btn-primary btn-lg" id="addCart" onClick={() => onAddCart({ id: product.id, name: product.name, price: product.price, qty, capacity, color })}>Thêm vào giỏ</button>
-        <button className="btn btn-primary btn-lg" id="buyNow" onClick={() => onBuyNow({ id: product.id, name: product.name, price: product.price, qty, capacity, color })}>Mua ngay</button>
-        <button className="btn btn-secondary btn-lg" id="instalment" onClick={instalment}>Mua trả góp</button>
-        <button className="icon-btn" onClick={share} title="Chia sẻ"><i className="fa fa-share-nodes"></i></button>
+      <div className="action-buttons-row" style={{ marginTop: 10 }}>
+        <button className="btn btn-primary btn-action" id="addCart" onClick={() => onAddCart({ id: product.id, name: product.name, price: product.price, qty, capacity, color })}>Thêm vào giỏ</button>
+        <button className="btn btn-primary btn-action" id="buyNow" onClick={() => onBuyNow({ id: product.id, name: product.name, price: product.price, qty, capacity, color })}>Mua ngay</button>
       </div>
+      <button className="btn btn-secondary btn-full" id="instalment" onClick={instalment}>Mua trả góp</button>
     </div>
+
   )
 }
