@@ -1,0 +1,12 @@
+package org.mobilehub.shared.contracts.media;
+
+import lombok.Data;
+
+import java.util.List;
+
+@Data
+public class ImageUploadEvent {
+    private Long productId;
+    private List<String> files; // Base64 encoded files
+    private String folder;
+}

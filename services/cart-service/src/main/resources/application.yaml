@@ -1,0 +1,37 @@
+server:
+  port: 8083
+  servlet:
+    context-path: /cart
+
+spring:
+  application:
+    name: cart-service
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/mobilehub_cart
+    username: root
+    password: root1234!
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update     # Tự tạo/tự cập nhật bảng
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  cloud:
+    compatibility-verifier:
+      enabled: false
+
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 3000
+        readTimeout: 5000
+        loggerLevel: full
+
+product-service:
+  url: http://localhost:8087/api/products

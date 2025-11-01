@@ -1,0 +1,22 @@
+package org.mobilehub.product.config;
+
+import feign.codec.Encoder;
+import feign.form.spring.SpringFormEncoder;
+import org.springframework.beans.factory.ObjectFactory;
+import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
+import org.springframework.cloud.openfeign.support.SpringEncoder;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+//Configuration
+@Deprecated
+public class FeignMultipartConfig {
+
+    @Bean
+    public Encoder feignFormEncoder(ObjectFactory<HttpMessageConverters> messageConverters) {
+
+        SpringEncoder springEncoder = new SpringEncoder(messageConverters);
+
+        return new SpringFormEncoder(springEncoder);
+    }
+}
