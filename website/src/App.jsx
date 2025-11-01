@@ -10,6 +10,7 @@ import ProductDetail from './pages/ProductDetail'
 import Cart from './pages/Cart'
 import SearchResults from './pages/SearchResults'
 import Profile from './pages/Profile'
+import Checkout from './pages/Checkout'  
 
 export default function App(){
   const hideFooterPaths = ['/product/','/cart','/search']
@@ -29,6 +30,7 @@ export default function App(){
           <Route path="/cart" element={<Cart />} />
           <Route path="/search" element={<SearchResults />} /> 
           <Route path='/profile' element={<Profile />} />
+          <Route path='/checkout' element={<Checkout />} />
         </Routes>
       </div>
       {!hideFooter && <Footer />}
