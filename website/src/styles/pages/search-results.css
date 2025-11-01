@@ -107,7 +107,7 @@
   flex: 1;
 }
 
-.products-grid {
+.search-results-page .products-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr) !important;
   gap: 18px;
