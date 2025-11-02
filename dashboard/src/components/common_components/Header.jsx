@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { logout } from '../../api/AuthApi'
 
 const Header = ({ title, onProfile, onLogout, notificationsCount = 0, userName = 'User' }) => {
   const [open, setOpen] = useState(false)
@@ -100,17 +101,11 @@ const Header = ({ title, onProfile, onLogout, notificationsCount = 0, userName =
 
                     <button
                       onClick={() => {
-                        setOpen(false);
-                        openUserProfile();
-                        (onLogout || (() => console.log('Đăng xuất clicked')))();
-                        // Xóa thông tin đăng nhập
-                        localStorage.removeItem("isLoggedIn");
-                        localStorage.removeItem("username");
-
-                        // Chuyển hướng về trang login
+                        setOpen(false); 
+                        logout();
                         navigate("/login");
                       }}
-                      className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 w-full text-left"
+                      className="block px-4 py-2 text-sm text-gray-300 hover:bg-red-600 hover:text-white transition-colors duration-150 w-full text-left"
                     >
                       Đăng xuất
                     </button>

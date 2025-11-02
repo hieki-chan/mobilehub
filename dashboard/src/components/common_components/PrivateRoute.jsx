@@ -2,11 +2,14 @@ import React from "react";
 import { Navigate, Outlet } from "react-router-dom";
 
 const PrivateRoute = () => {
-  // kiểm tra trạng thái đăng nhập
-  const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+  const token = localStorage.getItem("token");
+  const role = localStorage.getItem("role");
 
-  // nếu chưa đăng nhập → chuyển sang trang login
-  return isLoggedIn ? <Outlet /> : <Navigate to="/login" replace />;
+  if (!token || role !== "ADMIN") {
+    return <Navigate to="/login" replace />;
+  }
+
+  return <Outlet />;
 };
 
 export default PrivateRoute;
