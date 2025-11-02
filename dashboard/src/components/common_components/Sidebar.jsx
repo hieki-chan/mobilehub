@@ -54,18 +54,17 @@ const Sidebar = () => {
   return (
     <>
       <motion.div
-        className={`relative z-10 transition-all duration-200 ease-in-out flex-shrink-0 ${
-          isSidebarOpen ? "w-64" : "w-20"
-        }`}
-        animate={{ width: isSidebarOpen ? 220 : 80 }}
+        className={`relative z-10 transition-all duration-100 ease-in-out flex-shrink-0 ${isSidebarOpen ? "w-64" : "w-20"
+          }`}
+        animate={{ width: isSidebarOpen ? 300 : 85 }}
         transition={{ duration: 0.1 }}
       >
-        <div className="h-full bg-gray-800 bg-opacity-50 backdrop-blur-md p-4 flex flex-col border-r border-gray-700">
+        <div className="h-full bg-stone-100 border-r border-gray-300 p-4 flex flex-col shadow-sm">
           <motion.button
             whileHover={{ scale: 1.2 }}
             whileTap={{ scale: 0.8 }}
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="p-2 rounded-full hover:bg-gray-700 transition-colors max-w-fit"
+            className="p-2 rounded-full hover:bg-gray-700 hover:text-white transition-colors max-w-fit"
             disabled={isMobile} // Disable button on mobile devices
           >
             <Menu size={26} />
@@ -78,11 +77,10 @@ const Sidebar = () => {
                 <Link key={item.href} to={item.href}>
                   <motion.div
                     className={`flex items-center font-medium p-4 mb-2 text-sm rounded-lg transition-colors
-                                            ${
-                                              isActive
-                                                ? "bg-gray-700 text-white shadow-lg border border-gray-600"
-                                                : "hover:bg-gray-700/50"
-                                            }`}
+                                            ${isActive
+                        ? "bg-gray-700 text-white shadow-lg border border-gray-600"
+                        : "hover:bg-white hover:shadow-md"
+                      }`}
                   >
                     <item.icon
                       size={20}

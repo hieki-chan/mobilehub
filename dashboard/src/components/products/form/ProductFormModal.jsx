@@ -6,10 +6,10 @@ import {
   createAdminProduct,
   getAdminProductDetail,
   updateAdminProduct,
-} from "../../api/ProductApi";
+} from "../../../api/ProductApi";
 
 const ProductFormModal = ({
-  productId,          // 🆕 chỉ truyền ID
+  productId, // 🆕 chỉ truyền ID
   isOpen,
   onClose,
   onSubmitSuccess,
@@ -42,12 +42,7 @@ const ProductFormModal = ({
             mainImage: data.mainImageUrl || (data.otherImageUrls?.[0] ?? null),
           });
 
-          console.log("🟢 Product loaded:", {
-            ...data,
-            images: [],
-            imagePreviews: data.otherImageUrls || [],
-            mainImage: data.mainImageUrl || (data.otherImageUrls?.[0] ?? null),
-          });
+          console.log("🟢 Product loaded:", data);
         })
         .catch((err) => {
           console.error("❌ Lỗi tải chi tiết sản phẩm:", err);
@@ -58,8 +53,6 @@ const ProductFormModal = ({
       setNewProduct({});
     }
   }, [isOpen, productId]);
-
-
 
   // ===== Gửi form (create / update) =====
   const handleSubmit = async () => {
@@ -80,29 +73,32 @@ const ProductFormModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="absolute top-0 left-0 w-full h-screen z-50 flex flex-col bg-black bg-opacity-60 backdrop-blur-sm">
+    <div className="absolute top-0 left-0 w-full h-screen z-50 flex bg-black/40 backdrop-blur-sm">
       <motion.div
-        className="absolute right-0 top-0 h-full w-full bg-gray-900 text-gray-100 border-l border-gray-700 flex flex-col"
+        className="absolute right-0 top-0 h-full w-full bg-white text-gray-900 border-l border-gray-200 flex flex-col shadow-xl"
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
       >
         {/* ===== HEADER ===== */}
-        <div className="flex-shrink-0 flex justify-between items-center px-6 py-4 bg-gray-900 border-b border-gray-700 z-10">
-          <h2 className="text-xl font-semibold text-white">🛒 {title}</h2>
+        <div className="flex-shrink-0 flex justify-between items-center px-6 py-4 bg-gray-50 border-b border-gray-200 z-10">
+          <h2 className="text-xl font-semibold text-gray-800">🛒 {title}</h2>
 
           <div className="flex items-center gap-3">
+            {/* Nút hủy — đen nhám */}
             <button
               type="button"
               onClick={onClose}
-              className="bg-gray-600 hover:bg-red-500 px-5 py-2 rounded-md text-white transition"
+              className="bg-gray-900 hover:bg-gray-800 px-5 py-2 rounded-md text-white transition"
             >
-              Huỷ
+              Hủy
             </button>
+
+            {/* Nút lưu — cam nổi bật */}
             <button
               type="button"
               onClick={handleSubmit}
-              className="bg-blue-600 hover:bg-blue-800 px-6 py-2 rounded-md text-white transition"
+              className="bg-orange-500 hover:bg-orange-600 px-6 py-2 rounded-md text-white font-medium transition"
             >
               {mode === "edit" ? "Cập nhật" : "Lưu"}
             </button>
@@ -110,9 +106,9 @@ const ProductFormModal = ({
         </div>
 
         {/* ===== BODY ===== */}
-        <div className="flex-1 overflow-y-auto px-6 py-6 space-y-10">
+        <div className="flex-1 overflow-y-auto px-6 py-6 space-y-10 bg-white">
           {loading ? (
-            <p className="text-gray-400 italic">Đang tải dữ liệu sản phẩm...</p>
+            <p className="text-gray-500 italic">Đang tải dữ liệu sản phẩm...</p>
           ) : (
             <ProductTabs
               key={newProduct.id || "new"}
@@ -123,8 +119,19 @@ const ProductFormModal = ({
         </div>
 
         {/* ===== FOOTER ===== */}
-        <div className="flex-shrink-0 bg-gray-900 border-t border-gray-700 flex justify-end gap-3 px-6 py-4 z-10">
-          <div className="h-8"></div>
+        <div className="flex-shrink-0 bg-gray-50 border-t border-gray-200 flex justify-end gap-3 px-6 py-4 z-10">
+          <button
+            onClick={onClose}
+            className="bg-gray-900 hover:bg-gray-800 px-5 py-2 rounded-md text-white transition"
+          >
+            Đóng
+          </button>
+          <button
+            onClick={handleSubmit}
+            className="bg-orange-500 hover:bg-orange-600 px-6 py-2 rounded-md text-white font-medium transition"
+          >
+            {mode === "edit" ? "Cập nhật" : "Lưu"}
+          </button>
         </div>
       </motion.div>
     </div>

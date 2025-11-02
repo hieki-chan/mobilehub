@@ -8,7 +8,7 @@ const ProductTabs = ({ newProduct, setNewProduct }) => {
   return (
     <div className="flex flex-col gap-6">
       {/* ===== TAB HEADER ===== */}
-      <div className="flex gap-2 border-b border-gray-700">
+      <div className="flex gap-2 border-b border-gray-200">
         {[
           { id: 'info', label: 'Thông tin sản phẩm' },
           { id: 'discount', label: 'Giá & khuyến mãi' },
@@ -18,8 +18,8 @@ const ProductTabs = ({ newProduct, setNewProduct }) => {
             onClick={() => setActiveTab(tab.id)}
             className={`px-4 py-2 text-sm font-medium rounded-t-md transition-all ${
               activeTab === tab.id
-                ? 'bg-blue-600 text-white shadow'
-                : 'text-gray-300 hover:bg-gray-800'
+                ? 'bg-gray-900 text-white hover:bg-gray-800 shadow-sm'
+                : 'text-gray-700 hover:bg-gray-100'
             }`}
           >
             {tab.label}
@@ -28,7 +28,7 @@ const ProductTabs = ({ newProduct, setNewProduct }) => {
       </div>
 
       {/* ===== TAB CONTENT ===== */}
-      <div className="p-4 bg-gray-900 border border-gray-700 rounded-md">
+      <div className="p-4 bg-white border border-gray-200 rounded-md">
         {activeTab === 'info' && (
           <ProductInfoTab newProduct={newProduct} setNewProduct={setNewProduct} />
         )}

@@ -38,10 +38,10 @@ export const Input = ({
 
   return (
     <div>
-      <label className="text-sm text-gray-300 block mb-1">{label} *</label>
+      <label className="text-sm text-gray-700 block mb-1">{label} *</label>
       <input
         type={type}
-        className="w-full px-3 py-2 rounded-md bg-gray-800 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+        className="w-full px-3 py-2 rounded-md border border-gray-300 bg-white text-gray-900 focus:border-gray-900 focus:ring-2 focus:ring-gray-900 outline-none transition"
         value={rawValue}
         onChange={(e) =>
           setNewProduct(setValue(newProduct, keyName, e.target.value))
@@ -54,7 +54,13 @@ export const Input = ({
 /**
  * Textarea component — hỗ trợ nested key (vd: spec.features)
  */
-export const Textarea = ({ label, keyName, rows, newProduct, setNewProduct }) => {
+export const Textarea = ({
+  label,
+  keyName,
+  rows,
+  newProduct,
+  setNewProduct,
+}) => {
   const getValue = (obj, path) =>
     path.split(".").reduce((acc, key) => acc?.[key], obj) ?? "";
 
@@ -73,10 +79,10 @@ export const Textarea = ({ label, keyName, rows, newProduct, setNewProduct }) =>
 
   return (
     <div className="col-span-2">
-      <label className="text-sm text-gray-300 block mb-1">{label} *</label>
+      <label className="text-sm text-gray-700 block mb-1">{label} *</label>
       <textarea
         rows={rows}
-        className="w-full px-3 py-2 rounded-md bg-gray-800 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+        className="w-full px-3 py-2 rounded-md border border-gray-300 bg-white text-gray-900 focus:border-gray-900 focus:ring-2 focus:ring-gray-900 outline-none transition"
         value={getValue(newProduct, keyName)}
         onChange={(e) =>
           setNewProduct(setValue(newProduct, keyName, e.target.value))

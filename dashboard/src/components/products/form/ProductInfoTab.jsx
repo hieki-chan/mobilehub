@@ -1,5 +1,5 @@
 import { X } from "lucide-react"
-import { Input, Textarea } from "../common_components/FormInput"
+import { Input, Textarea } from "../../common_components/FormInput"
 import ProductImageSection from "./ProductImageSection"
 
 const ProductInfoTab = ({ newProduct, setNewProduct }) => {
@@ -14,13 +14,13 @@ const ProductInfoTab = ({ newProduct, setNewProduct }) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     {isEditMode && (
                         <div className="col-span-2">
-                            <label className="text-sm font-medium text-blue-400 block mb-1">
+                            <label className="text-sm font-medium text-orange-400 block mb-1">
                                 Mã sản phẩm
                             </label>
                             <input
                                 type="text"
                                 readOnly
-                                className="w-full px-3 py-2 rounded-md bg-gray-800 text-gray-400 cursor-not-allowed border border-gray-700"
+                                className="w-full px-3 py-2 rounded-md bg-gray-800 text-orange-400 cursor-not-allowed border border-gray-700"
                                 value={newProduct.id}
                             />
                         </div>

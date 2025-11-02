@@ -1,24 +1,24 @@
 import React from 'react'
 import { motion } from 'framer-motion'
 
-const StatCards = ({ name, icon: Icon, value, color }) => {
+const StatCards = ({ name, icon: Icon, value, color, bg }) => {
   return (
     <motion.div
-      className='bg-gray-800 bg-opacity-50 backdrop-blur-md overflow-hidden shadow-lg rounded-lg border border-gray-700'
-      whileHover={{ y: -6, boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)" }}
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.08 }} // nhanh hơn khi init
+      whileHover={{
+        y: -4,
+        boxShadow: "0 10px 25px -5px rgba(0,0,0,0.1)"
+      }}
+      className={`bg-white ${bg || ''} overflow-hidden shadow-sm rounded-lg border border-gray-200`}
     >
-      <div className='px-4 py-5 sm:p-6'>
-        <span className='flex items-center text-sm font-medium text-gray-200'>
-          <Icon
-            size={22}
-            className="mr-2"
-            style={{ color }}
-          />
+      <div className="px-4 py-5 sm:p-6">
+        <span className="flex items-center text-sm font-medium text-gray-600">
+          <Icon size={22} className="mr-2" style={{ color }} />
           {name}
         </span>
-        <p
-          className='mt-2 text-gray-100 font-semibold text-[27px]'
-        >
+        <p className="mt-2 text-gray-900 font-semibold text-[27px]">
           {value}
         </p>
       </div>

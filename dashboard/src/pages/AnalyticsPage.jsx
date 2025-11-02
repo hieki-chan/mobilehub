@@ -8,6 +8,12 @@ import ProductPerformance from "../components/analytics/ProductPerformance";
 import UserRetention from "../components/analytics/UserRetention";
 import CustomerSegmentation from "../components/analytics/CustomerSegmentation";
 import AIPoweredInsights from "../components/analytics/AIPoweredInsights";
+import UserGrowthChart from "../components/users/UserGrowthChart";
+import UserActivityHeatMap from "../components/users/UserActivityHeatMap";
+import UserDemographicChart from "../components/users/UserDemographicChart";
+
+import SalesTrendChart from "../components/products/SalesTrendChart";
+import CategoryDistributionChart from "../components/overview/CategoryDistributionChart";
 
 const AnalyticsPage = () => {
   return (
@@ -15,8 +21,8 @@ const AnalyticsPage = () => {
       {/* Tiêu đề trang */}
       <Header title="Bảng điều khiển phân tích" />
 
-            <main className='mx-auto py-6 px-4 lg:px-8'>
-                <AnalyticsStatCards />
+      <main className='mx-auto py-6 px-4 lg:px-8'>
+        <AnalyticsStatCards />
 
         {/* Biểu đồ doanh thu */}
         <RevenueChart />
@@ -27,6 +33,19 @@ const AnalyticsPage = () => {
           <ProductPerformance /> {/* Hiệu suất sản phẩm */}
           <UserRetention /> {/* Giữ chân người dùng */}
           <CustomerSegmentation /> {/* Phân khúc khách hàng */}
+        </div>
+
+        {/* BIỂU ĐỒ NGƯỜI DÙNG */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 pt-8">
+          <UserGrowthChart />
+          <UserActivityHeatMap />
+          <UserDemographicChart />
+        </div>
+
+        {/* ===== Biểu đồ ===== */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <SalesTrendChart />
+          <CategoryDistributionChart />
         </div>
 
         {/* Thông tin chi tiết AI */}

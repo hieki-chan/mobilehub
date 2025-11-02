@@ -1,5 +1,5 @@
 import { useEffect } from "react"
-import {Input, Textarea} from "../common_components/FormInput"
+import {Input, Textarea} from "../../common_components/FormInput"
 
 
 const ProductDiscountTab = ({ newProduct, setNewProduct }) => {
@@ -45,13 +45,13 @@ const ProductDiscountTab = ({ newProduct, setNewProduct }) => {
         />
 
         <div>
-          <label className="text-sm text-gray-300 block mb-1">
+          <label className="text-sm text-orange-500 block mb-1">
             Giá sau khi giảm (VNĐ)
           </label>
           <input
             type="text"
             readOnly
-            className="w-full px-3 py-2 rounded-md bg-gray-800 text-green-400 font-semibold cursor-default outline-none"
+            className="w-full px-3 py-2 rounded-md bg-gray-800 text-orange-400 font-semibold cursor-default outline-none"
             value={
               newProduct.discountPrice
                 ? newProduct.discountPrice.toLocaleString("vi-VN")

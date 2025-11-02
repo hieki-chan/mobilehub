@@ -6,33 +6,28 @@ import {
   TrendingUp,
 } from "lucide-react";
 import React, { useState } from "react";
-import ProductFormModal from "../components/products/ProductFormModal";
+import ProductFormModal from "../components/products/form/ProductFormModal";
 
 import Header from "../components/common_components/Header";
 import StatCards from "../components/common_components/StatCards";
-import ProductDatabase from "../components/products/ProductDatabase";
-import SalesTrendChart from "../components/products/SalesTrendChart";
-import CategoryDistributionChart from "../components/overview/CategoryDistributionChart";
+import ProductListSection from "../components/products/ProductListSection";
 
 const ProductsPage = () => {
   const [isAddModalOpen, setAddModalOpen] = useState(false);
   const [editingProductId, setEditingProductId] = useState(null);
   const [reloadFlag, setReloadFlag] = useState(false);
 
-  // ✅ Khi tạo hoặc cập nhật xong thì reload danh sách
   const handleReload = () => {
     setAddModalOpen(false);
     setEditingProductId(null);
     setReloadFlag((prev) => !prev);
   };
 
-  // ✅ Mở modal thêm mới
   const openAddModal = () => {
     setEditingProductId(null);
     setAddModalOpen(true);
   };
 
-  // ✅ Mở modal chỉnh sửa
   const openEditModal = (productId) => {
     setEditingProductId(productId);
     setAddModalOpen(true);
@@ -40,14 +35,14 @@ const ProductsPage = () => {
 
   return (
     <div
-      className={`flex-1 relative z-10 bg-gray-900 ${
+      className={`flex-1 overflow-auto relative z-10 bg-gray-50 text-gray-900 ${
         isAddModalOpen ? "overflow-visible" : "overflow-auto"
       }`}
     >
-      <Header title="Sản phẩm" />
+      <Header path={["Mobilehub", "Sản phẩm"]} title="Sản phẩm" />
 
       <main
-        className={`relative mx-auto py-6 px-4 lg:px-8 ${
+        className={`relative mx-auto py-6 px-4 lg:px-4 ${
           isAddModalOpen ? "overflow-visible" : "overflow-auto"
         }`}
       >
@@ -56,7 +51,7 @@ const ProductsPage = () => {
           className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-7"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1 }}
+          transition={{ duration: .75 }}
         >
           <StatCards
             name="Tổng sản phẩm"
@@ -85,17 +80,11 @@ const ProductsPage = () => {
         </motion.div>
 
         {/* ===== Bảng sản phẩm ===== */}
-        <ProductDatabase
+        <ProductListSection
           onAddClick={openAddModal}
           onEditClick={(product) => openEditModal(product.id)}
           reloadFlag={reloadFlag}
         />
-
-        {/* ===== Biểu đồ ===== */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          <SalesTrendChart />
-          <CategoryDistributionChart />
-        </div>
 
         {/* ===== Form Modal (Add / Edit) ===== */}
         <ProductFormModal

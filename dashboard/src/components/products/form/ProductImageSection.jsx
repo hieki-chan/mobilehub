@@ -12,10 +12,7 @@ const ProductImageSection = ({ newProduct, setNewProduct }) => {
   const handleFileChange = (e) => {
     const file = e.target.files?.[0]
     if (!file) return
-
-    // reset input file để có thể upload lại cùng ảnh
     e.target.value = ""
-
     const url = URL.createObjectURL(file)
     setCroppingImage({ file, url })
   }
@@ -33,11 +30,8 @@ const ProductImageSection = ({ newProduct, setNewProduct }) => {
     const file = new File([blob], croppingImage.file.name, { type: "image/jpeg" })
     const url = URL.createObjectURL(file)
 
-    // thêm ảnh crop vào danh sách
     const newImages = [...(newProduct.images || []), file]
     const newPreviews = [...(newProduct.imagePreviews || []), url]
-
-    // Nếu chưa có ảnh chính → ảnh đầu tiên mặc định là chính
     const mainImage = newProduct.mainImage || url
 
     setNewProduct({
@@ -53,9 +47,8 @@ const ProductImageSection = ({ newProduct, setNewProduct }) => {
   const handleRemove = (index) => {
     const newPreviews = newProduct.imagePreviews.filter((_, i) => i !== index)
     const newFiles = Array.from(newProduct.images).filter((_, i) => i !== index)
-
     let newMain = newProduct.mainImage
-    // Nếu xoá ảnh chính → chọn ảnh đầu tiên còn lại
+
     if (newProduct.mainImage === newProduct.imagePreviews[index]) {
       newMain = newPreviews.length > 0 ? newPreviews[0] : null
     }
@@ -74,7 +67,7 @@ const ProductImageSection = ({ newProduct, setNewProduct }) => {
 
   return (
     <section>
-      <h3 className="text-lg font-semibold mb-4 border-b border-gray-700 pb-1">
+      <h3 className="text-lg font-semibold mb-4 border-b border-gray-300 pb-1 text-gray-900">
         🖼️ Hình ảnh sản phẩm
       </h3>
 
@@ -90,7 +83,7 @@ const ProductImageSection = ({ newProduct, setNewProduct }) => {
       {/* Nút upload */}
       <label
         htmlFor="file-upload"
-        className="inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium text-sm rounded-xl cursor-pointer shadow-md hover:scale-[1.02] active:scale-95 transition-all duration-200"
+        className="inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-medium text-sm rounded-xl cursor-pointer shadow-md hover:scale-[1.02] active:scale-95 transition-all duration-200"
       >
         <Upload size={18} />
         <span>Tải ảnh lên</span>
@@ -103,8 +96,8 @@ const ProductImageSection = ({ newProduct, setNewProduct }) => {
             <div
               key={i}
               className={`relative rounded-lg overflow-hidden border-2 transition ${newProduct.mainImage === src
-                ? "border-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.6)]"
-                : "border-gray-700"
+                ? "border-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.6)]"
+                : "border-gray-300"
                 }`}
             >
               <div className="aspect-[3/4] w-full overflow-hidden">
@@ -119,7 +112,7 @@ const ProductImageSection = ({ newProduct, setNewProduct }) => {
               <button
                 type="button"
                 onClick={() => handleRemove(i)}
-                className="absolute top-1 right-1 bg-black/60 rounded-full p-1 text-gray-200 hover:text-red-400"
+                className="absolute top-1 right-1 bg-black/50 rounded-full p-1 text-gray-200 hover:text-red-400"
               >
                 <X size={16} />
               </button>
@@ -129,8 +122,8 @@ const ProductImageSection = ({ newProduct, setNewProduct }) => {
                 type="button"
                 onClick={() => handleSetMain(src)}
                 className={`absolute bottom-1 left-1 flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium transition ${newProduct.mainImage === src
-                  ? "bg-blue-600 text-white"
-                  : "bg-black/50 text-gray-200 hover:bg-blue-700 hover:text-white"
+                  ? "bg-orange-500 text-white"
+                  : "bg-black/50 text-gray-200 hover:bg-orange-600 hover:text-white"
                   }`}
               >
                 <Star size={12} />
@@ -144,8 +137,8 @@ const ProductImageSection = ({ newProduct, setNewProduct }) => {
       {/* === Modal Crop === */}
       {croppingImage && (
         <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center">
-          <div className="relative w-[90vw] max-w-lg h-[70vh] bg-gray-900 rounded-lg overflow-hidden flex flex-col">
-            <h2 className="text-center py-3 border-b border-gray-700 text-white font-semibold">
+          <div className="relative w-[90vw] max-w-lg h-[70vh] bg-white rounded-lg overflow-hidden flex flex-col">
+            <h2 className="text-center py-3 border-b border-gray-200 text-gray-900 font-semibold">
               ✂️ Cắt ảnh
             </h2>
 
@@ -154,7 +147,7 @@ const ProductImageSection = ({ newProduct, setNewProduct }) => {
                 image={croppingImage.url}
                 crop={crop}
                 zoom={zoom}
-                aspect={3 / 4} // có thể đổi 4/3 nếu muốn tỉ lệ hình sản phẩm
+                aspect={3 / 4}
                 onCropChange={setCrop}
                 onZoomChange={setZoom}
                 onCropComplete={onCropComplete}
@@ -163,16 +156,16 @@ const ProductImageSection = ({ newProduct, setNewProduct }) => {
               />
             </div>
 
-            <div className="flex justify-end gap-3 p-3 border-t border-gray-700">
+            <div className="flex justify-end gap-3 p-3 border-t border-gray-200 bg-gray-50">
               <button
                 onClick={() => setCroppingImage(null)}
-                className="px-4 py-2 bg-gray-700 text-white rounded hover:bg-red-600"
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-red-500 hover:text-white transition"
               >
                 Huỷ
               </button>
               <button
                 onClick={getCroppedImage}
-                className="px-5 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                className="px-5 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 transition"
               >
                 Lưu ảnh
               </button>

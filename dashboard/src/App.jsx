@@ -23,32 +23,34 @@ const App = () => {
   const hideSidebar = noSidebarRoutes.includes(location.pathname);
 
   return (
-    <div className="flex h-screen bg-gray-900 text-gray-100 overflow-hidden">
-      {/* BACKGROUND SETTINGS */}
+    <div className="flex h-screen bg-gray-50 text-gray-900 overflow-hidden">
+      {/* BACKGROUND — Light, Clean */}
       <div className="fixed inset-0 z-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 opacity-80" />
-        <div className="absolute inset-0 backdrop-blur-3xl" />
+        <div className="absolute inset-0 bg-gradient-to-br from-white via-gray-50 to-gray-100 opacity-100" />
+        <div className="absolute inset-0 backdrop-blur-xl" />
       </div>
 
+      {/* Sidebar */}
       {!hideSidebar && <Sidebar />}
 
-     <Routes>
-          {/* Public routes */}
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      {/* Content */}
+      <Routes>
+            {/* Public routes */}
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
-          {/* Private routes */}
-          <Route element={<PrivateRoute />}>
-            <Route path="/" element={<OverviewPage />} />
-            <Route path="/products" element={<ProductsPage />} />
-            <Route path="/users" element={<UsersPage />} />
-            <Route path="/sales" element={<SalesPage />} />
-            <Route path="/orders" element={<OrdersPage />} />
-            <Route path="/analytics" element={<AnalyticsPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-          </Route>
-        </Routes>
+            {/* Private routes */}
+            <Route element={<PrivateRoute />}>
+              <Route path="/" element={<OverviewPage />} />
+              <Route path="/products" element={<ProductsPage />} />
+              <Route path="/users" element={<UsersPage />} />
+              <Route path="/sales" element={<SalesPage />} />
+              <Route path="/orders" element={<OrdersPage />} />
+              <Route path="/analytics" element={<AnalyticsPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+            </Route>
+          </Routes>
     </div>
   );
 };
