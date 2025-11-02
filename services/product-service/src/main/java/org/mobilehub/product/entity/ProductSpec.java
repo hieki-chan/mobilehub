@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Data
 @AllArgsConstructor
@@ -58,7 +60,7 @@ public class ProductSpec {
     private String brand;
 
     @Column(nullable = false)
-    private String release_date;
+    private LocalDateTime release_date;
 
     @OneToOne(mappedBy = "spec")
     private Product product;

@@ -68,16 +68,15 @@
             <groupId>org.springframework.kafka</groupId>
             <artifactId>spring-kafka</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.mobilehub.shared</groupId>
-            <artifactId>contracts</artifactId>
+            <artifactId>common</artifactId>
             <version>1.0.0</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.mobilehub.shared</groupId>
-            <artifactId>common</artifactId>
+            <artifactId>contracts</artifactId>
             <version>1.0.0</version>
             <scope>compile</scope>
         </dependency>

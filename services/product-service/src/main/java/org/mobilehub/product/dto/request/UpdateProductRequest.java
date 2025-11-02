@@ -1,11 +1,9 @@
 package org.mobilehub.product.dto.request;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
-@Getter
-@Setter
-public class UpdateProductRequest {
-    private String name;
-    private String description;
+@Data
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+public class UpdateProductRequest extends CreateProductRequest {
 }

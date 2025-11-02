@@ -30,7 +30,8 @@ public class SecurityConfig {
                                 "/swagger-ui.html",
                                 "/swagger-resources/**",
                                 "/webjars/**",
-                                "/api/products/**"
+                                "/api/products/**",
+                                "/api/admin/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 );
@@ -43,6 +44,8 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of(
+                "http://localhost:5173",   // ⚠️ thêm dòng này
+                "http://127.0.0.1:5173",
                 "http://localhost:5500",
                 "http://127.0.0.1:5500"
         ));
@@ -54,6 +57,7 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", config);
         return source;
     }
+
 
     @Bean
     public JwtDecoder jwtDecoder() {
