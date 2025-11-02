@@ -1,7 +1,7 @@
 // src/pages/ProductDetail.jsx
 import React, { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { products as mockProducts } from '../data/products'
+import { products as mockProducts, getGroupedSpecs} from '../data/products'
 import ProductGallery from '../components/ProductGallery'
 import { CapacitySelector, ColorSelector } from '../components/VariantSelector'
 import QuantitySelector from '../components/QuantitySelector'
@@ -25,6 +25,8 @@ export default function ProductDetail() {
   const [qty, setQty] = useState(1)
   const { add } = useCart()
   const { isFav, toggle } = useFav()
+
+  const groupedSpecs = getGroupedSpecs(p)
 
   useEffect(() => { document.title = p.name + ' | MobileHub' }, [p.name])
 
@@ -81,7 +83,7 @@ export default function ProductDetail() {
 
       <section style={{ gridColumn: '1 / -1' }}>
         <div className="desc"><h3>Mô tả sản phẩm</h3><p id="longDesc">{p.desc}</p></div>
-        <ProductSpecs specs={p.specs} />
+        <ProductSpecs specs={groupedSpecs} />
         <Reviews productId={p.id} />
         <RelatedProducts products={pool} currentId={p.id} />
       </section>
