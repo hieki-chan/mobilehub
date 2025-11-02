@@ -1,7 +1,7 @@
 server:
   port: 8080                  # Port
-  servlet:
-    context-path: /identity   # Context path for API
+  #servlet:
+    #context-path: /identity   # Context path for API
 
 spring:
   datasource:
