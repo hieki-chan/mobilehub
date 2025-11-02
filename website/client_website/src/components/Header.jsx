@@ -8,22 +8,38 @@ export default function Header() {
   const [user, setUser] = useState(null)
   const [megaMenuOpen, setMegaMenuOpen] = useState(false)
 
-  // safe cart count
-  let cartCount = 0
-  try {
-    const cartHook = useCart()
-    if (cartHook && typeof cartHook.count === 'function') cartCount = cartHook.count()
-  } catch (e) {
-    cartCount = 0
-  }
+  // ✅ FIX: Gọi hook NGOÀI try-catch theo React Rules of Hooks
+  const cart = useCart()
+  
+  // ✅ Safe cart count với fallback
+  const cartCount = React.useMemo(() => {
+    try {
+      if (cart && typeof cart.count === 'function') {
+        return cart.count()
+      }
+      return 0
+    } catch (error) {
+      console.error('Error getting cart count:', error)
+      return 0
+    }
+  }, [cart])
 
+  // Load user từ localStorage
   useEffect(() => {
     const readUser = () => {
       const raw = localStorage.getItem('user')
       if (raw) {
         try {
-          setUser(JSON.parse(raw))
-        } catch {
+          const parsedUser = JSON.parse(raw)
+          // ✅ Validate user object
+          if (parsedUser && typeof parsedUser === 'object') {
+            setUser(parsedUser)
+          } else {
+            console.warn('Invalid user data in localStorage')
+            setUser(null)
+          }
+        } catch (error) {
+          console.error('Error parsing user from localStorage:', error)
           setUser(null)
         }
       } else {
@@ -32,26 +48,44 @@ export default function Header() {
     }
 
     readUser()
-    const handler = () => readUser()
 
-    window.addEventListener('storage', handler)
-    window.addEventListener('user-changed', handler)
+    // Listen to storage changes
+    const handleStorageChange = () => readUser()
+    const handleUserChanged = () => readUser()
+
+    window.addEventListener('storage', handleStorageChange)
+    window.addEventListener('user-changed', handleUserChanged)
 
     return () => {
-      window.removeEventListener('storage', handler)
-      window.removeEventListener('user-changed', handler)
+      window.removeEventListener('storage', handleStorageChange)
+      window.removeEventListener('user-changed', handleUserChanged)
     }
   }, [])
 
-  const { clear } = useCart()
+  // Logout handler
   const handleLogout = () => {
-    localStorage.removeItem('user')
-    localStorage.removeItem('token')
-    clear()
-    window.dispatchEvent(new Event('user-changed'))
-    navigate('/', { replace: true })
+    try {
+      localStorage.removeItem('user')
+      localStorage.removeItem('token')
+      
+      // ✅ Clear cart safely
+      if (cart && typeof cart.clear === 'function') {
+        cart.clear()
+      }
+      
+      // Dispatch events
+      window.dispatchEvent(new Event('user-changed'))
+      window.dispatchEvent(new Event('cart-changed'))
+      
+      navigate('/', { replace: true })
+    } catch (error) {
+      console.error('Error during logout:', error)
+      // Still navigate even if cleanup fails
+      navigate('/', { replace: true })
+    }
   }
 
+  // Phone categories for mega menu
   const phoneCategories = [
     { label: 'iPhone', path: '/search?q=iPhone' },
     { label: 'Samsung', path: '/search?q=Samsung' },
@@ -60,6 +94,12 @@ export default function Header() {
     { label: 'Vivo', path: '/search?q=Vivo' },
     { label: 'Realme', path: '/search?q=Realme' },
   ]
+
+  // ✅ Get user display name safely
+  const getUserDisplayName = () => {
+    if (!user) return 'Bạn'
+    return user.name || user.email || 'Bạn'
+  }
 
   return (
     <>
@@ -88,27 +128,52 @@ export default function Header() {
           <nav className="top-actions" aria-label="Tài khoản và giỏ hàng">
             {user ? (
               <>
-                <button className="action" onClick={() => navigate('/profile')} title="Xem hồ sơ">
+                <button 
+                  className="action" 
+                  onClick={() => navigate('/profile')} 
+                  title="Xem hồ sơ"
+                  aria-label={`Xem hồ sơ của ${getUserDisplayName()}`}
+                >
                   <i className="fa fa-user"></i>
-                  <span className="action-label">Xin chào, {user.name || user.email || 'Bạn'}</span>
+                  <span className="action-label">
+                    Xin chào, {getUserDisplayName()}
+                  </span>
                 </button>
 
-                <button className="action" onClick={handleLogout} title="Đăng xuất">
+                <button 
+                  className="action" 
+                  onClick={handleLogout} 
+                  title="Đăng xuất"
+                  aria-label="Đăng xuất"
+                >
                   <i className="fa fa-right-from-bracket"></i>
                   <span className="action-label">Đăng xuất</span>
                 </button>
               </>
             ) : (
-              <Link to="/login" className="action" title="Đăng nhập">
+              <Link 
+                to="/login" 
+                className="action" 
+                title="Đăng nhập"
+                aria-label="Đăng nhập"
+              >
                 <i className="fa fa-user"></i>
                 <span className="action-label">Đăng nhập</span>
               </Link>
             )}
 
-            <Link to="/cart" className="action" aria-label="Giỏ hàng">
+            <Link 
+              to="/cart" 
+              className="action" 
+              aria-label={`Giỏ hàng (${cartCount} sản phẩm)`}
+            >
               <i className="fa fa-shopping-cart"></i>
               <span className="action-label">Giỏ hàng</span>
-              {cartCount > 0 && <span className="cart-badge" aria-hidden="true">{cartCount}</span>}
+              {cartCount > 0 && (
+                <span className="cart-badge" aria-hidden="true">
+                  {cartCount}
+                </span>
+              )}
             </Link>
           </nav>
         </div>
