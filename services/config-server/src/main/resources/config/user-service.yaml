@@ -1,5 +1,5 @@
 server:
-  port: 8081                  # Port
+  port: 8082                  # Port
   servlet:
     context-path: /user-info   # Context path for API
 
