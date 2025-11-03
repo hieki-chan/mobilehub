@@ -1,7 +1,7 @@
 server:
   port: 8081                  # Port
   servlet:
-    context-path: /address   # Context path for API
+    context-path: /user-info   # Context path for API
 
 spring:
   datasource:

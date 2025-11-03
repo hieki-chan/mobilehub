@@ -61,3 +61,6 @@ application-*.properties
 *.swp
 *.swo
 *.tmp
+
+# Vite cache
+.vite

@@ -12,6 +12,7 @@ import org.mobilehub.identity.service.MailService;
 import org.mobilehub.shared.common.dto.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -35,7 +36,6 @@ public class AuthenticationController {
     public ResponseEntity<?> register(@RequestBody @Valid RegisterUserRequest registerRequest) {
         mailService.generateAndSendOtp(registerRequest.getEmail());
         pendingRegistrationMap.put(registerRequest.getEmail(), new PendingRegistration(registerRequest));
-        System.out.println(pendingRegistrationMap.size());
         //var userResponse = authenticationService.register(registerRequest);
 
         return ResponseEntity.ok("register");
@@ -77,7 +77,7 @@ public class AuthenticationController {
         return ResponseEntity.ok("OTP resent to email: " + req.getEmail());
     }
 
-    @PostMapping("/token")
+    @PostMapping("/authenticate")
     public ResponseEntity<LoginResponse> authenticate(@RequestBody @Valid LoginRequest loginRequest) {
         var response = authenticationService.authenticate(loginRequest);
 

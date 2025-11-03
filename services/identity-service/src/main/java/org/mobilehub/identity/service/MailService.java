@@ -45,25 +45,7 @@ public class MailService {
 
         System.out.println(body);
 
-        String htmlBody = """
-<div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 24px;">
-    <div style="max-width: 480px; margin: auto; background-color: #ffffff; border-radius: 8px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); text-align: center;">
-        <h2 style="color: #333; margin-bottom: 16px;">🔒 Verification Code</h2>
-        <p style="color: #555; font-size: 14px; margin-bottom: 8px;">
-            Use the following OTP to complete your verification:
-        </p>
-        <div style="font-size: 32px; font-weight: bold; color: #1E90FF; letter-spacing: 4px; margin: 16px 0;">
-            %s
-        </div>
-        <p style="color: #777; font-size: 12px;">
-            This code will expire in <b>1 minutes</b>. If you didn’t request this, you can safely ignore this email.
-        </p>
-    </div>
-    <p style="text-align:center; font-size: 12px; color: #aaa; margin-top: 16px;">
-        © 2025 YourAppName. All rights reserved.
-    </p>
-</div>
-""".formatted(otp);
+        String htmlBody = buildOtpEmailBody(otp, "MobileHub", expireMinutes);
 
         sendEmail(email, subject, htmlBody, true);
     }
@@ -121,6 +103,28 @@ public class MailService {
             e.printStackTrace();
             System.out.println("=== SEND MAIL FAILED === " + e.getMessage());
         }
+    }
+
+    public String buildOtpEmailBody(String otp, String appName, long expireMinutes) {
+        return """
+<div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 24px;">
+    <div style="max-width: 480px; margin: auto; background-color: #ffffff; border-radius: 8px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); text-align: center;">
+        <h2 style="color: #333; margin-bottom: 16px;">🔒 Verification Code</h2>
+        <p style="color: #555; font-size: 14px; margin-bottom: 8px;">
+            Use the following OTP to complete your verification with <b>%s</b>:
+        </p>
+        <div style="font-size: 32px; font-weight: bold; color: #1E90FF; letter-spacing: 4px; margin: 16px 0;">
+            %s
+        </div>
+        <p style="color: #777; font-size: 12px;">
+            This code will expire in <b>%d minute%s</b>. If you didn’t request this, you can safely ignore this email.
+        </p>
+    </div>
+    <p style="text-align:center; font-size: 12px; color: #aaa; margin-top: 16px;">
+        © %d %s. All rights reserved.
+    </p>
+</div>
+""".formatted(appName, otp, expireMinutes, expireMinutes > 1 ? "s" : "", java.time.Year.now().getValue(), appName);
     }
 
 

@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.mobilehub.identity.entity.Role;
 
 import java.util.Set;
 
@@ -17,5 +18,5 @@ public class UserInfo {
     private String email;
     private String firstName;
     private String lastName;
-    private Set<String> roles;
+    private Role role;
 }
