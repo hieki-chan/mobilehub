@@ -34,7 +34,7 @@ public class Product {
     @JoinColumn(name = "product_spec_id", referencedColumnName = "id", unique = true)
     ProductSpec spec;
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     List<ProductImage> images = new ArrayList<>();
 
     @Column(name = "price", precision = 10, scale = 2, nullable = false)
@@ -55,7 +55,11 @@ public class Product {
         return price.multiply(multiplier);
     }
 
-    public String getMainImage() {
+    public String getImageUrl(){
+        return getMainImageUrl();
+    }
+
+    public String getMainImageUrl() {
         if (images == null || images.isEmpty()) {
             return "";
         }
@@ -65,5 +69,13 @@ public class Product {
                 .map(ProductImage::getImageUrl)
                 .findFirst()
                 .orElse(images.getFirst().getImageUrl());
+    }
+
+    public List<String> getOtherImageUrls()
+    {
+        return getImages().stream()
+                .filter(img -> !img.isMain())
+                .map(ProductImage::getImageUrl)
+                .toList();
     }
 }

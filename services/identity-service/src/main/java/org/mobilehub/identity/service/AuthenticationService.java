@@ -53,6 +53,7 @@ public class AuthenticationService {
 
         return LoginResponse.builder()
                 .accessToken(tokenProvider.generateToken(String.valueOf(user.getId()), buildUserClaim(user)))
+                .user(userMapper.toUserInfo(user))
                 .build();
     }
 
