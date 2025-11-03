@@ -1,0 +1,111 @@
+/* src/styles/search-bar.css */
+
+/* Bao toàn bộ thanh tìm kiếm */
+.searchbar {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  gap: 12px;
+}
+
+/* Khung chứa input + nút tìm */
+.search-input-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  position: relative;
+}
+
+/* Ô nhập */
+.search-input-wrap input[type="text"],
+.search-input-wrap input[type="search"] {
+  width: 70%;
+  max-width: 720px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  outline: none;
+  font-size: 15px;
+  background: #fff;
+  box-shadow: 0 6px 18px rgba(16, 24, 40, 0.04);
+}
+
+/* Nút tìm kiếm */
+.search-input-wrap .search-btn {
+  background: transparent;
+  border: 0;
+  font-size: 16px;
+  cursor: pointer;
+  color: #fff;
+  padding: 8px;
+  border-radius: 8px;
+  transition: background 0.2s ease;
+}
+
+.search-input-wrap .search-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Gợi ý kết quả */
+.search-suggestions {
+  position: absolute;
+  top: 48px;
+  width: 70%;
+  max-width: 720px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+  z-index: 12000;
+  margin-right: 30px;
+}
+
+.search-suggestions li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.search-suggestions li:hover,
+.search-suggestions li.active {
+  background: #f5f5f5;
+}
+
+.search-suggestions img {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.search-suggestions .s-meta {
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+}
+
+.search-suggestions .s-name {
+  font-weight: 600;
+  color: #111;
+}
+
+.search-suggestions .s-price {
+  color: var(--brand-primary);
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.search-suggest-more {
+  text-align: center;
+  font-weight: 600;
+  color: var(--brand-primary);
+  padding: 10px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
