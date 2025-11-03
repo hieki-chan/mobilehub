@@ -1,0 +1,22 @@
+server:
+  port: 8084
+  servlet:
+    context-path: /order
+
+spring:
+  application:
+    name: order-service
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/mobilehub_order
+    username: root
+    password: root1234!
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
