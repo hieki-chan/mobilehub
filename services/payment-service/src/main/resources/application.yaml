@@ -1,0 +1,33 @@
+server:
+  port: 8087
+
+payos:
+  PAYOS_CLIENT_ID: ${PAYOS_CLIENT_ID}
+  PAYOS_API_KEY: ${PAYOS_API_KEY}
+  PAYOS_CHECKSUM_KEY: ${PAYOS_CHECKSUM_KEY}
+  return-url: https://your-frontend.com/payment/success
+  cancel-url: https://your-frontend.com/payment/cancel
+
+spring:
+  application:
+    name: payment-service
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/mobilehub_payment
+    username: root
+    password: root1234!
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
