@@ -1,0 +1,103 @@
+/* Form Elements */
+.field {
+  margin-bottom: 12px;
+}
+
+.field .label {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 6px;
+  display: block;
+}
+
+input[type="email"],
+input[type="password"],
+input[type="tel"],
+input[type="text"],
+input[type="number"],
+textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  outline: none;
+  font-size: 14px;
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow .15s ease, border-color .15s ease;
+  font-family: inherit;
+}
+
+input:focus,
+textarea:focus {
+  border-color: var(--brand-primary);
+  box-shadow: 0 8px 20px rgba(221, 0, 0, 0.06);
+}
+
+textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* Checkbox */
+.checkbox {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 14px;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.checkbox input[type="checkbox"] {
+  width: auto;
+  cursor: pointer;
+}
+
+/* Form row */
+.form-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Form error */
+.form-error {
+  background: #fff3f3;
+  border: 1px solid rgba(221, 0, 0, 0.08);
+  color: #b91c1c;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+/* Divider */
+.divider {
+  margin: 12px 0;
+  text-align: center;
+  font-weight: 700;
+  color: var(--muted);
+  position: relative;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 40%;
+  height: 1px;
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.divider::before {
+  left: 0;
+}
+
+.divider::after {
+  right: 0;
+}

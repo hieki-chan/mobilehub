@@ -3,18 +3,15 @@ package org.mobilehub.product.service;
 import org.springframework.transaction.annotation.Transactional;
 //import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.mobilehub.product.dto.response.ProductCartResponse;
+import org.mobilehub.product.dto.response.*;
+import org.mobilehub.product.entity.*;
+import org.mobilehub.product.mapper.ProductDiscountMapper;
 import org.mobilehub.product.mapper.ProductSpecMapper;
+import org.mobilehub.product.repository.ProductDiscountRepository;
 import org.mobilehub.product.repository.ProductSpecRepository;
 import org.mobilehub.shared.common.converter.MediaConverter;
 import org.mobilehub.product.dto.request.CreateProductRequest;
 import org.mobilehub.product.dto.request.UpdateProductRequest;
-import org.mobilehub.product.dto.response.ProductDetailResponse;
-import org.mobilehub.product.dto.response.ProductPreviewResponse;
-import org.mobilehub.product.dto.response.ProductResponse;
-import org.mobilehub.product.entity.Product;
-import org.mobilehub.product.entity.ProductImage;
-import org.mobilehub.product.entity.ProductStatus;
 import org.mobilehub.product.exception.ProductNotFoundException;
 import org.mobilehub.product.mapper.ProductMapper;
 import org.mobilehub.product.repository.ProductRepository;
@@ -40,28 +37,42 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final ProductSpecRepository productSpecRepository;
+    private final ProductDiscountRepository productDiscountRepository;
 
     private final ProductMapper productMapper;
     private final ProductSpecMapper productSpecMapper;
+    private final ProductDiscountMapper productDiscountMapper;
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
+    // region ADMIN SERVICES
     @Transactional
     public ProductResponse createProduct(CreateProductRequest request, List<MultipartFile> files) {
-        var productSpec = productSpecMapper.toProductSpec(request);
-        productSpecRepository.save(productSpec);
-
+        // product
         Product product = productMapper.toProduct(request);
-        product.setSpec(productSpec);
+
+//        // spec
+//        var productSpec = productSpecMapper.toProductSpec(request.getSpec());
+//        var savedSpec = productSpecRepository.save(productSpec);
+//        product.setSpec(savedSpec);
+//
+//        // discount
+//        var productDiscount = productDiscountMapper.toProductDiscount(request.getDiscount());
+//        var savedDiscount = productDiscountRepository.save(productDiscount);
+//        product.setDiscount(savedDiscount);
+
+        // product
         Product savedProduct = productRepository.save(product);
 
         // publish upload image event
-        ImageUploadEvent event = new ImageUploadEvent();
-        event.setProductId(product.getId());
-        event.setFiles(MediaConverter.convertToBase64(files));
-        event.setFolder(String.format("products/%s",  product.getId().toString()));
+        if (files != null && !files.isEmpty()) {
+            ImageUploadEvent event = new ImageUploadEvent();
+            event.setProductId(savedProduct.getId());
+            event.setFiles(MediaConverter.convertToBase64(files));
+            event.setFolder("products/" + savedProduct.getId());
 
-        kafkaTemplate.send(ImageTopics.IMAGE_UPLOAD, event);
+            kafkaTemplate.send(ImageTopics.IMAGE_UPLOAD, event);
+        }
 
         return productMapper.toProductResponse(savedProduct);
     }
@@ -79,7 +90,7 @@ public class ProductService {
     {
         var product = getProduct(id);
         var response =  productMapper.toProductResponse(product);
-        response.setImageUrl(product.getMainImage());
+        response.setImageUrl(product.getMainImageUrl());
         return response;
     }
 
@@ -88,7 +99,7 @@ public class ProductService {
     {
         var product = getProduct(id);
         var response =  productMapper.toProductPreviewResponse(product);
-        response.setImageUrl(product.getMainImage());
+        response.setImageUrl(product.getMainImageUrl());
         return response;
     }
 
@@ -97,21 +108,28 @@ public class ProductService {
         var product = getProduct(id);
         var response =  productMapper.toProductDetailResponse(product);
         response.setMainImageUrl(
-                product.getImages().stream()
-                        .filter(ProductImage::isMain)
-                        .findFirst()
-                        .map(ProductImage::getImageUrl)
-                        .orElse(null)
+                product.getMainImageUrl()
         );
 
         response.setOtherImageUrls(
-                product.getImages().stream()
-                        .filter(img -> !img.isMain())
-                        .map(ProductImage::getImageUrl)
-                        .toList()
+                product.getOtherImageUrls()
         );
         return response;
     }
+
+    public Page<AdminProductResponse> getProductsForAdmin(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+
+        Page<Product> pageData = productRepository.findAll(pageable);
+
+        return pageData.map(productMapper::toAdminProductResponse);
+    }
+
+    public AdminProductDetailResponse getProductDetailForAdmin(Long productId) {
+        return productMapper.toAdminProductDetailResponse(getProduct(productId));
+    }
+
+    // endregion
 
 
     public ProductCartResponse getProductCartResponse(Long productId) {
@@ -123,22 +141,6 @@ public class ProductService {
     {
         return productRepository.findById(id)
                 .orElseThrow(() -> new ProductNotFoundException(id));
-    }
-
-    public void deleteProduct(Long id) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new ProductNotFoundException(id));
-        product.setStatus(ProductStatus.INACTIVE);
-        productRepository.save(product);
-
-        // send delete events
-        for(ProductImage image: product.getImages())
-        {
-            ImageDeleteEvent event = new ImageDeleteEvent();
-            event.setPublicId(image.getPublicId());
-
-            kafkaTemplate.send(ImageTopics.IMAGE_UPLOAD, event);
-        }
     }
 
     public List<ProductResponse> getDiscountedProducts() {
@@ -156,6 +158,21 @@ public class ProductService {
         return pageData.map(productMapper::toProductResponse);
     }
 
+    public void deleteProduct(Long id) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ProductNotFoundException(id));
+        product.setStatus(ProductStatus.INACTIVE);
+        productRepository.save(product);
+
+        // send delete events
+        for(ProductImage image: product.getImages())
+        {
+            ImageDeleteEvent event = new ImageDeleteEvent();
+            event.setPublicId(image.getPublicId());
+
+            kafkaTemplate.send(ImageTopics.IMAGE_UPLOAD, event);
+        }
+    }
 
     @Transactional
     @KafkaListener(topics = ImageTopics.IMAGE_UPLOADED)

@@ -22,27 +22,15 @@ public class AddressController {
     AddressService addressService;
     TokenProvider tokenProvider;
 
-
-    @GetMapping("/")
-    public String me()  {
-        return "Hello, ";
-    }
-
-    @GetMapping("/me")
-    public String me(@RequestParam("token") String token) throws ParseException {
-        String email = tokenProvider.extractSubject(token);
-        return "Hello, " + email;
-    }
-
     @PostMapping("/create")
     public ResponseEntity<AddressResponse> createAddress(
             @RequestBody CreateAddressRequest request,
             @RequestHeader("Authorization") String bearerToken
     ) {
         String token = bearerToken.replace("Bearer ", "");
-        String userId = null; // custom method parse claim
+        Long userId = null; // custom method parse claim
         try {
-            userId = tokenProvider.extractSubject(token);
+            userId = Long.valueOf(tokenProvider.extractSubject(token));
         } catch (ParseException e) {
             throw new RuntimeException(e);
         }
@@ -56,9 +44,9 @@ public class AddressController {
             @RequestHeader("Authorization") String authHeader
     ) {
         String token = authHeader.replace("Bearer ", "");
-        String userId = null;
+        Long userId = null;
         try {
-            userId = tokenProvider.extractSubject(token);
+            userId = Long.valueOf(tokenProvider.extractSubject(token));
         } catch (ParseException e) {
             throw new RuntimeException(e);
         }

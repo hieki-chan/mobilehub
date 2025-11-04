@@ -1,0 +1,24 @@
+/* Footer */
+.site-footer {
+  margin-top: auto;
+  background: #fff;
+  text-align: center;
+  padding: 18px 0;
+  position: sticky;
+  top: 100vh;
+  border-top: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.footer-inner {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.footer-inner .brand {
+  font-weight: 700;
+}
