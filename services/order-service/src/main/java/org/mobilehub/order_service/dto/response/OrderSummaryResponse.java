@@ -4,6 +4,7 @@ import lombok.*;
 import org.mobilehub.order_service.entity.PaymentMethod;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Getter
@@ -16,5 +17,5 @@ public class OrderSummaryResponse {
     private BigDecimal totalAmount;
     private String status;
     private PaymentMethod paymentMethod;
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 }
