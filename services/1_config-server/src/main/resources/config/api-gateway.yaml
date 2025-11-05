@@ -11,7 +11,6 @@ spring:
   cloud:
     gateway:
       default-filters:
-        # Tránh header CORS bị lặp
         - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
       globalcors:
         corsConfigurations:
@@ -23,39 +22,31 @@ spring:
       routes:
 
         # ========== IDENTITY ==========
-        # Service path thực tế: /auth/** (không có context-path)
         - id: identity_service
           uri: http://localhost:8081
           predicates:
-            - Path=${app.api-prefix}/auth/**, ${app.api-prefix}/identity/**
+            - Path=${app.api-prefix}/auth/**, ${app.api-prefix}/admin/users/**
           filters:
-            # Bỏ /api và /v1 để giữ nguyên /auth/**
             - StripPrefix=2
 
         # ========== USER ==========
-        # Service có context-path: /user-info/** (controller bên trong mới map tiếp)
         - id: user_service
           uri: http://localhost:8082
           predicates:
             - Path=${app.api-prefix}/users/**, ${app.api-prefix}/user-info/**
           filters:
             - StripPrefix=2
-            # Thêm /user-info vào đầu path sau khi bỏ /api/v1
             - PrefixPath=/user-info
 
         # ========== PRODUCT ==========
-        # Controller map dưới /api/products/**, /api/categories/**
         - id: product_service
           uri: http://localhost:8083
           predicates:
-            - Path=${app.api-prefix}/products/**, ${app.api-prefix}/categories/**, ${app.api-prefix}/discounts/**
+            - Path=${app.api-prefix}/products/**, ${app.api-prefix}/admin/products/**, ${app.api-prefix}/discounts/**
           filters:
             - StripPrefix=2
-            # Thêm /api để khớp /api/products/** và /api/categories/**
-            - PrefixPath=/api
 
         # ========== CART ==========
-        # (đang khớp sẵn; giữ StripPrefix=2)
         - id: cart_service
           uri: http://localhost:8084
           predicates:
@@ -97,7 +88,6 @@ spring:
             - PrefixPath=/api
 
         # ========== CLOUD MEDIA ==========
-        # Controller map dưới /api/media/**
         - id: cloud_media_service
           uri: http://localhost:8090
           predicates:
@@ -111,3 +101,7 @@ management:
     web:
       exposure:
         include: "*"
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG

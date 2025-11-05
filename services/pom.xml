@@ -12,13 +12,15 @@
     <name>MobileHub Microservices</name>
 
     <modules>
-        <module>api-gateway</module>
-        <module>config-server</module>
+        <module>1_config-server</module>
+        <module>2_api-gateway</module>
         <module>identity-service</module>
         <module>user-service</module>
         <module>product-service</module>
-        <module>order-service</module>
         <module>cart-service</module>
+        <module>order-service</module>
+        <module>inventory-service</module>
+        <module>payment-service</module>
         <module>cloud-media-service</module>
         <module>shared-common</module>
         <module>shared-contracts</module>
