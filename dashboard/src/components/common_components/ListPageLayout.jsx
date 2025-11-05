@@ -43,15 +43,21 @@ const ListPageLayout = ({
     const searchMenuRef = useRef(null);
     const dropdownRef = useRef(null);
 
+    const [isRotating, setIsRotating] = useState(false);
+
+    const handleRefreshClick = () => {
+        setIsRotating(true);
+        onRefresh?.();
+        setTimeout(() => setIsRotating(false), 1000);
+    };
+
     const handleToggleFilters = () => {
         setShowFilters((prev) => !prev);
         onToggleFilters?.();
     };
 
-    // 🔒 Đóng menu chọn tiêu chí khi click outside
     useEffect(() => {
         const handleClickOutside = (e) => {
-            // Nếu click không nằm trong cả ô search lẫn dropdown
             if (
                 searchMenuRef.current &&
                 !searchMenuRef.current.contains(e.target) &&
@@ -74,7 +80,7 @@ const ListPageLayout = ({
             {/* ===== Toolbar ===== */}
             <div className="p-4 border-b border-gray-200 sticky top-[64px] bg-white z-30">
                 <div className="flex flex-wrap items-center justify-between gap-3 md:gap-4 mb-2">
-                    {/* Bên trái */}
+                    {/* LEFT */}
                     <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                         <div className="flex items-center gap-1 text-sm">
                             <button
@@ -119,9 +125,9 @@ const ListPageLayout = ({
                         </button>
                     </div>
 
-                    {/* Bên phải */}
+                    {/* RIGHT */}
                     <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                        {/* 🔍 Ô tìm kiếm */}
+                        {/* search */}
                         <div className="relative flex items-center gap-2" ref={searchMenuRef}>
                             <div className="flex items-center border border-gray-300 rounded-md overflow-hidden">
                                 <Search size={16} className="text-gray-500 ml-2" />
@@ -133,7 +139,6 @@ const ListPageLayout = ({
                                     className="px-2 py-1.5 text-sm text-gray-700 focus:outline-none w-40 sm:w-56"
                                 />
 
-                                {/* 🏷️ Label hiển thị tiêu chí hiện tại - có thể click */}
                                 <button
                                     onClick={() => setShowSearchMenu((prev) => !prev)}
                                     className="text-xs sm:text-sm text-gray-600 border-l border-gray-300 px-2 py-1 bg-gray-50 whitespace-nowrap hover:bg-gray-100 focus:outline-none select-none"
@@ -142,7 +147,6 @@ const ListPageLayout = ({
                                 </button>
                             </div>
 
-                            {/* Dropdown xuất hiện ngay dưới nút "Theo:" */}
                             {showSearchMenu &&
                                 createPortal(
                                     <div
@@ -152,11 +156,11 @@ const ListPageLayout = ({
                                             top:
                                                 searchMenuRef.current?.getBoundingClientRect().bottom +
                                                 window.scrollY +
-                                                4, // vị trí ngay dưới
+                                                4,
                                             left:
                                                 searchMenuRef.current?.getBoundingClientRect().right -
                                                 180 +
-                                                window.scrollX, // canh phải đẹp
+                                                window.scrollX,
                                         }}
                                     >
                                         {searchOptions.map((opt) => (
@@ -181,7 +185,6 @@ const ListPageLayout = ({
                         </div>
 
 
-                        {/* Xuất file */}
                         <button
                             onClick={onExport}
                             className="px-3 py-1.5 text-sm bg-gray-900 text-white rounded hover:bg-gray-800"
@@ -190,7 +193,6 @@ const ListPageLayout = ({
                             <Eye className="sm:hidden" size={16} />
                         </button>
 
-                        {/* Thêm mới */}
                         <button
                             onClick={onAdd}
                             className="px-3 py-1.5 text-sm bg-orange-500 text-white rounded hover:bg-orange-600 flex items-center gap-1.5"
@@ -200,20 +202,23 @@ const ListPageLayout = ({
                         </button>
 
                         <button
-                            onClick={onRefresh}
-                            className="p-1.5 text-gray-600 hover:bg-gray-100 rounded"
+                            onClick={handleRefreshClick}
+                            className="p-1.5 text-gray-600 hover:bg-gray-100 rounded transition-all"
                             title="Làm mới danh sách"
                         >
-                            <RotateCcw size={18} />
+                            <RotateCcw
+                                size={18}
+                                className={`${isRotating ? "animate-spin-reverse text-orange-500" : ""}`}
+                            />
                         </button>
                     </div>
                 </div>
             </div>
 
-            {/* ===== Nội dung chính ===== */}
+            {/* ===== children===== */}
             <div>{children}</div>
 
-            {/* ===== Phân trang ===== */}
+            {/* ===== Pagination ===== */}
             <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 text-sm">
                 <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">

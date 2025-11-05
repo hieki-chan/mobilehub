@@ -36,14 +36,14 @@ const Profile = () => {
           className="rounded-full size-28 object-cover mr-4 mb-4 sm:mb-0"
         />
         <div>
-          <h3 className="text-xl font-semibold text-gray-100 mb-1">{name}</h3>
-          <p className="text-gray-300">{email}</p>
+          <h3 className="text-xl font-semibold text-black mb-1">{name}</h3>
+          <p className="text-gray-900">{email}</p>
         </div>
       </div>
 
       <button
         onClick={openModal}
-        className="bg-indigo-600 hover:bg-indigo-800 text-white font-semibold py-2 px-6 rounded transition duration-300 w-full sm:w-auto"
+        className="bg-indigo-600 hover:bg-indigo-800 text-black font-semibold py-2 px-6 rounded transition duration-300 w-full sm:w-auto"
       >
         Chỉnh sửa hồ sơ
       </button>

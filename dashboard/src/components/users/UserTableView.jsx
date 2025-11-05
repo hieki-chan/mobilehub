@@ -10,11 +10,12 @@ import {
   Calendar,
   Mail,
   UserCircle,
+  Shield,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import RoleBadge from "../common_components/RoleBadge";
 
-
-const UserTableView = ({ users = [], onDelete }) => {
+const UserTableView = ({ users = [], onDelete, onEdit }) => {
   const [selectedIds, setSelectedIds] = useState([]);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
 
@@ -48,8 +49,8 @@ const UserTableView = ({ users = [], onDelete }) => {
       aVal = new Date(aVal);
       bVal = new Date(bVal);
     } else {
-      aVal = aVal.toString().toLowerCase();
-      bVal = bVal.toString().toLowerCase();
+      aVal = aVal?.toString().toLowerCase() ?? "";
+      bVal = bVal?.toString().toLowerCase() ?? "";
     }
 
     if (aVal < bVal) return sortConfig.direction === "asc" ? -1 : 1;
@@ -60,10 +61,7 @@ const UserTableView = ({ users = [], onDelete }) => {
   const renderSortIcon = (key) => {
     const isActive = sortConfig.key === key;
     if (!isActive) return null;
-
-    const isAsc = sortConfig.direction === "asc";
-    const Icon = isAsc ? ArrowUp : ArrowDown;
-
+    const Icon = sortConfig.direction === "asc" ? ArrowUp : ArrowDown;
     return (
       <motion.div
         key={`${key}-${sortConfig.direction}`}
@@ -77,6 +75,24 @@ const UserTableView = ({ users = [], onDelete }) => {
     );
   };
 
+  // === FORMATTER ===
+  const formatDate = (dateString) => {
+    if (!dateString) return "—";
+    try {
+      const d = new Date(dateString);
+      return d.toLocaleString("vi-VN", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch {
+      return dateString;
+    }
+  };
+
+
   // === BULK DELETE ===
   const handleDeleteSelected = () => {
     if (
@@ -88,11 +104,8 @@ const UserTableView = ({ users = [], onDelete }) => {
     }
   };
 
-  const handleClearSelection = () => setSelectedIds([]);
-
   return (
     <div className="overflow-x-auto">
-      {/* 🧡 Bulk Action Bar */}
       {selectedIds.length > 0 && (
         <div className="flex items-center justify-between bg-orange-50 border-b border-orange-200 px-4 py-2">
           <div className="flex items-center gap-2 text-orange-700 text-sm font-medium">
@@ -107,7 +120,7 @@ const UserTableView = ({ users = [], onDelete }) => {
               Xóa tất cả
             </button>
             <button
-              onClick={handleClearSelection}
+              onClick={() => setSelectedIds([])}
               className="p-1 text-gray-500 hover:bg-gray-100 rounded"
               title="Bỏ chọn"
             >
@@ -117,7 +130,6 @@ const UserTableView = ({ users = [], onDelete }) => {
         </div>
       )}
 
-      {/* 🧩 Table */}
       <table className="w-full">
         <thead className="bg-gray-50 border-b border-gray-200">
           <tr className="text-xs text-gray-700 select-none font-semibold">
@@ -129,75 +141,50 @@ const UserTableView = ({ users = [], onDelete }) => {
                 className="w-4 h-4 accent-gray-700 cursor-pointer"
               />
             </th>
-
-            <th
-              className="text-left py-3 px-4 cursor-pointer hover:bg-gray-100 transition"
-              onClick={() => handleSort("id")}
-            >
+            <th className="py-3 px-4 cursor-pointer" onClick={() => handleSort("id")}>
               <div className="flex items-center gap-2">
                 Mã {renderSortIcon("id")}
               </div>
             </th>
-
-            <th
-              className="text-left py-3 px-4 cursor-pointer hover:bg-gray-100 transition"
-              onClick={() => handleSort("name")}
-            >
+            <th className="py-3 px-4 cursor-pointer" onClick={() => handleSort("name")}>
               <div className="flex items-center gap-2">
                 <UserCircle size={16} className="text-black" />
                 Tên {renderSortIcon("name")}
               </div>
             </th>
-
-            <th
-              className="text-left py-3 px-4 cursor-pointer hover:bg-gray-100 transition"
-              onClick={() => handleSort("email")}
-            >
+            <th className="py-3 px-4 cursor-pointer" onClick={() => handleSort("email")}>
               <div className="flex items-center gap-2">
                 <Mail size={15} className="text-black" />
                 Email {renderSortIcon("email")}
               </div>
             </th>
-
-            <th
-              className="text-left py-3 px-4 cursor-pointer hover:bg-gray-100 transition"
-              onClick={() => handleSort("role")}
-            >
+            <th className="py-3 px-4 cursor-pointer" onClick={() => handleSort("role")}>
               <div className="flex items-center gap-2">
-                <UserPlus size={15} className="text-black" />
+                <Shield size={15} className="text-black" />
                 Vai trò {renderSortIcon("role")}
               </div>
             </th>
-
-            <th
-              className="text-left py-3 px-4 cursor-pointer hover:bg-gray-100 transition"
-              onClick={() => handleSort("status")}
-            >
+            <th className="py-3 px-4 cursor-pointer" onClick={() => handleSort("status")}>
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-green-500"></div>
                 Trạng thái {renderSortIcon("status")}
               </div>
             </th>
-
-            <th
-              className="text-left py-3 px-4 cursor-pointer hover:bg-gray-100 transition"
-              onClick={() => handleSort("createdDate")}
-            >
+            <th className="py-3 px-4 cursor-pointer" onClick={() => handleSort("createdDate")}>
               <div className="flex items-center gap-2">
                 <Calendar size={15} className="text-black" />
                 Ngày tạo {renderSortIcon("createdDate")}
               </div>
             </th>
-
-            <th className="text-left py-3 px-4 font-medium">Hành động</th>
+            <th className="py-3 px-4">Hành động</th>
           </tr>
         </thead>
 
         <tbody className="divide-y divide-gray-100">
-          {sortedUsers.map((user) => (
+          {sortedUsers.map((user, index) => (
             <tr
-              key={user.id}
-              className={`hover:bg-gray-50 transition ${selectedIds.includes(user.id) ? "bg-gray-100" : ""
+              key={user.id ?? `user-${index}`}
+              className={`hover:bg-gray-50 ${selectedIds.includes(user.id) ? "bg-gray-100" : ""
                 }`}
             >
               <td className="py-3 px-4">
@@ -208,10 +195,7 @@ const UserTableView = ({ users = [], onDelete }) => {
                   className="w-4 h-4 accent-orange-500 cursor-pointer"
                 />
               </td>
-
               <td className="py-3 px-4 text-sm text-gray-700">{user.id}</td>
-
-
               <td className="py-3 px-4">
                 <div className="flex items-center gap-3">
                   <div
@@ -219,12 +203,9 @@ const UserTableView = ({ users = [], onDelete }) => {
                   >
                     {user.avatar}
                   </div>
-                  <span className="text-sm font-medium text-gray-900">
-                    {user.name}
-                  </span>
+                  <span className="text-sm font-medium text-gray-900">{user.name}</span>
                 </div>
               </td>
-
               <td className="py-3 px-4">
                 <a
                   href={`mailto:${user.email}`}
@@ -233,9 +214,9 @@ const UserTableView = ({ users = [], onDelete }) => {
                   {user.email}
                 </a>
               </td>
-
-              <td className="py-3 px-4 text-sm text-gray-700">{user.role}</td>
-
+              <td className="py-3 px-4">
+                <RoleBadge role={user.role} />
+              </td>
               <td className="py-3 px-4">
                 <span
                   className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium ${user.status === "Active"
@@ -250,14 +231,14 @@ const UserTableView = ({ users = [], onDelete }) => {
                   {user.status}
                 </span>
               </td>
-
               <td className="py-3 px-4 text-sm text-gray-600">
-                {user.createdDate}
+                {formatDate(user.createdDate)}
               </td>
-
               <td className="py-3 px-4">
                 <div className="flex items-center gap-2">
-                  <button className="p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded">
+                  <button
+                    onClick={() => onEdit(user)}
+                    className="p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded">
                     <Edit size={16} />
                   </button>
                   <button
@@ -273,7 +254,7 @@ const UserTableView = ({ users = [], onDelete }) => {
 
           {users.length === 0 && (
             <tr>
-              <td colSpan="7" className="text-center py-6 text-gray-500 text-sm">
+              <td colSpan="8" className="text-center py-6 text-gray-500 text-sm">
                 Không có người dùng nào.
               </td>
             </tr>

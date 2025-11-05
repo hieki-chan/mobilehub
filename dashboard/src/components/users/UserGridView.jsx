@@ -1,52 +1,75 @@
 import React from "react";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2, Shield } from "lucide-react";
+import RoleBadge from "../common_components/RoleBadge";
 
 const UserGridView = ({ users = [], onDelete }) => {
+  const formatDate = (dateString) => {
+    if (!dateString) return "—";
+    try {
+      const d = new Date(dateString);
+      return d.toLocaleString("vi-VN", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch {
+      return dateString;
+    }
+  };
+
+
   return (
     <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-      {users.map((user) => (
+      {users.map((user, index) => (
         <div
-          key={user.id}
-          className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition"
+          key={user.id ?? `user-${index}`}
+          className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-all"
         >
+          {/* Header */}
           <div className="flex items-center gap-3 mb-3">
             <div
-              className={`w-10 h-10 rounded-full ${user.color} flex items-center justify-center text-white font-medium`}
+              className={`w-10 h-10 rounded-full ${user.color} flex items-center justify-center text-white font-semibold`}
             >
               {user.avatar}
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-gray-900">
+              <h3 className="text-sm font-semibold text-gray-900 leading-tight">
                 {user.name}
               </h3>
-              <p className="text-xs text-gray-500">{user.email}</p>
+              <p className="text-xs text-gray-500 break-all">{user.email}</p>
             </div>
           </div>
 
-          <div className="text-sm text-gray-700 mb-2">
-            <span className="font-medium">Vai trò:</span> {user.role}
+          {/* Role */}
+          <div className="mb-2">
+            <RoleBadge role={user.role} size="sm" />
           </div>
+
+          {/* Status */}
           <div className="mb-2">
             <span
-              className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
-                user.status === "Active"
-                  ? "bg-green-100 text-green-700"
-                  : "bg-gray-100 text-gray-600"
-              }`}
+              className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium ${user.status === "Active"
+                ? "bg-green-100 text-green-700"
+                : "bg-gray-100 text-gray-600"
+                }`}
             >
               <div
-                className={`w-1.5 h-1.5 rounded-full ${
-                  user.status === "Active" ? "bg-green-500" : "bg-gray-400"
-                }`}
+                className={`w-1.5 h-1.5 rounded-full ${user.status === "Active" ? "bg-green-500" : "bg-gray-400"
+                  }`}
               ></div>
               {user.status}
             </span>
           </div>
+
+          {/* Created Date */}
           <p className="text-xs text-gray-500 mb-3">
-            Ngày tham gia: {user.createdDate}
+            Ngày tham gia: {formatDate(user.createdDate)}
           </p>
 
-          <div className="flex justify-end gap-2">
+          {/* Actions */}
+          <div className="flex justify-end gap-2 pt-2 border-t border-gray-100">
             <button className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded">
               <Edit size={16} />
             </button>

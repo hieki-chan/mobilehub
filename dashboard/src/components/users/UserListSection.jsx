@@ -3,161 +3,146 @@ import ListPageLayout from "../common_components/ListPageLayout";
 import UserGridView from "./UserGridView";
 import UserTableView from "./UserTableView";
 import UserFormModal from "./form/UserFormModal";
-
-// ==== DỮ LIỆU MẪU ====
-const initialUsers = [
-  {
-    id: 1,
-    name: "Liam Smith",
-    email: "smith@example.com",
-    role: "ADMIN",
-    status: "Active",
-    createdDate: "24 Jun 2024, 9:23 pm",
-    avatar: "LS",
-    color: "bg-orange-500",
-  },
-  {
-    id: 2,
-    name: "Noah Anderson",
-    email: "anderson@example.com",
-    role: "EMPLOYEE",
-    status: "Active",
-    createdDate: "15 Mar 2023, 2:45 pm",
-    avatar: "NA",
-    color: "bg-teal-500",
-  },
-  {
-    id: 3,
-    name: "Isabella Garcia",
-    email: "garcia@example.com",
-    role: "USER",
-    status: "Inactive",
-    createdDate: "10 Apr 2022, 11:30 am",
-    avatar: "IG",
-    color: "bg-purple-500",
-  },
-  {
-    id: 4,
-    name: "William Clark",
-    email: "clark@example.com",
-    role: "ADMIN",
-    status: "Active",
-    createdDate: "28 Feb 2023, 6:15 pm",
-    avatar: "WC",
-    color: "bg-blue-500",
-  },
-  {
-    id: 5,
-    name: "James Hall",
-    email: "hall@example.com",
-    role: "EMPLOYEE",
-    status: "Active",
-    createdDate: "19 May 2024, 7:55 am",
-    avatar: "JH",
-    color: "bg-pink-500",
-  },
-];
+import {
+  fetchAdminUsersPaged,
+  createAdminUser,
+  updateAdminUser,
+  deleteAdminUser,
+} from "../../api/UserApi";
+import { showPopupConfirm } from "../common_components/PopupConfirm";
 
 const UserListSection = () => {
-  const [users, setUsers] = useState(initialUsers);
-  const [filteredUsers, setFilteredUsers] = useState(initialUsers);
+  const [users, setUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
 
   const [showForm, setShowForm] = useState(false);
+  const [formMode, setFormMode] = useState("create"); // "create" | "edit"
+  const [editingUser, setEditingUser] = useState(null);
 
   const [viewMode, setViewMode] = useState("table");
   const [showFilters, setShowFilters] = useState(false);
 
-  // ==== BỘ LỌC ====
   const [selectedRole, setSelectedRole] = useState("ALL");
   const [selectedStatus, setSelectedStatus] = useState("ALL");
-
-  // ==== TÌM KIẾM ====
-  const [searchField, setSearchField] = useState("name");
+  const [searchField, setSearchField] = useState("username");
   const [searchQuery, setSearchQuery] = useState("");
 
   const searchOptions = [
-    { label: "Tên", value: "name" },
+    { label: "Tên", value: "username" },
     { label: "Email", value: "email" },
     { label: "Vai trò", value: "role" },
     { label: "Trạng thái", value: "status" },
-    { label: "Ngày tạo", value: "createdDate" },
   ];
 
-  // ==== PHÂN TRANG ====
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(15);
-  const totalItems = filteredUsers.length;
+  const [totalItems, setTotalItems] = useState(0);
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const startItem = (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
-  // ==== LỌC DỮ LIỆU ====
+  const loadUsers = async () => {
+    try {
+      const data = await fetchAdminUsersPaged(
+        currentPage - 1,
+        itemsPerPage,
+        "id",
+        "asc"
+      );
+
+      if (data?.content) {
+        const normalized = data.content.map((u) => ({
+          id: u.id,
+          name: u.username || "Chưa có tên",
+          email: u.email,
+          role: u.role,
+          status: u.status || "Active",
+          createdDate: u.createdAt || "—",
+          avatar:
+            u.username?.charAt(0).toUpperCase() ??
+            u.email?.charAt(0).toUpperCase() ??
+            "?",
+          color: "bg-orange-500",
+        }));
+
+        setUsers(normalized);
+        setFilteredUsers(normalized);
+        setTotalItems(data.totalElements ?? normalized.length);
+      }
+    } catch (err) {
+      console.error("❌ Lỗi tải người dùng:", err);
+    }
+  };
+
+  useEffect(() => {
+    loadUsers();
+  }, [currentPage, itemsPerPage]);
+
   const handleFilter = () => {
     let result = [...users];
 
-    // Bộ lọc vai trò
-    if (selectedRole !== "ALL") {
+    if (selectedRole !== "ALL")
       result = result.filter((u) => u.role === selectedRole);
-    }
-
-    // Bộ lọc trạng thái
-    if (selectedStatus !== "ALL") {
+    if (selectedStatus !== "ALL")
       result = result.filter((u) => u.status === selectedStatus);
-    }
 
-    // Tìm kiếm
-    if (searchQuery.trim() !== "") {
+    if (searchQuery.trim() !== "")
       result = result.filter((u) =>
         u[searchField]?.toLowerCase().includes(searchQuery.toLowerCase())
       );
-    }
 
     setFilteredUsers(result);
     setCurrentPage(1);
   };
 
-  // 🧠 Tự lọc lại mỗi khi searchQuery, searchField, role, status thay đổi
   useEffect(() => {
     handleFilter();
   }, [searchQuery, searchField, selectedRole, selectedStatus, users]);
 
-  // ==== TÍNH NGƯỜI DÙNG TRANG HIỆN TẠI ====
-  const getPageUsers = () => {
-    const start = (currentPage - 1) * itemsPerPage;
-    return filteredUsers.slice(start, start + itemsPerPage);
-  };
-
-  // Khi bấm "Thêm người dùng"
   const handleAddUser = () => {
+    setFormMode("create");
+    setEditingUser(null);
     setShowForm(true);
   };
 
-  // Khi submit form
-  const handleSubmitUser = (formData) => {
-    const newUser = {
-      id: users.length + 1,
-      ...formData,
-      createdDate: new Date().toLocaleString("vi-VN"),
-      avatar: formData.name
-        ? formData.name
-          .split(" ")
-          .map((n) => n[0])
-          .join("")
-          .toUpperCase()
-        : "NU",
-      color: "bg-gray-500",
-    };
-    setUsers([newUser, ...users]);
+  const handleEditUser = (user) => {
+    setFormMode("edit");
+    setEditingUser(user);
+    setShowForm(true);
   };
 
-  // ==== XÓA NGƯỜI DÙNG ====
-  const handleDelete = (id) => {
-    if (window.confirm("Xóa người dùng này?")) {
-      setUsers(users.filter((u) => u.id !== id));
+  const handleSubmitUser = async (formData) => {
+    try {
+      if (formMode === "edit" && editingUser) {
+        await updateAdminUser(editingUser.id, formData);
+        alert("✅ Cập nhật người dùng thành công!");
+      } else {
+        await createAdminUser(formData);
+        alert("✅ Tạo người dùng thành công!");
+      }
+      await loadUsers();
+      setShowForm(false);
+    } catch (err) {
+      console.error("❌ Lỗi lưu user:", err);
+      alert("Không thể lưu người dùng!");
     }
   };
 
-  // ==== XUẤT FILE CSV ====
+  const handleDelete = async (id) => {
+    const confirmed = await showPopupConfirm(
+      "Xác nhận xoá người dùng",
+      "Bạn có chắc muốn xoá người dùng này?"
+    );
+    if (!confirmed) return;
+
+    try {
+      await deleteAdminUser(id);
+      setUsers((prev) => prev.filter((u) => u.id !== id));
+    } catch (err) {
+      console.error("❌ Lỗi xoá user:", err);
+    }
+  };
+
   const exportToCSV = () => {
     const csv = [
       ["Họ tên", "Email", "Vai trò", "Trạng thái", "Ngày tạo"].join(","),
@@ -176,11 +161,15 @@ const UserListSection = () => {
 
   const handleRefresh = () => {
     setSearchQuery("");
-    setFilteredUsers(users);
+    loadUsers();
     setCurrentPage(1);
   };
 
-  // ==== RENDER ====
+  const getPageUsers = () => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredUsers.slice(start, start + itemsPerPage);
+  };
+
   return (
     <div>
       <ListPageLayout
@@ -191,13 +180,11 @@ const UserListSection = () => {
         onAdd={handleAddUser}
         onExport={exportToCSV}
         onToggleFilters={() => setShowFilters((prev) => !prev)}
-        // 🔍 Props tìm kiếm
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         searchField={searchField}
         onSearchFieldChange={setSearchField}
         searchOptions={searchOptions}
-        // 📄 Phân trang
         currentPage={currentPage}
         totalPages={totalPages}
         itemsPerPage={itemsPerPage}
@@ -211,10 +198,8 @@ const UserListSection = () => {
         }}
         onRefresh={handleRefresh}
       >
-        {/* ==== FILTERS ==== */}
         {showFilters && (
           <div className="sticky top-[128px] z-30 p-4 border-b border-gray-200 bg-gray-50 flex flex-wrap items-center gap-3 sm:gap-4">
-            {/* Vai trò */}
             <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
               <label className="text-sm font-medium text-gray-700">
                 Vai trò:
@@ -231,7 +216,6 @@ const UserListSection = () => {
               </select>
             </div>
 
-            {/* Trạng thái */}
             <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 sm:ml-6">
               <label className="text-sm font-medium text-gray-700">
                 Trạng thái:
@@ -249,27 +233,33 @@ const UserListSection = () => {
           </div>
         )}
 
-        {/* ==== DANH SÁCH NGƯỜI DÙNG ==== */}
         <div className="relative">
           {viewMode === "table" ? (
-            <UserTableView users={getPageUsers()} onDelete={handleDelete} />
+            <UserTableView
+              users={getPageUsers()}
+              onDelete={handleDelete}
+              onEdit={handleEditUser}
+            />
           ) : (
-            <UserGridView users={getPageUsers()} onDelete={handleDelete} />
+            <UserGridView
+              users={getPageUsers()}
+              onDelete={handleDelete}
+              onEdit={handleEditUser}
+            />
           )}
 
-          {/* Khi modal mở -> disable phần view */}
           {showForm && (
             <div className="absolute inset-0 bg-white/40 backdrop-blur-[1px] cursor-not-allowed z-40" />
           )}
         </div>
 
-        {/* Modal thêm user */}
         <UserFormModal
           isOpen={showForm}
+          mode={formMode}
+          initialData={editingUser}
           onClose={() => setShowForm(false)}
-          onSubmit={handleSubmitUser}
+          onSuccess={loadUsers}
         />
-
       </ListPageLayout>
     </div>
   );

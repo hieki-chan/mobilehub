@@ -21,14 +21,12 @@ const ProductFormModal = ({
   const title =
     mode === "edit" ? "Chỉnh sửa sản phẩm" : "Thêm sản phẩm mới";
 
-  // ===== Scroll lock khi mở modal =====
   useEffect(() => {
     if (isOpen) document.body.style.overflow = "hidden";
     else document.body.style.overflow = "auto";
     return () => (document.body.style.overflow = "auto");
   }, [isOpen]);
 
-  // ===== Khi mở modal edit => load chi tiết sản phẩm =====
   useEffect(() => {
     if (isOpen && productId) {
       setLoading(true);
@@ -54,7 +52,6 @@ const ProductFormModal = ({
     }
   }, [isOpen, productId]);
 
-  // ===== Gửi form (create / update) =====
   const handleSubmit = async () => {
     try {
       if (mode === "edit") {
@@ -75,7 +72,7 @@ const ProductFormModal = ({
   return (
     <div className="absolute top-0 left-0 w-full h-screen z-50 flex bg-black/40 backdrop-blur-sm">
       <motion.div
-        className="absolute right-0 top-0 h-full w-full bg-white text-gray-900 border-l border-gray-200 flex flex-col shadow-xl"
+        className="absolute right-0 top-0 h-full w-full bg-white text-gray-900 flex flex-col shadow-xl"
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
@@ -85,7 +82,6 @@ const ProductFormModal = ({
           <h2 className="text-xl font-semibold text-gray-800">🛒 {title}</h2>
 
           <div className="flex items-center gap-3">
-            {/* Nút hủy — đen nhám */}
             <button
               type="button"
               onClick={onClose}
@@ -94,7 +90,6 @@ const ProductFormModal = ({
               Hủy
             </button>
 
-            {/* Nút lưu — cam nổi bật */}
             <button
               type="button"
               onClick={handleSubmit}
@@ -106,7 +101,7 @@ const ProductFormModal = ({
         </div>
 
         {/* ===== BODY ===== */}
-        <div className="flex-1 overflow-y-auto px-6 py-6 space-y-10 bg-white">
+        <div className="flex-1 overflow-y-auto px-6 py-6 space-y-10 bg-gray-50">
           {loading ? (
             <p className="text-gray-500 italic">Đang tải dữ liệu sản phẩm...</p>
           ) : (

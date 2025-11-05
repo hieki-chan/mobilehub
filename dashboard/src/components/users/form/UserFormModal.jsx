@@ -1,11 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { X, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { createAdminUser, updateAdminUser } from "../../../api/UserApi";
 
 const roles = ["ADMIN", "EMPLOYEE", "USER"];
-const statuses = ["Active", "Inactive"];
+const statuses = ["ACTIVE", "INACTIVE"];
 
-const UserFormModal = ({ isOpen, onClose, onSubmit }) => {
+const UserFormModal = ({ isOpen, onClose, mode = "create", initialData = {}, onSuccess }) => {
   const [form, setForm] = useState({
     email: "",
     name: "",
@@ -13,8 +14,21 @@ const UserFormModal = ({ isOpen, onClose, onSubmit }) => {
     role: "USER",
     status: "Active",
   });
+
   const [showRoleDropdown, setShowRoleDropdown] = useState(false);
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+
+  useEffect(() => {
+    if (mode === "edit" && initialData) {
+      setForm({
+        email: initialData.email || "",
+        name: initialData.name || "",
+        password: "",
+        role: initialData.role || "USER",
+        status: initialData.status || "Active",
+      });
+    }
+  }, [mode, initialData]);
 
   if (!isOpen) return null;
 
@@ -23,17 +37,22 @@ const UserFormModal = ({ isOpen, onClose, onSubmit }) => {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSubmit(form);
-    onClose();
-    setForm({
-      email: "",
-      name: "",
-      password: "",
-      role: "USER",
-      status: "Active",
-    });
+    try {
+      if (mode === "edit") {
+        await updateAdminUser(initialData.id, form);
+        alert("✅ Cập nhật người dùng thành công!");
+      } else {
+        await createAdminUser(form);
+        alert("✅ Tạo người dùng thành công!");
+      }
+      onSuccess?.(); // reload list
+      onClose();
+    } catch (error) {
+      console.error("❌ Lỗi khi lưu user:", error);
+      alert("Không thể lưu người dùng!");
+    }
   };
 
   return (
@@ -51,7 +70,7 @@ const UserFormModal = ({ isOpen, onClose, onSubmit }) => {
             {/* ===== Header ===== */}
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-semibold text-gray-800">
-                Thêm người dùng
+                {mode === "edit" ? "Chỉnh sửa người dùng" : "Thêm người dùng"}
               </h2>
               <button
                 onClick={onClose}
@@ -73,7 +92,8 @@ const UserFormModal = ({ isOpen, onClose, onSubmit }) => {
                   onChange={handleChange}
                   required
                   placeholder="Nhập email"
-                  className="w-full mt-1 border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:ring-2 focus:ring-gray-900 focus:outline-none"
+                  disabled={mode === "edit"}
+                  className="w-full mt-1 border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:ring-2 focus:ring-gray-900 focus:outline-none disabled:bg-gray-100"
                 />
               </div>
 
@@ -99,8 +119,8 @@ const UserFormModal = ({ isOpen, onClose, onSubmit }) => {
                   name="password"
                   value={form.password}
                   onChange={handleChange}
-                  required
-                  placeholder="Nhập mật khẩu"
+                  required={mode === "create"}
+                  placeholder={mode === "edit" ? "Để trống nếu không đổi" : "Nhập mật khẩu"}
                   className="w-full mt-1 border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:ring-2 focus:ring-gray-900 focus:outline-none"
                 />
               </div>
@@ -208,7 +228,7 @@ const UserFormModal = ({ isOpen, onClose, onSubmit }) => {
                   type="submit"
                   className="px-3 py-1.5 text-sm rounded bg-orange-500 text-white hover:bg-orange-600"
                 >
-                  Lưu
+                  {mode === "edit" ? "Cập nhật" : "Lưu"}
                 </button>
               </div>
             </form>
