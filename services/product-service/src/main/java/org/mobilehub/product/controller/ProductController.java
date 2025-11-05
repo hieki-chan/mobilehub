@@ -22,9 +22,10 @@ import java.util.Map;
 
 @Slf4j
 @RestController
-@RequestMapping("/api")
+@RequestMapping()
 @RequiredArgsConstructor
 @Validated
+@SuppressWarnings("unused")
 public class ProductController {
     private final ProductService productService;
 

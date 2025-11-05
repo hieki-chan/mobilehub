@@ -4,13 +4,19 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.mobilehub.identity_service.dto.request.AdminUpdateUserRequest;
 import org.mobilehub.identity_service.dto.request.CreateUserRequest;
+import org.mobilehub.identity_service.dto.response.AdminUserResponse;
 import org.mobilehub.identity_service.dto.response.UserResponse;
 import org.mobilehub.identity_service.entity.Role;
 import org.mobilehub.identity_service.entity.User;
 import org.mobilehub.identity_service.exception.UserException;
 import org.mobilehub.identity_service.mapper.UserMapper;
 import org.mobilehub.identity_service.repository.UserRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +34,18 @@ public class UserService {
     UserMapper userMapper;
     PasswordEncoder passwordEncoder;
 
+    public Page<AdminUserResponse> getAllUsersPaged(int page, int size, String sortBy, String sortDir) {
+        Sort sort = sortDir.equalsIgnoreCase("desc")
+                ? Sort.by(sortBy).descending()
+                : Sort.by(sortBy).ascending();
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<User> usersPage = userRepository.findAll(pageable);
+
+        return usersPage.map(userMapper::toAdminUserResponse);
+    }
+
     public UserResponse createUser(CreateUserRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new UserException("Email này đã tồn tại!");
@@ -41,6 +59,32 @@ public class UserService {
         employee.setPassword(passwordEncoder.encode(request.getPassword()));
 
         return userMapper.toUserResponse(userRepository.save(employee));
+    }
+
+    public UserResponse updateUser(Long id, AdminUpdateUserRequest request) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UserException("Không tìm thấy người dùng với ID: " + id));
+
+        user.setEmail(request.getEmail());
+        user.setUsername(request.getUsername());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setRole(request.getRole());
+        user.setStatus(request.getStatus());
+
+        User saved = userRepository.save(user);
+        return userMapper.toUserResponse(saved);
+    }
+
+
+    public boolean deleteUser(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UserException("Không tìm thấy người dùng với ID: " + id));
+
+        if(user.getRole() == Role.ADMIN)
+            return false;
+
+        userRepository.delete(user);
+        return true;
     }
 
     public List<UserResponse> getAllEmployees() {

@@ -52,8 +52,7 @@ public class JwtTokenProvider implements TokenProvider {
                 .subject(subject)
                 .issuer(ISSUER)
                 .issueTime(new Date())
-                .expirationTime(new Date(
-                        Instant.now().plus(VALID_DURATION, ChronoUnit.SECONDS).toEpochMilli()))
+                .expirationTime(Date.from(Instant.now().plusMillis(VALID_DURATION)))
                 .jwtID(UUID.randomUUID().toString());
 
         claimSet.asMap().forEach(jwtClaimsSetBuilder::claim);

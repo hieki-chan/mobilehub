@@ -28,14 +28,21 @@ public class User {
     @Column(name = "password", nullable = false)
     String password;
 
+    @Column
     @Enumerated(EnumType.STRING)
     SignInProvider provider;
 
+    @Column
     @Enumerated(EnumType.STRING)
     Role role;
 
+    @Column
     private LocalDateTime createdAt;
     //private LocalDateTime updatedAt;
+
+    @Column
+    @Enumerated(EnumType.STRING)
+    private UserStatus status;
 
     @PrePersist
     protected void onCreate() {

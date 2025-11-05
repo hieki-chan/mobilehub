@@ -49,6 +49,8 @@ public class SecurityConfig {
                                 "/auth/authenticate"
                                 ).permitAll()
 
+                        .requestMatchers("/admin/**").permitAll()
+
                         .anyRequest().authenticated()
                 )
 //                .oauth2Login(oauth -> oauth
