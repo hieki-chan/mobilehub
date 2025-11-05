@@ -3,10 +3,3 @@ spring:
     name: identity-service
   config:
     import: "optional:configserver:http://localhost:8888"
-  cloud:
-    compatibility-verifier:
-      enabled: false
-
-logging:
-  level:
-    org.springframework: INFO

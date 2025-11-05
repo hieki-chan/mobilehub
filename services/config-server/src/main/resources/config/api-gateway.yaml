@@ -1,3 +1,4 @@
+
 server:
   port: 8080
 
@@ -7,36 +8,54 @@ app:
 spring:
   application:
     name: api-gateway
-
   cloud:
     gateway:
+      default-filters:
+        # Tránh header CORS bị lặp
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods: "*"
+            allowedHeaders: "*"
+            allowCredentials: false
       routes:
-        # === Identity Service ===
+
+        # ========== IDENTITY ==========
+        # Service path thực tế: /auth/** (không có context-path)
         - id: identity_service
           uri: http://localhost:8081
           predicates:
-            - Path=${app.api-prefix}/auth/**
-            #- Path=${app.api-prefix}/identity/**
+            - Path=${app.api-prefix}/auth/**, ${app.api-prefix}/identity/**
           filters:
+            # Bỏ /api và /v1 để giữ nguyên /auth/**
             - StripPrefix=2
 
-        # === User Service ===
+        # ========== USER ==========
+        # Service có context-path: /user-info/** (controller bên trong mới map tiếp)
         - id: user_service
           uri: http://localhost:8082
           predicates:
-            - Path=${app.api-prefix}/users/**
+            - Path=${app.api-prefix}/users/**, ${app.api-prefix}/user-info/**
           filters:
             - StripPrefix=2
+            # Thêm /user-info vào đầu path sau khi bỏ /api/v1
+            - PrefixPath=/user-info
 
-        # === Product Service ===
+        # ========== PRODUCT ==========
+        # Controller map dưới /api/products/**, /api/categories/**
         - id: product_service
           uri: http://localhost:8083
           predicates:
-            - Path=${app.api-prefix}/products/**, ${app.api-prefix}/categories/**
+            - Path=${app.api-prefix}/products/**, ${app.api-prefix}/categories/**, ${app.api-prefix}/discounts/**
           filters:
             - StripPrefix=2
+            # Thêm /api để khớp /api/products/** và /api/categories/**
+            - PrefixPath=/api
 
-        # === Cart Service ===
+        # ========== CART ==========
+        # (đang khớp sẵn; giữ StripPrefix=2)
         - id: cart_service
           uri: http://localhost:8084
           predicates:
@@ -44,22 +63,51 @@ spring:
           filters:
             - StripPrefix=2
 
-        # === Order Service ===
+        # ========== ORDER ==========
+        # Service có context-path /order và controller /api/orders/**
+        # Đường thật: /order/api/orders/**
         - id: order_service
           uri: http://localhost:8085
           predicates:
             - Path=${app.api-prefix}/orders/**
           filters:
             - StripPrefix=2
+            # Sau khi bỏ /api/v1, phần còn lại là /orders/**
+            # Ta chèn cả /order và /api vào trước phần còn lại:
+            - RewritePath=/(?<remaining>.*), /order/api/${remaining}
 
-        # === Cloud Media Service ===
+        # ========== INVENTORY ==========
+        # Controller map dưới /api/inventory/**
+        - id: inventory_service
+          uri: http://localhost:8086
+          predicates:
+            - Path=${app.api-prefix}/inventory/**
+          filters:
+            - StripPrefix=2
+            - PrefixPath=/api
+
+        # ========== PAYMENT ==========
+        # Controller map dưới /api/payments/**
+        - id: payment_service
+          uri: http://localhost:8087
+          predicates:
+            - Path=${app.api-prefix}/payments/**
+          filters:
+            - StripPrefix=2
+            - PrefixPath=/api
+
+        # ========== CLOUD MEDIA ==========
+        # Controller map dưới /api/media/**
         - id: cloud_media_service
           uri: http://localhost:8090
           predicates:
             - Path=${app.api-prefix}/media/**
           filters:
             - StripPrefix=2
+            - PrefixPath=/api
 
-      discovery:
-        locator:
-          enabled: false
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"

@@ -2,6 +2,9 @@ server:
   port: 8081
 
 spring:
+  application:
+    name: identity-service
+
   datasource:
     url: jdbc:mysql://localhost:3306/mobilehub_identity?createDatabaseIfNotExist=true
     username: root

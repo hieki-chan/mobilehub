@@ -4,6 +4,10 @@ server:
     context-path: /user-info   # Context path for API
 
 spring:
+  spring:
+    application:
+      name: user-service
+
   datasource:
     url: jdbc:mysql://localhost:3306/mobilehub_user?createDatabaseIfNotExist=true
     username: root
