@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-@RestControllerAdvice(basePackages = "org.mobilehub.identity.controller")
+@RestControllerAdvice()
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(UserException.class)

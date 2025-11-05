@@ -36,39 +36,29 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/swagger-resources/**",
-                                "/webjars/**",
-                                "/auth/register", "/auth/verify", "/auth/resend-otp",
-                                "/auth/token", "/auth/validate", "/auth/authenticate"
+                                "/webjars/**"
                         ).permitAll()
+
+                        .requestMatchers(
+                          //      "/auth/**"
+                                "/auth/register",
+                                "/auth/verify",
+                                "/auth/resend-otp",
+                                "/auth/token",
+                                "/auth/validate",
+                                "/auth/authenticate"
+                                ).permitAll()
 
                         .anyRequest().authenticated()
                 )
-                .oauth2Login(oauth -> oauth
-                        .loginPage("/oauth2/authorization/google")
-                        .successHandler(oAuth2SuccessHandler)
-                )
+//                .oauth2Login(oauth -> oauth
+//                        .loginPage("/oauth2/authorization/google")
+//                        .successHandler(oAuth2SuccessHandler)
+//                )
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable);
 
         return http.build();
-    }
-
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of(
-                "http://localhost:5173",   // ⚠️ thêm dòng này
-                "http://127.0.0.1:5173",
-                "http://localhost:5500",
-                "http://127.0.0.1:5500"
-        ));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("*"));
-        config.setAllowCredentials(true);
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
-        return source;
     }
 
     @Bean

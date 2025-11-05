@@ -1,4 +1,4 @@
-package org.mobilehub.identity.config;
+package org.mobilehub.identity_service.config;
 
 import org.mobilehub.shared.common.token.JwtTokenProvider;
 import org.mobilehub.shared.common.token.TokenProvider;

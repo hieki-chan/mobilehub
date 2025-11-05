@@ -26,6 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@SuppressWarnings("unused")
 public class AuthenticationController {
 
     AuthenticationService authenticationService;
