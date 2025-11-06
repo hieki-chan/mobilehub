@@ -207,7 +207,7 @@ export default function Home() {
                 <div className="price">{formatPrice(modalProduct.price)}</div>
                 <div className="muted" style={{ marginTop: 8 }}>{modalProduct.desc}</div>
                 <div className="modal-actions">
-                  <button className="btn btn-primary" id="qvBuy" onClick={() => { if (modalProduct.status !== 'coming_soon') window.location.href = `product.html?id=${encodeURIComponent(modalProduct.id)}` }} disabled={modalProduct.status === 'coming_soon'}>{modalProduct.status === 'coming_soon' ? 'Sắp mở bán' : 'Mua ngay'}</button>
+                  <button className="btn btn-primary" id="qvBuy" onClick={() => { if (modalProduct.status !== 'coming_soon') window.location.href = `product/${encodeURIComponent(modalProduct.id)}` }} disabled={modalProduct.status === 'coming_soon'}>{modalProduct.status === 'coming_soon' ? 'Sắp mở bán' : 'Mua ngay'}</button>
                   <button className="btn btn-secondary" id="qvClose" onClick={closeQuickView}>Đóng</button>
                 </div>
               </div>
