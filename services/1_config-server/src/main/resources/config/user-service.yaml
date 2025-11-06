@@ -1,0 +1,23 @@
+server:
+  port: 8082                  # Port
+  servlet:
+    context-path: /user-info   # Context path for API
+
+spring:
+  spring:
+    application:
+      name: user-service
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/mobilehub_user?createDatabaseIfNotExist=true
+    username: root
+    password: root1234!
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate.dialect: org.hibernate.dialect.MySQLDialect
+

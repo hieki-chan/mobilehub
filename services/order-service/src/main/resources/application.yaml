@@ -6,6 +6,11 @@ server:
 spring:
   application:
     name: order-service
+  config:
+    import: "optional:configserver:http://localhost:8888"
+  cloud:
+    compatibility-verifier:
+      enabled: false
 
   datasource:
     url: jdbc:mysql://localhost:3306/mobilehub_order
@@ -20,3 +25,14 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+  kafka:
+    kafka:
+      bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+      consumer:
+        group-id: order-service
+        key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+        value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+        auto-offset-reset: earliest
+      listener:
+        ack-mode: record

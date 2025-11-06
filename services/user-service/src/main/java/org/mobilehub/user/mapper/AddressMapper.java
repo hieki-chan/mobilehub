@@ -10,7 +10,7 @@ import org.mobilehub.user.entity.Address;
 public interface AddressMapper {
 
     @Mapping(target = "userId", source = "userId")
-    Address toAddress(CreateAddressRequest createAddressRequest, String userId);
+    Address toAddress(CreateAddressRequest createAddressRequest, Long userId);
 
     AddressResponse toAddressResponse(Address address);
 }

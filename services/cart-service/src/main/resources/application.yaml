@@ -6,21 +6,8 @@ server:
 spring:
   application:
     name: cart-service
-
-  datasource:
-    url: jdbc:mysql://localhost:3306/mobilehub_cart
-    username: root
-    password: root1234!
-    driver-class-name: com.mysql.cj.jdbc.Driver
-
-  jpa:
-    hibernate:
-      ddl-auto: update     # Tự tạo/tự cập nhật bảng
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
-
+  config:
+    import: "optional:configserver:http://localhost:8888"
   cloud:
     compatibility-verifier:
       enabled: false
@@ -34,4 +21,4 @@ feign:
         loggerLevel: full
 
 product-service:
-  url: http://localhost:8087/api/products
+  url: http://localhost:8082/api/products
