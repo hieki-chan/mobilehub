@@ -3,14 +3,29 @@ import { useNavigate } from "react-router-dom";
 import { logout } from "../../api/AuthApi";
 import { ChevronRight, Bell } from "lucide-react";
 
-const Header = ({ path = ["Mobilehub", "Người dùng"], notificationsCount = 0, userName = "Admin" }) => {
+const normalizePath = (path) =>
+  (path || []).map((seg) =>
+    typeof seg === "string" ? { label: seg, to: undefined } : seg
+  );
+
+const Header = ({
+  path = [
+    { label: "Mobilehub", to: "/" },
+    { label: "Người dùng", to: "/users" },
+  ],
+  notificationsCount = 0,
+  userName = "Admin",
+}) => {
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
+  const segments = normalizePath(path);
+
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setOpen(false);
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target))
+        setOpen(false);
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -21,25 +36,37 @@ const Header = ({ path = ["Mobilehub", "Người dùng"], notificationsCount = 0
     navigate("/settings");
   };
 
+  const handleBreadcrumbClick = (seg, isLast) => {
+    if (isLast) return;
+    if (seg?.to) navigate(seg.to);
+  };
+
   return (
     <header className="sticky top-0 z-50 w-full bg-white/70 backdrop-blur-md border-b border-gray-200">
       <div className="px-4 py-3 sm:px-6 lg:px-8 flex items-center justify-between">
         {/* Breadcrumb */}
-        <nav className="flex items-center text-sm font-medium text-gray-600 space-x-1">
-          {path.map((segment, index) => (
-            <div key={index} className="flex items-center">
-              <span
-                className={`hover:text-blue-600 cursor-pointer ${
-                  index === path.length - 1 ? "text-gray-900 font-semibold" : ""
-                }`}
-              >
-                {segment}
-              </span>
-              {index < path.length - 1 && (
-                <ChevronRight size={16} className="mx-1 text-gray-400" />
-              )}
-            </div>
-          ))}
+        <nav
+          className="flex items-center text-sm font-medium text-gray-600 space-x-1"
+          aria-label="Breadcrumb"
+        >
+          {segments.map((seg, index) => {
+            const isLast = index === segments.length - 1;
+            return (
+              <div key={index} className="flex items-center">
+                <span
+                  onClick={() => handleBreadcrumbClick(seg, isLast)}
+                  className={`hover:text-blue-600 cursor-pointer ${
+                    isLast ? "text-gray-900 font-semibold cursor-default" : ""
+                  }`}
+                >
+                  {seg.label}
+                </span>
+                {index < segments.length - 1 && (
+                  <ChevronRight size={16} className="mx-1 text-gray-400" />
+                )}
+              </div>
+            );
+          })}
         </nav>
 
         {/* Notifications & User */}
@@ -64,7 +91,7 @@ const Header = ({ path = ["Mobilehub", "Người dùng"], notificationsCount = 0
               onClick={() => setOpen((v) => !v)}
               className="flex items-center gap-2 px-2 py-1 rounded-md hover:bg-gray-100 focus:outline-none"
             >
-              <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-medium">
+              <div className="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center text-white font-medium">
                 {userName.charAt(0).toUpperCase()}
               </div>
               <span className="text-gray-800 hidden sm:inline">{userName}</span>
@@ -74,7 +101,12 @@ const Header = ({ path = ["Mobilehub", "Người dùng"], notificationsCount = 0
                 stroke="currentColor"
                 viewBox="0 0 24 24"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M19 9l-7 7-7-7"
+                />
               </svg>
             </button>
 

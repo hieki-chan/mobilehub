@@ -3,7 +3,7 @@ import api from "./api";
 export const createAdminUser = async (userData) => {
   const request = {
     email: userData.email,
-    username: userData.name,
+    username: userData.username,
     password: userData.password,
     role: userData.role,
     status: userData.status,
@@ -15,12 +15,10 @@ export const createAdminUser = async (userData) => {
 
 export const fetchAdminUsersPaged = async (
   page = 0,
-  size = 10,
-  sortBy = "id",
-  sortDir = "asc"
+  size = 10
 ) => {
   const res = await api.get("/admin/users", {
-    params: { page, size, sortBy, sortDir },
+    params: { page, size },
   });
   return res.data;
 };
@@ -28,7 +26,7 @@ export const fetchAdminUsersPaged = async (
 export const updateAdminUser = async (id, userData) => {
   const request = {
     email: userData.email,
-    username: userData.name,
+    username: userData.username,
     password: userData.password,
     role: userData.role,
     status: userData.status,

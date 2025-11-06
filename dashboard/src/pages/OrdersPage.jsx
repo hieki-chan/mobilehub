@@ -7,7 +7,7 @@ import StatCards from "../components/common_components/StatCards";
 
 import DailyOrdersChart from "../components/orders/DailyOrdersChart";
 import StatusDistributionChart from "../components/orders/StatusDistributionChart";
-import OrdersTable from "../components/orders/OrdersTable";
+import OrderListSection from "../components/orders/OrderListSection";
 
 const Orders_Stat = {
   totalOrders: "2,521",
@@ -19,10 +19,13 @@ const Orders_Stat = {
 const OrdersPage = () => {
   return (
     <div className="flex-1 overflow-auto relative z-10 bg-gray-50 text-gray-900">
-      {/* Tiêu đề trang */}
-      <Header title="Chi tiết đơn hàng" />
+       <Header
+        path={[
+          { label: "Mobilehub", to: "/" },
+          { label: "Đơn hàng", to: "/orders" },
+        ]}
+      />
 
-      {/* Thống kê tổng quan */}
       <main className="py-6 px-4 lg:px-4">
         <motion.div
           className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-7"
@@ -35,12 +38,14 @@ const OrdersPage = () => {
             icon={ShoppingBag}
             value={Orders_Stat.totalOrders}
             color="#6366f1"
+            change={12}
           />
           <StatCards
             name="Đơn hàng đang chờ"
             icon={Clock}
             value={Orders_Stat.pendingOrders}
             color="#10b981"
+            change={-12}
           />
           <StatCards
             name="Đơn hàng đã hoàn tất"
@@ -56,6 +61,8 @@ const OrdersPage = () => {
           />
         </motion.div>
 
+        
+
         {/* Biểu đồ đơn hàng theo ngày và trạng thái đơn hàng */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-7">
           <DailyOrdersChart />
@@ -63,7 +70,7 @@ const OrdersPage = () => {
         </div>
 
         {/* Bảng chi tiết đơn hàng */}
-        <OrdersTable />
+        <OrderListSection />
       </main>
     </div>
   );

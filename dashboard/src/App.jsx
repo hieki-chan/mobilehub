@@ -6,7 +6,10 @@ import Header from "./components/common_components/Header";
 import PrivateRoute from "./components/common_components/PrivateRoute";
 
 import OverviewPage from "./pages/OverviewPage";
+
 import ProductsPage from "./pages/ProductsPage";
+import ProductRatingPage from "./pages/ProductRatingPage";
+
 import UsersPage from "./pages/UsersPage";
 import SalesPage from "./pages/SalesPage";
 import OrdersPage from "./pages/OrdersPage";
@@ -44,6 +47,7 @@ const App = () => {
             <Route element={<PrivateRoute />}>
               <Route path="/" element={<OverviewPage />} />
               <Route path="/products" element={<ProductsPage />} />
+              <Route path="/products/:id/reviews" element={<ProductRatingPage />} />
               <Route path="/users" element={<UsersPage />} />
               <Route path="/sales" element={<SalesPage />} />
               <Route path="/orders" element={<OrdersPage />} />

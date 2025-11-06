@@ -35,16 +35,19 @@ const ProductsPage = () => {
 
   return (
     <div
-      className={`flex-1 overflow-auto relative z-10 bg-gray-50 text-gray-900 ${
-        isAddModalOpen ? "overflow-visible" : "overflow-auto"
-      }`}
+      className={`flex-1 overflow-auto relative z-10 bg-gray-50 text-gray-900 ${isAddModalOpen ? "overflow-visible" : "overflow-auto"
+        }`}
     >
-      <Header path={["Mobilehub", "Sản phẩm"]} title="Sản phẩm" />
+      <Header
+        path={[
+          { label: "Mobilehub", to: "/" },
+          { label: "Sản phẩm", to: "/products" },
+        ]}
+      />
 
       <main
-        className={`relative mx-auto py-6 px-4 lg:px-4 ${
-          isAddModalOpen ? "overflow-visible" : "overflow-auto"
-        }`}
+        className={`relative mx-auto py-6 px-4 lg:px-4 ${isAddModalOpen ? "overflow-visible" : "overflow-auto"
+          }`}
       >
         {/* ===== Thống kê tổng quan ===== */}
         <motion.div

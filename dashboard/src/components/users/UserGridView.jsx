@@ -1,6 +1,7 @@
 import React from "react";
 import { Edit, Trash2, Shield } from "lucide-react";
-import RoleBadge from "../common_components/RoleBadge";
+import RoleBadge from "../common_components/badges/RoleBadge";
+import UserStatusBadge from "../common_components/badges/UserStatusBadge";
 
 const UserGridView = ({ users = [], onDelete }) => {
   const formatDate = (dateString) => {
@@ -36,7 +37,7 @@ const UserGridView = ({ users = [], onDelete }) => {
             </div>
             <div>
               <h3 className="text-sm font-semibold text-gray-900 leading-tight">
-                {user.name}
+                {user.username}
               </h3>
               <p className="text-xs text-gray-500 break-all">{user.email}</p>
             </div>
@@ -49,18 +50,7 @@ const UserGridView = ({ users = [], onDelete }) => {
 
           {/* Status */}
           <div className="mb-2">
-            <span
-              className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium ${user.status === "Active"
-                ? "bg-green-100 text-green-700"
-                : "bg-gray-100 text-gray-600"
-                }`}
-            >
-              <div
-                className={`w-1.5 h-1.5 rounded-full ${user.status === "Active" ? "bg-green-500" : "bg-gray-400"
-                  }`}
-              ></div>
-              {user.status}
-            </span>
+            <UserStatusBadge status={user.status} />,
           </div>
 
           {/* Created Date */}

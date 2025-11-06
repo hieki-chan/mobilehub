@@ -29,7 +29,7 @@ const ProductListSection = ({ onAddClick, onEditClick, reloadFlag }) => {
 
   // ==== PAGINATION ====
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(12);
+  const [itemsPerPage, setItemsPerPage] = useState(15);
   const totalItems = filteredProducts.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const startItem = (currentPage - 1) * itemsPerPage + 1;

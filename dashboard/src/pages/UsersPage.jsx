@@ -17,10 +17,13 @@ const Users_Stat = {
 const UsersPage = () => {
   return (
     <div className="flex-1 overflow-auto relative z-10 bg-gray-50 text-gray-900">
-      {/* Tiêu đề trang */}
-      <Header title="Người dùng" />
+      <Header
+        path={[
+          { label: "Mobilehub", to: "/" },
+          { label: "Người dùng", to: "/users" },
+        ]}
+      />
 
-      {/* DỮ LIỆU THỐNG KÊ */}
       <main className="mx-auto py-6 px-4 lg:px-4">
         <motion.div
           className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-7"
@@ -57,7 +60,7 @@ const UsersPage = () => {
         {/* BẢNG DỮ LIỆU NGƯỜI DÙNG */}
         <UserListSection />
 
-       
+
       </main>
     </div>
   );
