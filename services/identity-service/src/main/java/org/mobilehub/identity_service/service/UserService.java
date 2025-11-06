@@ -34,12 +34,8 @@ public class UserService {
     UserMapper userMapper;
     PasswordEncoder passwordEncoder;
 
-    public Page<AdminUserResponse> getAllUsersPaged(int page, int size, String sortBy, String sortDir) {
-        Sort sort = sortDir.equalsIgnoreCase("desc")
-                ? Sort.by(sortBy).descending()
-                : Sort.by(sortBy).ascending();
-
-        Pageable pageable = PageRequest.of(page, size, sort);
+    public Page<AdminUserResponse> getAllUsersPaged(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
 
         Page<User> usersPage = userRepository.findAll(pageable);
 

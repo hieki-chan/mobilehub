@@ -96,6 +96,15 @@ public class ProductController {
     }
 
     // region Client-side APIs
+    @GetMapping("/products")
+    public ResponseEntity<Page<ProductResponse>> getProducts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "8") int size
+    ) {
+        Page<ProductResponse> products = productService.getAllProducts(page, size);
+        return ResponseEntity.ok(products);
+    }
+
     @GetMapping("/products/discounted")
     public ResponseEntity<List<ProductResponse>> getDiscountedProducts()
     {

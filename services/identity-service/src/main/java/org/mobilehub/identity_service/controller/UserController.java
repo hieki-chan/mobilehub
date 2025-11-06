@@ -31,11 +31,9 @@ public class UserController {
     @GetMapping("/admin/users")
     public ResponseEntity<Page<AdminUserResponse>> getAllUsersPaged(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortDir
+            @RequestParam(defaultValue = "10") int size
     ) {
-        Page<AdminUserResponse> users = userService.getAllUsersPaged(page, size, sortBy, sortDir);
+        Page<AdminUserResponse> users = userService.getAllUsersPaged(page, size);
         return ResponseEntity.ok(users);
     }
 
