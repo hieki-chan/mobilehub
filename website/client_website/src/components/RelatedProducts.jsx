@@ -1,6 +1,6 @@
 // src/components/RelatedProducts.jsx
 import React from 'react'
-import ProductCard from './ProductCard' // reuse existing component
+import ProductCard from '../components/home/ProductCard' // reuse existing component
 export default function RelatedProducts({ products = [], currentId }) {
   const related = products.filter(p => p.id !== currentId).slice(0,4)
   return (

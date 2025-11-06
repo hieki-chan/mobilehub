@@ -1,0 +1,108 @@
+import React from "react";
+import { formatPrice } from "../../utils/formatPrice";
+import "../../styles/components/home/quickviewmodal.css"
+
+export default function QuickViewModal({ product, onClose }) {
+    if (!product) return null;
+
+    const IMG_WIDTH = 340;
+    const IMG_HEIGHT = 340;
+
+    return (
+        <div
+            id="quickViewModal"
+            className="modal-overlay open"
+            onClick={(e) => {
+                if (e.target.id === "quickViewModal") onClose();
+            }}
+        >
+            <div className="modal" role="dialog" aria-modal="true">
+                <button className="modal-close" aria-label="Đóng" onClick={onClose}>
+                    &times;
+                </button>
+
+                <div className="modal-body">
+                    <div
+                        className="modal-img"
+                        style={{
+                            width: `${IMG_WIDTH}px`,
+                            height: `${IMG_HEIGHT}px`,
+                            background: "#fafafa",
+                            borderRadius: "8px",
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            overflow: "hidden",
+                        }}
+                    >
+                        <img
+                            src={product.imageUrl || "/no-image.png"}
+                            alt={product.name}
+                            style={{
+                                width: `${IMG_WIDTH}px`,
+                                height: `${IMG_HEIGHT}px`,
+                                objectFit: "contain",
+                            }}
+                        />
+                    </div>
+
+                    <div className="modal-info">
+                        <h2 className="qv-title">{product.name}</h2>
+
+                        <div className="qv-sub">
+                            RAM 16 GB · SSD 512 GB
+                        </div>
+
+                        <div className="qv-rating">
+                            <i className="fa fa-star"></i> 4.9 · Đã bán 2.1k
+                        </div>
+
+                        <div className="qv-price">
+                            {product.discountInPercent > 0 ? (
+                                <>
+                                    <span className="qv-price-final">
+                                        {formatPrice(
+                                            product.price *
+                                            (1 - product.discountInPercent / 100)
+                                        )}
+                                    </span>
+                                    <span className="qv-price-old">
+                                        {formatPrice(product.price)}
+                                    </span>
+                                    <span className="qv-price-sale">
+                                        -{product.discountInPercent}%
+                                    </span>
+                                </>
+                            ) : (
+                                <span className="qv-price-final">
+                                    {formatPrice(product.price)}
+                                </span>
+                            )}
+                        </div>
+
+                        <div className="qv-bonus">🎁 Quà tặng trị giá 1.000.000₫</div>
+
+                        <p className="qv-desc">
+                            {product.desc ||
+                                "Thiết bị sở hữu hiệu năng mạnh mẽ, thiết kế sang trọng và camera chất lượng cao. Hoàn hảo cho mọi nhu cầu từ làm việc đến giải trí."}
+                        </p>
+
+                        <div className="qv-actions">
+                            <button
+                                className="btn btn-primary"
+                                onClick={() =>
+                                    (window.location.href = `/product/${product.id}`)
+                                }
+                            >
+                                Mua ngay
+                            </button>
+                            <button className="btn btn-primary" onClick={onClose}>
+                                Thêm vào giỏ hàng
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}

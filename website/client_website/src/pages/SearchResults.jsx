@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { products as mockProducts } from '../data/products'
-import ProductCard from '../components/ProductCard'
+import ProductCard from '../components/home/ProductCard'
 import '../styles/pages/search-results.css'
 
 function useQuery() {

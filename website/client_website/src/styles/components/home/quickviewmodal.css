@@ -1,0 +1,155 @@
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  animation: fadeIn 0.25s ease;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 12px;
+  max-width: 860px;
+  width: 90%;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  animation: scaleIn 0.2s ease;
+}
+
+.modal-close {
+  position: absolute;
+  top: 8px;
+  right: 14px;
+  font-size: 26px;
+  color: #555;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.modal-body {
+  display: flex;
+  gap: 24px;
+  padding: 24px;
+  flex-wrap: wrap;
+}
+
+.modal-img img {
+  border-radius: 8px;
+}
+
+.modal-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.qv-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 4px;
+}
+
+.qv-sub {
+  font-size: 14px;
+  color: #6b7280;
+  margin-bottom: 8px;
+}
+
+.qv-rating {
+  font-size: 13px;
+  color: #6b7280;
+  margin-bottom: 8px;
+}
+
+.qv-rating i {
+  color: #facc15;
+  margin-right: 4px;
+}
+
+.qv-price {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.qv-price-final {
+  color: #dc2626;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.qv-price-old {
+  text-decoration: line-through;
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+.qv-price-sale {
+  background: #dc2626;
+  color: #fff;
+  font-size: 13px;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.qv-bonus {
+  color: #0d9488;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.qv-desc {
+  font-size: 14.5px;
+  color: #374151;
+  line-height: 1.5;
+  margin-bottom: 18px;
+}
+
+.qv-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.qv-actions .btn {
+  flex: 1;
+  font-size: 15px;
+  border-radius: 8px;
+  padding: 10px 0;
+}
+
+.btn-primary {
+  background: #dc2626;
+  color: #fff;
+  border: none;
+}
+
+.btn-primary:hover {
+  background: #b91c1c;
+}
+
+.btn-secondary {
+  background: #f3f4f6;
+  color: #111827;
+  border: none;
+}
+
+.btn-secondary:hover {
+  background: #e5e7eb;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.95); opacity: 0.8; }
+  to { transform: scale(1); opacity: 1; }
+}

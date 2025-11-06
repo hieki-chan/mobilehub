@@ -1,24 +1,102 @@
-/* Footer */
-.site-footer {
-  margin-top: auto;
-  background: #fff;
-  text-align: center;
-  padding: 18px 0;
-  position: sticky;
-  top: 100vh;
-  border-top: 1px solid rgba(0, 0, 0, 0.04);
+.footer {
+  padding: 2rem 1rem 1rem;
+  font-size: 0.9rem;
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
-.footer-inner {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  justify-content: center;
-  max-width: var(--container-max);
+/* === LIGHT THEME === */
+.footer.light {
+  background: #f8fafc; /* trắng xám nhạt */
+  color: #1e293b; /* slate-800 */
+}
+
+.footer.light .footer-logo {
+  color: #0ea5e9; /* xanh dương nhạt */
+}
+
+.footer.light .footer-slogan {
+  color: #475569; /* slate-600 */
+}
+
+.footer.light .footer-links a {
+  color: #334155;
+}
+
+.footer.light .footer-links a:hover {
+  color: #0ea5e9;
+}
+
+.footer.light .footer-social a {
+  color: #64748b;
+}
+
+.footer.light .footer-social a:hover {
+  color: #0ea5e9;
+}
+
+.footer.light .footer-bottom {
+  color: #475569;
+  border-top: 1px solid #e2e8f0;
+}
+
+/* === GENERAL LAYOUT (giữ nguyên) === */
+.footer-container {
+  max-width: 1100px;
   margin: 0 auto;
-  padding: 0 20px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+  text-align: center;
 }
 
-.footer-inner .brand {
-  font-weight: 700;
+.footer-brand {
+  flex: 1;
+}
+
+.footer-logo {
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.footer-slogan {
+  margin-top: 0.25rem;
+  font-size: 0.85rem;
+}
+
+.footer-links {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.footer-links a {
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.footer-social {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.footer-social a {
+  font-size: 1.2rem;
+  transition: color 0.3s ease, transform 0.2s ease;
+}
+
+.footer-social a:hover {
+  transform: scale(1.1);
+}
+
+.footer-bottom {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: 0.8rem;
+  padding-top: 0.8rem;
 }
