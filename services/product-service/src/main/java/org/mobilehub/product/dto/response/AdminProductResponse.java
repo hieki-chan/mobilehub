@@ -14,9 +14,9 @@ import java.math.BigDecimal;
 public class AdminProductResponse {
     Long id;
     String name;
-    String imageUrl;
     ProductStatus status;
 
-    BigDecimal price;
     Integer discountInPercent;
+
+    ProductVariantResponse defaultVariant;
 }

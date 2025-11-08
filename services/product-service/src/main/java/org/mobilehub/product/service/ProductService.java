@@ -1,7 +1,9 @@
 package org.mobilehub.product.service;
 
+import org.mobilehub.product.client.CloudMediaServiceClient;
+import org.mobilehub.product.repository.ProductVariantRepository;
+import org.mobilehub.shared.contracts.media.MultipleImageResponse;
 import org.springframework.transaction.annotation.Transactional;
-//import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.mobilehub.product.dto.response.*;
 import org.mobilehub.product.entity.*;
@@ -15,7 +17,6 @@ import org.mobilehub.product.dto.request.UpdateProductRequest;
 import org.mobilehub.product.exception.ProductNotFoundException;
 import org.mobilehub.product.mapper.ProductMapper;
 import org.mobilehub.product.repository.ProductRepository;
-import org.mobilehub.shared.contracts.media.ImageDeleteEvent;
 import org.mobilehub.shared.contracts.media.ImageTopics;
 import org.mobilehub.shared.contracts.media.ImageUploadEvent;
 import org.mobilehub.shared.contracts.media.ImageUploadedEvent;
@@ -29,52 +30,160 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class ProductService {
+    private static final String VARIANT_ID_PROP = "id";
+    private static final String KEY_IMAGE_PROP = "isKey";
 
     private final ProductRepository productRepository;
     private final ProductSpecRepository productSpecRepository;
     private final ProductDiscountRepository productDiscountRepository;
+    private final ProductVariantRepository productVariantRepository;
 
     private final ProductMapper productMapper;
     private final ProductSpecMapper productSpecMapper;
     private final ProductDiscountMapper productDiscountMapper;
 
+    private final CloudMediaServiceClient cloudMediaServiceClient;
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
     // region ADMIN SERVICES
+//    @Transactional
+//    public ProductResponse createProduct(CreateProductRequest request, List<MultipartFile> files) {
+//        // product
+//        Product product = productMapper.toProduct(request);
+//        product.setDefaultVariant(product.getVariants().get(request.getDefaultVariantIndex()));
+//        product.getVariants().forEach(v -> v.setProduct(product));
+//        // product
+//        Product savedProduct = productRepository.save(product);
+//
+//        // publish upload image event
+//        if (files != null && !files.isEmpty()) {
+//            var variants = savedProduct.getVariants();
+//            @SuppressWarnings("unchecked")
+//            Map<String, Object>[] propertiesMap = new HashMap[variants.size()];
+//
+//            // set props for each variant
+//            for (int i = 0; i < variants.size(); i++) {
+//                var images = request.getImageMap().get(i);
+//
+//                // set props for each file
+//                for (int j = 0; j < images.size(); j++) {
+//                    var properties = propertiesMap[images.get(j)];
+//                    if(properties == null)
+//                         properties = propertiesMap[images.get(j)] = new HashMap<>();
+//
+//                    properties.put(VARIANT_ID_PROP,  variants.get(i).getId());
+//                    if(j == 0) properties.put(KEY_IMAGE_PROP, true);
+//                }
+//            }
+//
+//            ImageUploadEvent event = new ImageUploadEvent();
+//            event.setPropertiesMap(propertiesMap);
+//            event.setFiles(MediaConverter.convertToBase64(files));
+//            event.setFolder("products/" + savedProduct.getId());
+//
+//            kafkaTemplate.send(ImageTopics.IMAGE_UPLOAD, event);
+//        }
+//
+//        return productMapper.toProductResponse(savedProduct);
+//    }
+//
+//    @Transactional
+//    @KafkaListener(topics = ImageTopics.IMAGE_UPLOADED)
+//    public void handleImageUploaded(ImageUploadedEvent event) {
+//        Object v = event.getProperty(VARIANT_ID_PROP);
+//        Long id = v instanceof Integer ? ((Integer) v).longValue() : (Long) v;
+//
+//        ProductVariant variant = productVariantRepository.findById(id)
+//                .orElseThrow(() -> new ProductNotFoundException(id));
+//
+//
+//        ProductImage image = new ProductImage();
+//        image.setImageUrl(event.getImageUrl());
+//        image.setPublicId(event.getPublicId());
+//        image.setVariant(variant);
+//
+//        variant.getImages().add(image);
+//
+//        if(event.getProperty(KEY_IMAGE_PROP).equals(true)) {
+//            variant.setKeyImage(image);
+//        }
+//
+//        productVariantRepository.save(variant);
+//    }
     @Transactional
     public ProductResponse createProduct(CreateProductRequest request, List<MultipartFile> files) {
         // product
         Product product = productMapper.toProduct(request);
-
-//        // spec
-//        var productSpec = productSpecMapper.toProductSpec(request.getSpec());
-//        var savedSpec = productSpecRepository.save(productSpec);
-//        product.setSpec(savedSpec);
-//
-//        // discount
-//        var productDiscount = productDiscountMapper.toProductDiscount(request.getDiscount());
-//        var savedDiscount = productDiscountRepository.save(productDiscount);
-//        product.setDiscount(savedDiscount);
-
+        product.setDefaultVariant(product.getVariants().get(request.getDefaultVariantIndex()));
+        product.getVariants().forEach(v -> v.setProduct(product));
         // product
         Product savedProduct = productRepository.save(product);
 
+        System.out.println(files.size());
+
         // publish upload image event
         if (files != null && !files.isEmpty()) {
+            var variants = savedProduct.getVariants();
+            @SuppressWarnings("unchecked")
+            Map<String, Object>[] propertiesMap = new HashMap[files.size()];
+
+            // set props for each variant
+            for (int i = 0; i < variants.size(); i++) {
+                var images = request.getImageMap().get(i);
+
+                // set props for each file
+                for (int j = 0; j < images.size(); j++) {
+                    var properties = propertiesMap[images.get(j)];
+                    if(properties == null)
+                        properties = propertiesMap[images.get(j)] = new HashMap<>();
+
+                    properties.put(VARIANT_ID_PROP,  variants.get(i).getId());
+                    if(j == 0) properties.put(KEY_IMAGE_PROP, true);
+                }
+            }
+
             ImageUploadEvent event = new ImageUploadEvent();
-            event.setProductId(savedProduct.getId());
+            event.setPropertiesMap(propertiesMap);
             event.setFiles(MediaConverter.convertToBase64(files));
             event.setFolder("products/" + savedProduct.getId());
 
-            kafkaTemplate.send(ImageTopics.IMAGE_UPLOAD, event);
+            MultipleImageResponse response = cloudMediaServiceClient.uploadImages(event);
+            for (ImageUploadedEvent uploadedEvent : response.getUploadedEvents()) {
+                handleImageUploaded(uploadedEvent);
+            }
         }
 
         return productMapper.toProductResponse(savedProduct);
+    }
+
+    @Transactional
+    public void handleImageUploaded(ImageUploadedEvent event) {
+        Object v = event.getProperty(VARIANT_ID_PROP);
+        Long id = v instanceof Integer ? ((Integer) v).longValue() : (Long) v;
+
+        ProductVariant variant = productVariantRepository.findById(id)
+                .orElseThrow(() -> new ProductNotFoundException(id));
+
+
+        ProductImage image = new ProductImage();
+        image.setImageUrl(event.getImageUrl());
+        image.setPublicId(event.getPublicId());
+        image.setVariant(variant);
+
+        variant.getImages().add(image);
+
+        if(event.getProperty(KEY_IMAGE_PROP) != null && event.getProperty(KEY_IMAGE_PROP).equals(true)) {
+            variant.setKeyImage(image);
+        }
+
+        productVariantRepository.save(variant);
     }
 
     public ProductResponse updateProduct(Long id, UpdateProductRequest updateRequest) {
@@ -90,7 +199,6 @@ public class ProductService {
     {
         var product = getProduct(id);
         var response =  productMapper.toProductResponse(product);
-        response.setImageUrl(product.getMainImageUrl());
         return response;
     }
 
@@ -99,7 +207,7 @@ public class ProductService {
     {
         var product = getProduct(id);
         var response =  productMapper.toProductPreviewResponse(product);
-        response.setImageUrl(product.getMainImageUrl());
+        response.setImageUrl(product.getMainImageUrlDefault());
         return response;
     }
 
@@ -108,29 +216,42 @@ public class ProductService {
         var product = getProduct(id);
         var response =  productMapper.toProductDetailResponse(product);
         response.setMainImageUrl(
-                product.getMainImageUrl()
+                product.getMainImageUrlDefault()
         );
 
         response.setOtherImageUrls(
-                product.getOtherImageUrls()
+                product.getOtherImageUrlsDefault()
         );
         return response;
     }
 
+    @Transactional()
     public Page<AdminProductResponse> getProductsForAdmin(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
 
         Page<Product> pageData = productRepository.findAll(pageable);
 
         return pageData.map(productMapper::toAdminProductResponse);
     }
 
+    @Transactional()
     public AdminProductDetailResponse getProductDetailForAdmin(Long productId) {
-        return productMapper.toAdminProductDetailResponse(getProduct(productId));
+        var product = getProduct(productId);
+        var response =  productMapper.toAdminProductDetailResponse(product);
+        response.setDefaultVariantId(product.getDefaultVariant().getId());
+        return response;
     }
 
     // endregion
 
+
+    // region USER SERVICES
+    public Page<ProductResponse> getAllProducts(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return productRepository.findAll(pageable)
+                .map(productMapper::toProductResponse);
+    }
+    // endregion
 
     public ProductCartResponse getProductCartResponse(Long productId) {
         var product = getProduct(productId);
@@ -165,23 +286,12 @@ public class ProductService {
         productRepository.save(product);
 
         // send delete events
-        for(ProductImage image: product.getImages())
-        {
-            ImageDeleteEvent event = new ImageDeleteEvent();
-            event.setPublicId(image.getPublicId());
-
-            kafkaTemplate.send(ImageTopics.IMAGE_UPLOAD, event);
-        }
-    }
-
-    @Transactional
-    @KafkaListener(topics = ImageTopics.IMAGE_UPLOADED)
-    public void handleImageUploaded(ImageUploadedEvent event) {
-        Product product = productRepository.findById(event.getProductId())
-                .orElseThrow(() -> new ProductNotFoundException(event.getProductId()));
-        product.getImages().add(productMapper.toProductImage(event));
-        productRepository.save(product);
-
-        System.out.println("Image saved: " + event.getPublicId());
+//        for(ProductImage image: product.getImages())
+//        {
+//            ImageDeleteEvent event = new ImageDeleteEvent();
+//            event.setPublicId(image.getPublicId());
+//
+//            kafkaTemplate.send(ImageTopics.IMAGE_UPLOAD, event);
+//        }
     }
 }

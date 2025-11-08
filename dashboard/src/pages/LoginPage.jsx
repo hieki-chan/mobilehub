@@ -12,16 +12,21 @@ const LoginPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const loggedIn = localStorage.getItem("isLoggedIn") === "true";
+    const token = localStorage.getItem("token");
     const role = localStorage.getItem("role");
-    if (loggedIn && role === "ADMIN") navigate("/");
+    const loggedIn = localStorage.getItem("isLoggedIn") === "true";
 
-    const savedEmail = localStorage.getItem("rememberedEmail");
+    if (token && loggedIn && role === "ADMIN") {
+      navigate("/", { replace: true });
+      return;
+    }
+
+    const savedEmail = localStorage.getItem("email");
     if (savedEmail) {
       setEmail(savedEmail);
       setRemember(true);
     }
-  }, [navigate]);
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -31,8 +36,8 @@ const LoginPage = () => {
     try {
       const data = await login(email, password);
 
-      if (remember) localStorage.setItem("rememberedEmail", email);
-      else localStorage.removeItem("rememberedEmail");
+      if (remember) localStorage.setItem("email", email);
+      else localStorage.removeItem("email");
 
       navigate("/");
     } catch (err) {
@@ -128,11 +133,10 @@ const LoginPage = () => {
           <button
             type="submit"
             disabled={loading}
-            className={`w-full py-2 rounded-lg text-white font-medium transition-all duration-200 shadow-md flex items-center justify-center ${
-              loading
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-gray-900 hover:bg-orange-600 hover:shadow-orange-300/40"
-            }`}
+            className={`w-full py-2 rounded-lg text-white font-medium transition-all duration-200 shadow-md flex items-center justify-center ${loading
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-gray-900 hover:bg-orange-600 hover:shadow-orange-300/40"
+              }`}
           >
             {loading ? (
               <>

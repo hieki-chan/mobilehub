@@ -1,6 +1,7 @@
 package org.mobilehub.product.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -18,12 +19,6 @@ public class CreateProductSpecRequest {
 
     @NotBlank(message = "GPU is required")
     private String gpu;
-
-    @NotBlank(message = "RAM is required")
-    private String ram;
-
-    @NotBlank(message = "Storage capacity is required")
-    private String storage_cap;
 
     @NotBlank(message = "Battery capacity is required")
     private String battery_cap;
@@ -49,6 +44,6 @@ public class CreateProductSpecRequest {
     @NotBlank(message = "Brand is required")
     private String brand;
 
-    @NotBlank(message = "Release date is required")
+    @NotNull(message = "Release date is required")
     private LocalDateTime release_date;
 }

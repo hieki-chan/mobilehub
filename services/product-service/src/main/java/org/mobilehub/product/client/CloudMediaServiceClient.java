@@ -1,9 +1,12 @@
 package org.mobilehub.product.client;
 
 import org.mobilehub.product.config.FeignMultipartConfig;
+import org.mobilehub.shared.contracts.media.ImageUploadEvent;
+import org.mobilehub.shared.contracts.media.MultipleImageResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -14,11 +17,7 @@ import java.util.List;
         url = "${cloud-media.service.url}",
         configuration = FeignMultipartConfig.class
 )
-@Deprecated()   // not used anymore, use kafka instead
 public interface CloudMediaServiceClient {
-    @PostMapping(value = "/api/media/upload-multiple", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    List<Object> uploadMultipleImages(
-            @RequestPart("files") List<MultipartFile> files,
-            @RequestPart(value = "folder", required = false) String folder
-    );
+    @PostMapping(value = "/media/upload-multiple")
+    MultipleImageResponse uploadImages(@RequestBody ImageUploadEvent event);
 }

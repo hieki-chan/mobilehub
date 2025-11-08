@@ -43,10 +43,6 @@ public interface ProductMapper {
         return discount != null ? discount.getValueInPercent() : 0;
     }
 
-    // EVENT MAPPING
-    @Mapping(target = "product", source = "productId")
-    ProductImage toProductImage(ImageUploadedEvent event);
-
     default Product mapProduct(Long productId) {
         if (productId == null) return null;
         Product product = new Product();

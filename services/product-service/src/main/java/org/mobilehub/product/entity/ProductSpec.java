@@ -30,12 +30,6 @@ public class ProductSpec {
     private String gpu;
 
     @Column(nullable = false)
-    private String ram;
-
-    @Column(nullable = false)
-    private String storage_cap;
-
-    @Column(nullable = false)
     private String battery_cap;
 
     @Column(nullable = false)

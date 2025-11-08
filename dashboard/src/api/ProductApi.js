@@ -1,37 +1,72 @@
 import api from "./api";
 
-const API_BASE_URL_ADMIN = "admin/products"; 
+const API_BASE_URL_ADMIN = "admin/products";
 
-const formatDateTime = (dateStr) => {
-  if (!dateStr) return null;
-  return dateStr.includes("T") ? dateStr : `${dateStr}T00:00:00`;
+const normalizeDateTime = (dt) => {
+  if (!dt) return null;
+  if (dt instanceof Date) return dt.toISOString();
+  const s = String(dt);
+  return s.includes("T") ? s : `${s}T00:00:00`;
 };
+
+const toNumberOrZero = (v) =>
+  v === "" || v == null || Number.isNaN(Number(v)) ? 0 : Number(v);
+
+const sanitizeVariants = (variants = []) =>
+  variants.map((v) => ({
+    color_label: v.color_label || "",
+    color_hex: v.color_hex || "#000000",
+    storage_cap: toNumberOrZero(v.storage_cap),
+    ram: toNumberOrZero(v.ram),
+    price: toNumberOrZero(v.price),
+  }));
 
 export const createAdminProduct = async (productData) => {
   const formData = new FormData();
+  const allFiles = [];
+  const imageMap = [];
+
+  (productData.variants || []).forEach((v) => {
+    const vf = Array.isArray(v.images) ? v.images.filter((x) => x instanceof File) : [];
+    const start = allFiles.length;
+    const idxs = vf.map((_, j) => start + j);
+    allFiles.push(...vf);
+    imageMap.push(idxs);
+  });
+
+  const variants = sanitizeVariants(productData.variants || []);
+
+  const defaultVariantIndex = Number.isInteger(productData.defaultVariantIndex)
+    ? Math.min(Math.max(productData.defaultVariantIndex, 0), Math.max(variants.length - 1, 0))
+    : 0;
 
   const request = {
     name: productData.name || "",
     description: productData.description || "",
-    price: Number(productData.price) || 0,
+    status: productData.status || "ACTIVE",
     discount: {
-      ...productData.discount,
-      startDate: formatDateTime(productData.discount?.startDate),
-      endDate: formatDateTime(productData.discount?.endDate),
-      valueInPercent: Number(productData.discount?.valueInPercent) || 0,
+      valueInPercent: toNumberOrZero(productData.discount?.valueInPercent),
+      startDate: normalizeDateTime(productData.discount?.startDate),
+      endDate: normalizeDateTime(productData.discount?.endDate),
     },
     spec: {
       ...productData.spec,
-      release_date: formatDateTime(productData.spec?.release_date),
+      release_date: normalizeDateTime(productData.spec?.release_date),
     },
+    variants,
+    defaultVariantIndex,
+    imageMap,
   };
 
-  formData.append("request", new Blob([JSON.stringify(request)], { type: "application/json" }));
-  if (productData.images?.length > 0) {
-    for (const file of productData.images) formData.append("files", file);
-  }
+  console.log(request);
 
-  const res = await api.post(API_BASE_URL_ADMIN, formData);
+  formData.append("request", new Blob([JSON.stringify(request)], { type: "application/json" }));
+  allFiles.forEach((f) => formData.append("files", f));
+  if (allFiles.length === 0) formData.append("files", new Blob([]));
+
+  console.log(allFiles.length);
+
+  const res = await api.post(API_BASE_URL_ADMIN, formData, { headers: { "Content-Type": "multipart/form-data" } });
   return res.data;
 };
 
@@ -48,15 +83,14 @@ export const updateAdminProduct = async (productId, productData) => {
     discount: {
       ...productData.discount,
       valueInPercent: Number(productData.discount?.valueInPercent) || 0,
-      startDate: formatDateTime(productData.discount?.startDate),
-      endDate: formatDateTime(productData.discount?.endDate),
+      startDate: normalizeDateTime(productData.discount?.startDate),
+      endDate: normalizeDateTime(productData.discount?.endDate),
     },
     spec: {
       ...productData.spec,
-      release_date: formatDateTime(productData.spec?.release_date),
+      release_date: normalizeDateTime(productData.spec?.release_date),
     },
   };
-
   const res = await api.put(`${API_BASE_URL_ADMIN}/${productId}`, request);
   return res.data;
 };

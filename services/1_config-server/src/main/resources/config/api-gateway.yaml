@@ -87,6 +87,14 @@ spring:
             - StripPrefix=2
             - PrefixPath=/api
 
+        - id: rating_service
+          uri: http://localhost:8091
+          predicates:
+            - Path=${app.api-prefix}/ratings/**
+          filters:
+            - StripPrefix=2
+            - PrefixPath=/api
+
         # ========== CLOUD MEDIA ==========
         - id: cloud_media_service
           uri: http://localhost:8090
@@ -94,7 +102,6 @@ spring:
             - Path=${app.api-prefix}/media/**
           filters:
             - StripPrefix=2
-            - PrefixPath=/api
 
 management:
   endpoints:

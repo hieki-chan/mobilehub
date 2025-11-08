@@ -17,17 +17,37 @@ const ProductTableView = ({ products = [], onDelete, onEdit, onView }) => {
         { key: "id", label: "Mã" },
         {
           key: "name",
-          label: "Tên sản phẩm",
+          label: "Sản phẩm",
           icon: Package,
           render: (p) => (
             <div className="flex items-center gap-3">
               <img
                 src={p.imageUrl}
                 alt={p.name}
-                className="w-10 h-10 rounded-md object-cover"
+                className="w-10 h-10 rounded-md object-cover border"
               />
-              <span className="text-sm font-medium text-gray-900">{p.name}</span>
+
+              <div className="flex flex-col">
+                <span className="text-sm font-medium text-gray-900 flex items-center gap-2">
+                  {p.name}
+                </span>
+
+                <span
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border border-gray-300 bg-gray-50"
+                  title={p.color_label}
+                >
+                  <span
+                    className="inline-block w-3 h-3 rounded-full border"
+                    style={{ backgroundColor: p.color_hex || "#ccc" }}
+                  />
+                  <span className="text-gray-700">
+                    {p.color_label}
+                  </span>
+                </span>
+
+              </div>
             </div>
+
           ),
         },
         { key: "category", label: "Danh mục", icon: Layers },
@@ -41,8 +61,8 @@ const ProductTableView = ({ products = [], onDelete, onEdit, onView }) => {
             </span>
           ),
         },
-        { key: "stock", label: "Kho", icon: Warehouse },
         { key: "sales", label: "KM (%)", icon: Percent },
+        { key: "stock", label: "Kho", icon: Warehouse },
 
         {
           key: "rating",
@@ -71,16 +91,14 @@ const ProductTableView = ({ products = [], onDelete, onEdit, onView }) => {
           label: "Trạng thái",
           render: (p) => (
             <span
-              className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium ${
-                p.status === "ACTIVE"
-                  ? "bg-green-100 text-green-700"
-                  : "bg-gray-100 text-gray-600"
-              }`}
+              className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium ${p.status === "ACTIVE"
+                ? "bg-green-100 text-green-700"
+                : "bg-gray-100 text-gray-600"
+                }`}
             >
               <div
-                className={`w-1.5 h-1.5 rounded-full ${
-                  p.status === "ACTIVE" ? "bg-green-500" : "bg-gray-400"
-                }`}
+                className={`w-1.5 h-1.5 rounded-full ${p.status === "ACTIVE" ? "bg-green-500" : "bg-gray-400"
+                  }`}
               ></div>
               {p.status === "ACTIVE" ? "Hoạt động" : "Ngừng"}
             </span>

@@ -3,24 +3,29 @@ import { Navigate, Outlet } from "react-router-dom";
 import { verifyToken, clearAccountData } from "../../api/AuthApi";
 
 const PrivateRoute = () => {
-  const [isValid, setIsValid] = useState(null); // null = đang kiểm tra
-  const token = localStorage.getItem("token");
-  const role = localStorage.getItem("role");
+  const [isValid, setIsValid] = useState(null);
 
   useEffect(() => {
     const checkToken = async () => {
+      const token = localStorage.getItem("token");
+      const role = localStorage.getItem("role");
+
       if (!token || role !== "ADMIN") {
         setIsValid(false);
         return;
       }
 
       const valid = await verifyToken(token);
-      if (!valid) clearAccountData();
-      setIsValid(valid);
+      if (!valid) {
+        clearAccountData();
+        setIsValid(false);
+      } else {
+        setIsValid(true);
+      }
     };
 
     checkToken();
-  }, [token, role]);
+  }, []);
 
   if (isValid === null)
     return (

@@ -20,19 +20,6 @@ const ProductDiscountTab = ({ newProduct, setNewProduct }) => {
         💰 Giá & khuyến mãi
       </h3>
 
-      {/* ===== Hàng 1: Giá gốc ===== */}
-      <div>
-        <Input
-          label="Giá gốc (VNĐ)"
-          keyName="price"
-          type="number"
-          min={0}
-          newProduct={newProduct}
-          setNewProduct={setNewProduct}
-        />
-      </div>
-
-      {/* ===== Hàng 2: Phần trăm giảm & Giá sau khi giảm ===== */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <Input
           label="Phần trăm giảm (%)"
@@ -61,7 +48,6 @@ const ProductDiscountTab = ({ newProduct, setNewProduct }) => {
         </div>
       </div>
 
-      {/* ===== Hàng 3: Ngày bắt đầu & kết thúc ===== */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <Input
           label="Ngày bắt đầu"

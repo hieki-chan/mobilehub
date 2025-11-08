@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import ListPageLayout from "../common_components/ListPageLayout";
+import ListFilterBar from "../common_components/ListFilterBar";
 import UserGridView from "./UserGridView";
 import UserTableView from "./UserTableView";
 import UserFormModal from "./form/UserFormModal";
@@ -20,7 +21,6 @@ const UserListSection = () => {
   const [editingUser, setEditingUser] = useState(null);
 
   const [viewMode, setViewMode] = useState("table");
-  const [showFilters, setShowFilters] = useState(false);
 
   const [selectedRole, setSelectedRole] = useState("ALL");
   const [selectedStatus, setSelectedStatus] = useState("ALL");
@@ -173,7 +173,6 @@ const UserListSection = () => {
       setViewMode={setViewMode}
       onAdd={handleAddUser}
       onExport={exportToCSV}
-      onToggleFilters={() => setShowFilters((prev) => !prev)}
       searchQuery={searchQuery}
       onSearchChange={setSearchQuery}
       searchField={searchField}
@@ -192,36 +191,31 @@ const UserListSection = () => {
       }}
       onRefresh={handleRefresh}
     >
-      {showFilters && (
-        <div className="sticky top-[128px] z-30 p-4 border-b border-gray-200 bg-gray-50 flex flex-wrap items-center gap-3 sm:gap-4">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-            <label className="text-sm font-medium text-gray-700">Vai trò:</label>
-            <select
-              value={selectedRole}
-              onChange={(e) => setSelectedRole(e.target.value)}
-              className="border border-gray-300 rounded-md px-3 py-1.5 text-sm text-gray-800 focus:ring-2 focus:ring-gray-900 focus:outline-none w-full sm:w-auto"
-            >
-              <option value="ALL">Tất cả</option>
-              <option value="ADMIN">ADMIN</option>
-              <option value="EMPLOYEE">EMPLOYEE</option>
-              <option value="USER">USER</option>
-            </select>
-          </div>
-
-          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 sm:ml-6">
-            <label className="text-sm font-medium text-gray-700">Trạng thái:</label>
-            <select
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-              className="border border-gray-300 rounded-md px-3 py-1.5 text-sm text-gray-800 focus:ring-2 focus:ring-gray-900 focus:outline-none w-full sm:w-auto"
-            >
-              <option value="ALL">Tất cả</option>
-              <option value="Active">Active</option>
-              <option value="Inactive">Inactive</option>
-            </select>
-          </div>
-        </div>
-      )}
+      <ListFilterBar
+        filters={[
+          {
+            label: "Vai trò",
+            value: selectedRole,
+            onChange: setSelectedRole,
+            options: [
+              { label: "Tất cả", value: "ALL" },
+              { label: "ADMIN", value: "ADMIN" },
+              { label: "EMPLOYEE", value: "EMPLOYEE" },
+              { label: "USER", value: "USER" },
+            ],
+          },
+          {
+            label: "Trạng thái",
+            value: selectedStatus,
+            onChange: setSelectedStatus,
+            options: [
+              { label: "Tất cả", value: "ALL" },
+              { label: "Active", value: "Active" },
+              { label: "Inactive", value: "Inactive" },
+            ],
+          },
+        ]}
+      />
 
       <div className="relative">
         {viewMode === "table" ? (

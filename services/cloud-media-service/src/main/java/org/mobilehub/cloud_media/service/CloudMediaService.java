@@ -3,17 +3,11 @@ package org.mobilehub.cloud_media.service;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.Transformation;
 import com.cloudinary.utils.ObjectUtils;
-import org.mobilehub.cloud_media.dto.response.DeleteImageResponse;
-import org.mobilehub.cloud_media.dto.response.ImageResponse;
-import org.mobilehub.cloud_media.dto.response.ImageVersions;
-import org.mobilehub.cloud_media.dto.response.UploadResponse;
+import org.mobilehub.cloud_media.dto.response.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.mobilehub.shared.common.converter.MediaConverter;
-import org.mobilehub.shared.contracts.media.ImageDeleteEvent;
-import org.mobilehub.shared.contracts.media.ImageTopics;
-import org.mobilehub.shared.contracts.media.ImageUploadEvent;
-import org.mobilehub.shared.contracts.media.ImageUploadedEvent;
+import org.mobilehub.shared.contracts.media.*;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -37,37 +31,61 @@ public class CloudMediaService {
 
     @KafkaListener(topics = ImageTopics.IMAGE_UPLOAD)
     public void handleUpload(ImageUploadEvent event) {
-        boolean isDefault = true;
-        for (String base64 : event.getFiles()) {
-            try {
-                // Decode Base64 to bytes
-                byte[] bytes = MediaConverter.decodeFromBase64(base64);
-
-                var result = cloudinary.uploader().upload(bytes,
-                        ObjectUtils.asMap(
-                                "folder", event.getFolder(),
-                                "resource_type", "image"
-                        ));
-
-                String publicId = (String) result.get("public_id");
-                String url = (String) result.get("secure_url");
-
-                // uploaded callback
-                ImageUploadedEvent uploadedEvent = new ImageUploadedEvent();
-                uploadedEvent.setProductId(event.getProductId());
-                uploadedEvent.setPublicId(publicId);
-                uploadedEvent.setImageUrl(url);
-                uploadedEvent.setMain(isDefault);
-                isDefault = false;
+        try {
+            for (int i = 0; i < event.getFiles().size(); i++)
+            {
+                String base64 = event.getFiles().get(i);
+                ImageUploadedEvent uploadedEvent = uploadImage(base64, event.getFolder());
+                uploadedEvent.setProperties(event.getPropertiesMap()[i]);
+                uploadedEvent.setProperties(event.getPropertiesMap()[i]);
 
                 kafkaTemplate.send(ImageTopics.IMAGE_UPLOADED, uploadedEvent);
 
-                System.out.println("Uploaded: " + publicId);
-
-            } catch (Exception e) {
-                System.err.println("Upload failed: " + e.getMessage());
+                System.out.println("Uploaded: " + uploadedEvent.getPublicId());
             }
         }
+        catch (Exception e) {
+            System.err.println("Upload failed: " + e.getMessage());
+        }
+    }
+
+    public MultipleImageResponse uploadImages(ImageUploadEvent event) {
+        List<ImageUploadedEvent> uploadedEvents = new ArrayList<>();
+        try {
+            for (int i = 0; i < event.getFiles().size(); i++) {
+                String base64 = event.getFiles().get(i);
+                ImageUploadedEvent uploadedEvent = uploadImage(base64, event.getFolder());
+                uploadedEvent.setProperties(event.getPropertiesMap()[i]);
+                uploadedEvents.add(uploadedEvent);
+
+                System.out.println("Uploaded: " + uploadedEvent.getPublicId());
+            }
+        }
+        catch (Exception e) {
+            System.err.println("Upload failed: " + e.getMessage());
+        }
+
+        return MultipleImageResponse.builder().uploadedEvents(uploadedEvents).build();
+    }
+
+    private ImageUploadedEvent uploadImage(String base64, String folder) throws IOException {
+        // Decode Base64 to bytes
+        byte[] bytes = MediaConverter.decodeFromBase64(base64);
+
+        var result = cloudinary.uploader().upload(bytes,
+                ObjectUtils.asMap(
+                        "folder", folder,
+                        "resource_type", "image"
+                ));
+
+        String publicId = (String) result.get("public_id");
+        String url = (String) result.get("secure_url");
+
+        // uploaded callback
+        ImageUploadedEvent uploadedEvent = new ImageUploadedEvent();
+        uploadedEvent.setPublicId(publicId);
+        uploadedEvent.setImageUrl(url);
+        return uploadedEvent;
     }
 
     @KafkaListener(topics = ImageTopics.IMAGE_DELETE)

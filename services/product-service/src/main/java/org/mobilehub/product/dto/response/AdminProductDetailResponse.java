@@ -4,8 +4,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
+import org.mobilehub.product.entity.ProductStatus;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @Getter
@@ -15,11 +15,13 @@ public class AdminProductDetailResponse {
     Long id;
     String name;
     String description;
-    String mainImageUrl;
-    List<String> otherImageUrls;
+    ProductStatus status;
 
     ProductSpecResponse spec;
-    BigDecimal price;
 
     DiscountResponse discount;
+
+    List<AdminProductVariantResponse> variants;
+
+    Long defaultVariantId;
 }

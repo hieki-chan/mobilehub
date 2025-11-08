@@ -10,9 +10,11 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ProductResponse {
-    Long id;
-    String name;
-
-    Integer discountInPercent;
+public class ProductVariantResponse {
+    String color_label;
+    String color_hex;
+    String storage_cap;
+    String ram;
+    BigDecimal price;
+    String imageUrl;
 }

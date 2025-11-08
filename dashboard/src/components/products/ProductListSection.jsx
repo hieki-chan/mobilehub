@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from "react";
 import ListPageLayout from "../common_components/ListPageLayout";
+import ListFilterBar from "../common_components/ListFilterBar";
 import ProductGridView from "./ProductGridView";
 import ProductTableView from "./ProductTableView";
 import { fetchAdminProducts, deleteAdminProduct } from "../../api/ProductApi";
 import { showPopupConfirm } from "../common_components/PopupConfirm";
 
 const ProductListSection = ({ onAddClick, onEditClick, reloadFlag }) => {
-  // ==== STATE CƠ BẢN ====
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
 
   const [viewMode, setViewMode] = useState("table");
-  const [showFilters, setShowFilters] = useState(false);
 
   // ==== FILTERS ====
   const [selectedStatus, setSelectedStatus] = useState("ALL");
@@ -44,42 +43,49 @@ const ProductListSection = ({ onAddClick, onEditClick, reloadFlag }) => {
     try {
       const data = await fetchAdminProducts(0, 100);
       if (data?.content) {
-        const normalized = data.content.map((item) => ({
-          id: item.id ?? 0,
-          name: item.name ?? "Chưa có tên",
-          category: item.category ?? "Không xác định",
-          price: item.price ?? 0,
-          stock: item.stock ?? 0,
-          sales: item.discountInPercent ?? 0,
-          status: item.status ?? "INACTIVE",
-          imageUrl:
-            item.imageUrl && item.imageUrl.trim() !== ""
-              ? item.imageUrl
-              : "https://via.placeholder.com/100x100?text=No+Image",
-        }));
+        const normalized = data.content.map((item) => {
+          const variant = item.defaultVariant ?? {};
+          return {
+            id: item.id ?? 0,
+            name: item.name ?? "Chưa có tên",
+            status: item.status ?? "INACTIVE",
+            sales: item.discountInPercent ?? 0,
+
+            color_label: variant.color_label ?? "",
+            color_hex: variant.color_hex ?? "",
+            ram: variant.ram,
+            storage_cap: variant.storage_cap,
+            price: Number(variant.price) || 0,
+            imageUrl:
+              variant.imageUrl && variant.imageUrl.trim() !== ""
+                ? variant.imageUrl
+                : "https://via.placeholder.com/100x100?text=No+Image",
+
+            category: "Không xác định",
+            stock: 0,
+          };
+        });
+
         setProducts(normalized);
         setFilteredProducts(normalized);
       }
     } catch (err) {
-      console.error("Lỗi tải sản phẩm:", err);
+      console.error("❌ Lỗi tải sản phẩm:", err);
     }
   };
 
-  // ==== HANDLE FILTER + SEARCH ====
+
   const handleFilter = () => {
     let result = [...products];
 
-    // Lọc theo danh mục (nếu có)
     if (selectedCategory !== "ALL") {
       result = result.filter((p) => p.category === selectedCategory);
     }
 
-    // Lọc theo trạng thái
     if (selectedStatus !== "ALL") {
       result = result.filter((p) => p.status === selectedStatus);
     }
 
-    // Tìm kiếm
     if (searchQuery.trim() !== "") {
       result = result.filter((p) =>
         p[searchField]?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -94,13 +100,11 @@ const ProductListSection = ({ onAddClick, onEditClick, reloadFlag }) => {
     handleFilter();
   }, [searchQuery, searchField, selectedCategory, selectedStatus, products]);
 
-  // ==== PHÂN TRANG ====
   const getPageProducts = () => {
     const start = (currentPage - 1) * itemsPerPage;
     return filteredProducts.slice(start, start + itemsPerPage);
   };
 
-  // ==== XOÁ ====
   const handleDelete = async (id) => {
     const confirmed = await showPopupConfirm(
       "Xác nhận xoá sản phẩm",
@@ -153,7 +157,6 @@ const ProductListSection = ({ onAddClick, onEditClick, reloadFlag }) => {
       setViewMode={setViewMode}
       onAdd={onAddClick}
       onExport={exportToCSV}
-      onToggleFilters={() => setShowFilters((prev) => !prev)}
       searchQuery={searchQuery}
       onSearchChange={setSearchQuery}
       searchField={searchField}
@@ -172,46 +175,33 @@ const ProductListSection = ({ onAddClick, onEditClick, reloadFlag }) => {
       }}
       onRefresh={handleRefresh}
     >
-      {/* ==== BỘ LỌC ==== */}
-      {showFilters && (
-        <div className="sticky top-[128px] z-30 p-4 border-b border-gray-200 bg-gray-50 flex flex-wrap items-center gap-3 sm:gap-4">
-          {/* Danh mục */}
-          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-            <label className="text-sm font-medium text-gray-700">
-              Danh mục:
-            </label>
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="border border-gray-300 rounded-md px-3 py-1.5 text-sm text-gray-800 focus:ring-2 focus:ring-gray-900 focus:outline-none w-full sm:w-auto"
-            >
-              <option value="ALL">Tất cả</option>
-              <option value="Electronics">Electronics</option>
-              <option value="Accessories">Accessories</option>
-              <option value="Fitness">Fitness</option>
-              <option value="Home Usage">Home Usage</option>
-            </select>
-          </div>
+      <ListFilterBar
+        filters={[
+          {
+            label: "Danh mục",
+            value: selectedCategory,
+            onChange: setSelectedCategory,
+            options: [
+              { label: "Tất cả", value: "ALL" },
+              { label: "Electronics", value: "Electronics" },
+              { label: "Accessories", value: "Accessories" },
+              { label: "Fitness", value: "Fitness" },
+              { label: "Home Usage", value: "Home Usage" },
+            ],
+          },
+          {
+            label: "Trạng thái",
+            value: selectedStatus,
+            onChange: setSelectedStatus,
+            options: [
+              { label: "Tất cả", value: "ALL" },
+              { label: "ACTIVE", value: "ACTIVE" },
+              { label: "INACTIVE", value: "INACTIVE" },
+            ],
+          },
+        ]}
+      />
 
-          {/* Trạng thái */}
-          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 sm:ml-6">
-            <label className="text-sm font-medium text-gray-700">
-              Trạng thái:
-            </label>
-            <select
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-              className="border border-gray-300 rounded-md px-3 py-1.5 text-sm text-gray-800 focus:ring-2 focus:ring-gray-900 focus:outline-none w-full sm:w-auto"
-            >
-              <option value="ALL">Tất cả</option>
-              <option value="ACTIVE">ACTIVE</option>
-              <option value="INACTIVE">INACTIVE</option>
-            </select>
-          </div>
-        </div>
-      )}
-
-      {/* ==== DANH SÁCH SẢN PHẨM ==== */}
       {viewMode === "table" ? (
         <ProductTableView
           products={getPageProducts()}

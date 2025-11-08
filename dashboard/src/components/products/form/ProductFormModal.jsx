@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { X } from "lucide-react";
 import ProductTabs from "./ProductTabs";
 import {
   createAdminProduct,
@@ -8,61 +7,70 @@ import {
   updateAdminProduct,
 } from "../../../api/ProductApi";
 
-const ProductFormModal = ({
-  productId, // 🆕 chỉ truyền ID
-  isOpen,
-  onClose,
-  onSubmitSuccess,
-}) => {
+const ProductFormModal = ({ productId, isOpen, onClose, onSubmitSuccess }) => {
   const [newProduct, setNewProduct] = useState({});
   const [loading, setLoading] = useState(false);
 
   const mode = productId ? "edit" : "add";
-  const title =
-    mode === "edit" ? "Chỉnh sửa sản phẩm" : "Thêm sản phẩm mới";
+  const title = mode === "edit" ? "Chỉnh sửa sản phẩm" : "Thêm sản phẩm mới";
 
   useEffect(() => {
-    if (isOpen) document.body.style.overflow = "hidden";
-    else document.body.style.overflow = "auto";
+    document.body.style.overflow = isOpen ? "hidden" : "auto";
     return () => (document.body.style.overflow = "auto");
   }, [isOpen]);
 
   useEffect(() => {
-    if (isOpen && productId) {
-      setLoading(true);
+    if (!isOpen) {
+      setNewProduct({});
+      return;
+    }
 
+    if (productId) {
+      setLoading(true);
       getAdminProductDetail(productId)
         .then((data) => {
-          setNewProduct({
-            ...data,
-            images: [],
-            imagePreviews: data.otherImageUrls || [],
-            mainImage: data.mainImageUrl || (data.otherImageUrls?.[0] ?? null),
+          const variants = data.variants || [];
+          const allUrls = [];
+          const imageMap = [];
+
+          variants.forEach((v) => {
+            const subImages = Array.isArray(v.subImageUrls) ? v.subImageUrls : [];
+            const variantImages = [v.imageUrl, ...subImages].filter(Boolean);
+            const startIdx = allUrls.length;
+            const indexes = Array.from({ length: variantImages.length }, (_, j) => startIdx + j);
+            allUrls.push(...variantImages);
+            imageMap.push(indexes);
           });
 
-          console.log("🟢 Product loaded:", data);
+          const mappedProduct = {
+            ...data,
+            images: [],
+            imagePreviews: allUrls,
+            imageMap,
+            variants: variants.map((v) => ({
+              ...v,
+              images: [],
+              imageUrl: v.imageUrl || null,
+              subImageUrls: Array.isArray(v.subImageUrls) ? v.subImageUrls : [],
+            })),
+          };
+
+          setNewProduct(mappedProduct);
         })
-        .catch((err) => {
-          console.error("❌ Lỗi tải chi tiết sản phẩm:", err);
-          alert("Không thể tải thông tin sản phẩm!");
-        })
+        .catch(() => alert("Không thể tải thông tin sản phẩm!"))
         .finally(() => setLoading(false));
-    } else if (!isOpen) {
+    } else {
       setNewProduct({});
     }
   }, [isOpen, productId]);
 
   const handleSubmit = async () => {
     try {
-      if (mode === "edit") {
-        await updateAdminProduct(productId, newProduct);
-      } else {
-        await createAdminProduct(newProduct);
-      }
+      if (mode === "edit") await updateAdminProduct(productId, newProduct);
+      else await createAdminProduct(newProduct);
       onSubmitSuccess?.();
       onClose();
-    } catch (error) {
-      console.error("🚨 Lưu sản phẩm thất bại:", error);
+    } catch {
       alert("Không thể lưu sản phẩm!");
     }
   };
@@ -77,10 +85,8 @@ const ProductFormModal = ({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
       >
-        {/* ===== HEADER ===== */}
         <div className="flex-shrink-0 flex justify-between items-center px-6 py-4 bg-gray-50 border-b border-gray-200 z-10">
           <h2 className="text-xl font-semibold text-gray-800">🛒 {title}</h2>
-
           <div className="flex items-center gap-3">
             <button
               type="button"
@@ -89,7 +95,6 @@ const ProductFormModal = ({
             >
               Hủy
             </button>
-
             <button
               type="button"
               onClick={handleSubmit}
@@ -100,7 +105,6 @@ const ProductFormModal = ({
           </div>
         </div>
 
-        {/* ===== BODY ===== */}
         <div className="flex-1 overflow-y-auto px-6 py-6 space-y-10 bg-gray-50">
           {loading ? (
             <p className="text-gray-500 italic">Đang tải dữ liệu sản phẩm...</p>
@@ -113,20 +117,8 @@ const ProductFormModal = ({
           )}
         </div>
 
-        {/* ===== FOOTER ===== */}
-        <div className="flex-shrink-0 bg-gray-50 border-t border-gray-200 flex justify-end gap-3 px-6 py-4 z-10">
-          <button
-            onClick={onClose}
-            className="bg-gray-900 hover:bg-gray-800 px-5 py-2 rounded-md text-white transition"
-          >
-            Đóng
-          </button>
-          <button
-            onClick={handleSubmit}
-            className="bg-orange-500 hover:bg-orange-600 px-6 py-2 rounded-md text-white font-medium transition"
-          >
-            {mode === "edit" ? "Cập nhật" : "Lưu"}
-          </button>
+        <div className="flex-shrink-0 bg-gray-50 border-t border-gray-200 px-6 py-4 z-10">
+          <div className="h-6" />
         </div>
       </motion.div>
     </div>

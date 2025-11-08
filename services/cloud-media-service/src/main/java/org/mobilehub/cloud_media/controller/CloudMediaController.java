@@ -5,8 +5,10 @@ import java.util.List;
 
 import org.mobilehub.cloud_media.dto.response.DeleteImageResponse;
 import org.mobilehub.cloud_media.dto.response.ImageResponse;
+import org.mobilehub.shared.contracts.media.MultipleImageResponse;
 import org.mobilehub.cloud_media.dto.response.UploadResponse;
 import org.mobilehub.cloud_media.service.CloudMediaService;
+import org.mobilehub.shared.contracts.media.ImageUploadEvent;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -17,12 +19,18 @@ import org.springframework.web.multipart.MultipartFile;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/media")
+@RequestMapping("/media")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://127.0.0.1:5500")
+@SuppressWarnings("unused")
 public class CloudMediaController {
 
     private final CloudMediaService mediaService;
+
+    @PostMapping(value = "/upload-multiple")
+    public ResponseEntity<MultipleImageResponse> uploadImage(@RequestBody ImageUploadEvent event) {
+        var response = mediaService.uploadImages(event);
+        return ResponseEntity.ok(response);
+    }
 
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<UploadResponse> uploadImage(
@@ -32,7 +40,7 @@ public class CloudMediaController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping(value = "/upload-multiple", consumes =  MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/upload-many", consumes =  MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<List<UploadResponse>> uploadMultipleImages(
             @RequestParam("files") List<MultipartFile> files,
             @RequestPart(value = "folder", required = false) String folder) throws IOException {

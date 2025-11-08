@@ -34,48 +34,64 @@ public class Product {
     @JoinColumn(name = "product_spec_id", referencedColumnName = "id", unique = true)
     ProductSpec spec;
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    List<ProductImage> images = new ArrayList<>();
-
-    @Column(name = "price", precision = 10, scale = 2, nullable = false)
-    BigDecimal price;
-
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "product_discount_id", referencedColumnName = "id", unique = true)
     ProductDiscount discount;
 
-    public BigDecimal getDiscountedPrice() {
-        if (discount == null || discount.getValueInPercent() == null) {
-            return price;
-        }
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<ProductVariant> variants = new ArrayList<>();
 
-        BigDecimal discountPercent = BigDecimal.valueOf(discount.getValueInPercent());
-        BigDecimal multiplier = BigDecimal.ONE.subtract(discountPercent.divide(BigDecimal.valueOf(100)));
+    // default
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "default_variant_id", foreignKey = @ForeignKey(name = "fk_product_default_variant"))
+    private ProductVariant defaultVariant;
 
-        return price.multiply(multiplier);
+    public BigDecimal getDiscountedPriceDefault() {
+//        if (discount == null || discount.getValueInPercent() == null) {
+//            return price;
+//        }
+//
+//        BigDecimal discountPercent = BigDecimal.valueOf(discount.getValueInPercent());
+//        BigDecimal multiplier = BigDecimal.ONE.subtract(discountPercent.divide(BigDecimal.valueOf(100)));
+//
+//        return price.multiply(multiplier);
+        return null;
     }
 
-    public String getImageUrl(){
-        return getMainImageUrl();
+    public String getImageUrlDefault(){
+        return getMainImageUrlDefault();
     }
 
-    public String getMainImageUrl() {
-        if (images == null || images.isEmpty()) {
-            return "";
-        }
+    public String getMainImageUrlDefault() {
 
-        return images.stream()
-                .filter(ProductImage::isMain)
-                .map(ProductImage::getImageUrl)
-                .findFirst()
-                .orElse(images.getFirst().getImageUrl());
+        return null;
     }
 
-    public List<String> getOtherImageUrls()
+    public List<String> getOtherImageUrlsDefault()
     {
-        return getImages().stream()
-                .filter(img -> !img.isMain())
-                .map(ProductImage::getImageUrl)
-                .toList();
+//        return getImages().stream()
+//                .filter(img -> !img.isMain())
+//                .map(ProductImage::getImageUrl)
+//                .toList();
+        return null;
+    }
+
+    public ProductVariant resolveVariant(Long variantId) {
+        if (variantId != null) {
+            return getVariants() == null ? null
+                    : getVariants().stream()
+                    .filter(v -> variantId.equals(v.getId()))
+                    .findFirst()
+                    .orElse(null);
+        }
+        if (getDefaultVariant() != null) return getDefaultVariant();
+
+        if (getVariants() != null && !getVariants().isEmpty()) {
+            return getVariants().stream()
+                    .filter(v -> v.getPrice() != null)
+                    .min((a, b) -> a.getPrice().compareTo(b.getPrice()))
+                    .orElse(getVariants().get(0));
+        }
+        return null;
     }
 }

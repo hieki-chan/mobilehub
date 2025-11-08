@@ -1,6 +1,5 @@
 import { X } from "lucide-react"
 import { Input, Textarea } from "../../common_components/FormInput"
-import ProductImageSection from "./ProductImageSection"
 
 const ProductInfoTab = ({ newProduct, setNewProduct }) => {
     const isEditMode = !!newProduct?.id
@@ -32,9 +31,6 @@ const ProductInfoTab = ({ newProduct, setNewProduct }) => {
                 </div>
             </section>
 
-            {/* --- Hình ảnh --- */}
-            <ProductImageSection newProduct={newProduct} setNewProduct={setNewProduct} />
-
             {/* --- Thông số kỹ thuật --- */}
             <section>
                 <h3 className="text-lg font-semibold mb-4 border-b border-gray-700 pb-1">
@@ -45,8 +41,6 @@ const ProductInfoTab = ({ newProduct, setNewProduct }) => {
                     <Input label="Bộ xử lý (CPU)" keyName="spec.cpu" newProduct={newProduct} setNewProduct={setNewProduct} />
                     <Input label="Tốc độ CPU" keyName="spec.cpu_speed" newProduct={newProduct} setNewProduct={setNewProduct} />
                     <Input label="Đồ họa (GPU)" keyName="spec.gpu" newProduct={newProduct} setNewProduct={setNewProduct} />
-                    <Input label="Dung lượng RAM" keyName="spec.ram" newProduct={newProduct} setNewProduct={setNewProduct} />
-                    <Input label="Dung lượng lưu trữ" keyName="spec.storage_cap" newProduct={newProduct} setNewProduct={setNewProduct} />
                 </div>
             </section>
 

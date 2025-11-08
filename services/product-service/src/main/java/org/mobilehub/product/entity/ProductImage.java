@@ -22,13 +22,12 @@ public class ProductImage {
     @Column
     String imageUrl;
 
-    @Column
-    boolean isMain;
-
     @Enumerated(EnumType.STRING)
+    @Column(length = 10)
     private ImageStatus status = ImageStatus.PENDING;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id")
-    private Product product;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "variant_id", nullable = false,
+            foreignKey = @ForeignKey(name = "fk_image_product_variant"))
+    private ProductVariant variant;
 }
