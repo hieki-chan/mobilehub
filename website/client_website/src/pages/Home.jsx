@@ -8,20 +8,25 @@ import "../styles/pages/home.css";
 
 export default function Home() {
   const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
   const [last, setLast] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalProduct, setModalProduct] = useState(null);
 
   const trackRef = useRef(null);
+  const didFetch = useRef(false);
+
+  const itemsPerPage = 10;
   const [current, setCurrent] = useState(0);
   const slidesCount = 3;
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (didFetch.current) return;
+    didFetch.current = true;
     loadProducts();
-  }, []);
+  }, []);;
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -36,9 +41,10 @@ export default function Home() {
   }, [current]);
 
   const loadProducts = async () => {
+    if (loading || last) return;
     try {
       setLoading(true);
-      const data = await fetchProducts(page, 8);
+      const data = await fetchProducts(page, itemsPerPage);
       setProducts((prev) => [...prev, ...data.content]);
       setLast(data.last);
       setPage((prev) => prev + 1);
@@ -163,7 +169,7 @@ export default function Home() {
           aria-label="Danh sách sản phẩm"
         >
           {loading ? (
-            Array.from({ length: 8 }).map((_, i) => (
+            Array.from({ length: itemsPerPage }).map((_, i) => (
               <div className="skeleton-card" key={i} aria-hidden="true">
                 <div className="skel-rect skel-img"></div>
                 <div className="skel-rect skel-line"></div>
@@ -182,12 +188,12 @@ export default function Home() {
           ) : (
             products.map((p, index) => (
               <ProductCard
-                key={p.id }
+                key={p.id}
                 p={{
-                  id: p.id ,
+                  id: p.id,
                   name: p.name,
-                  price: p.price,
-                  imageUrl: p.imageUrl,
+                  price: p.defaultVariant.price,
+                  imageUrl: p.defaultVariant.imageUrl,
                   discountInPercent: p.discountInPercent,
                 }}
                 onQuickView={openQuickView}

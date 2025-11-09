@@ -275,37 +275,37 @@ export const products = [
 ]
 
 
-export function getGroupedSpecs(product) {
-  if (!product) return {}
+export function getGroupedSpecs(spec, variant) {
+  if (!spec) return {}
   
   return {
     "Cấu hình": {
-      "Hệ điều hành": product.os,
-      "Chip xử lý (CPU)": product.cpu,
-      "Tốc độ CPU": product.cpu_speed,
-      "Chip đồ họa (GPU)": product.gpu
+      "Hệ điều hành": spec.os,
+      "Chip xử lý (CPU)": spec.cpu,
+      "Tốc độ CPU": spec.cpu_speed,
+      "Chip đồ họa (GPU)": spec.gpu
     },
     "Bộ nhớ": {
-      "RAM": product.ram,
-      "Dung lượng lưu trữ": product.storage_cap
+      "RAM": variant.ram,
+      "Dung lượng lưu trữ": variant.storage_cap
     },
     "Camera": {
-      "Camera sau": product.rear_cam,
-      "Camera trước": product.front_cam
+      "Camera sau": spec.rear_cam,
+      "Camera trước": spec.front_cam
     },
     "Màn hình": {
-      "Kích thước & Trọng lượng": product.size_weight,
-      "Độ phân giải": product.screen_res
+      "Kích thước & Trọng lượng": spec.size_weight,
+      "Độ phân giải": spec.screen_res
     },
     "Pin & Sạc": {
-      "Dung lượng pin": product.battery_cap
+      "Dung lượng pin": spec.battery_cap
     },
     "Thiết kế": {
-      "Chất liệu": product.material
-    },
-    "Kết nối & Tiện ích": {
-      "Tính năng": product.features,
-      "Ngày ra mắt": product.release_date
+      "Chất liệu": spec.material,
+      "Màu sắc": variant.color_label,
+      "Hãng": spec.brand,
+      "Tính năng": spec.features,
+      "Ngày ra mắt": spec.release_date
     }
   }
 }

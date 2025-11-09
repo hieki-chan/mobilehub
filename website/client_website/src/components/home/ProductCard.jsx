@@ -38,7 +38,7 @@ export default function ProductCard({ p, onQuickView }) {
         <h4 className="product-title">{p.name}</h4>
 
         <div className="product-sub">
-          <span>RAM 16 GB</span> · <span>SSD 512 GB</span>
+          <span>RAM {p.defaultVariant?.ram || 0} GB</span> · <span>SSD {p.defaultVariant?.storage_cap || 0} GB</span> 
         </div>
 
         <div className="price-row">

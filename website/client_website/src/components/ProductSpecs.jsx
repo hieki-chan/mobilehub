@@ -1,4 +1,3 @@
-// src/components/ProductSpecs.jsx
 import React, { useState } from 'react'
 
 export default function ProductSpecs({ specs = {} }) {

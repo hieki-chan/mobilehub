@@ -6,6 +6,7 @@ import useCart from '../hooks/useCart'
 import { products as mockProducts } from '../data/products'
 import { formatPrice } from '../utils/formatPrice'
 import '../styles/pages/profile.css'
+import { logout } from '../api/AuthApi'
 
 // --- Component con: Hiển thị & Sửa thông tin User ---
 const UserInfo = ({ user, onUpdateUser }) => {
@@ -428,8 +429,7 @@ export default function Profile() {
 
   // 3. Xử lý Logout
   const handleLogout = () => {
-    localStorage.removeItem('user')
-    localStorage.removeItem('token')
+    logout();
     clear()
     window.dispatchEvent(new Event('user-changed'))
     navigate('/', { replace: true })

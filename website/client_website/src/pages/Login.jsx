@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import GoogleLogin from "../components/GoogleLogin";
 import "../styles/pages/login.css";
+import useLogin from "../hooks/useLogin";
 
 export async function mockSignIn({ email, password }) {
   return new Promise((resolve, reject) => {
@@ -31,29 +32,26 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(true);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const { handleLogin, loading, error } = useLogin();
 
   const onLoginSuccess = ({ user, token }) => {
-    localStorage.setItem("user", JSON.stringify(user));
-    if (remember) localStorage.setItem("token", token);
-    navigate("/");
+    //if (remember) localStorage.setItem("token", token);
+    //navigate("/");
     window.dispatchEvent(new Event("user-changed"));
   };
 
   const submitEmail = async (e) => {
     e.preventDefault();
-    setError("");
-    setLoading(true);
-    try {
-      const res = await mockSignIn({ email: email.trim(), password });
-      onLoginSuccess(res);
-    } catch (err) {
-      setError(err.message || "Đăng nhập thất bại");
-    } finally {
-      setLoading(false);
-    }
+    handleLogin({ email: email.trim(), password, remember });
   };
+
+  useEffect(() => {
+    const savedEmail = localStorage.getItem("email");
+    if (savedEmail) {
+      setEmail(savedEmail);
+      setRemember(true);
+    }
+  }, []);
 
   return (
     <main className="login-page">

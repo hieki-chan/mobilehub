@@ -7,7 +7,7 @@ export const login = async (email, password) => {
     const res = await api.post(`${API_BASE_URL}/authenticate`, { email, password });
     const data = res.data;
 
-    if (!data?.user || data.user.role == "ADMIN") {
+    if (!data?.user || data.user.role !== "USER") {
       throw new Error("Tài khoản này không có quyền đăng nhập!");
     }
 
