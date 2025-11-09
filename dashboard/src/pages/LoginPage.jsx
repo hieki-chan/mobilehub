@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { login } from "../api/AuthApi";
+import { useLogin } from "../hooks/useLogin";
 import { Mail, Lock, Loader2 } from "lucide-react";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const { handleLogin, loading, error } = useLogin();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -30,29 +29,7 @@ const LoginPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-    setLoading(true);
-
-    try {
-      const data = await login(email, password);
-
-      if (remember) localStorage.setItem("email", email);
-      else localStorage.removeItem("email");
-
-      navigate("/");
-    } catch (err) {
-      if (!err.response)
-        setError("Không thể kết nối đến máy chủ. Kiểm tra mạng hoặc thử lại sau.");
-      else if (err.response.status === 401)
-        setError("Sai email hoặc mật khẩu!");
-      else if (err.response.status === 403)
-        setError("Tài khoản này không có quyền truy cập.");
-      else if (err.response.status >= 500)
-        setError("Lỗi máy chủ. Vui lòng thử lại sau.");
-      else setError("Đăng nhập thất bại. Vui lòng thử lại.");
-    } finally {
-      setLoading(false);
-    }
+    handleLogin({ email: email.trim(), password, remember });
   };
 
   return (

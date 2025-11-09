@@ -5,7 +5,6 @@ const ProductInfoTab = ({ newProduct, setNewProduct }) => {
     const isEditMode = !!newProduct?.id
     return (
         <div className="space-y-10">
-            {/* --- Thông tin cơ bản --- */}
             <section>
                 <h3 className="text-lg font-semibold mb-4 border-b border-gray-700 pb-1">
                     📄 Thông tin sản phẩm
@@ -31,7 +30,6 @@ const ProductInfoTab = ({ newProduct, setNewProduct }) => {
                 </div>
             </section>
 
-            {/* --- Thông số kỹ thuật --- */}
             <section>
                 <h3 className="text-lg font-semibold mb-4 border-b border-gray-700 pb-1">
                     ⚙️ Thông số kỹ thuật
@@ -44,7 +42,6 @@ const ProductInfoTab = ({ newProduct, setNewProduct }) => {
                 </div>
             </section>
 
-            {/* --- Camera & hiển thị --- */}
             <section>
                 <h3 className="text-lg font-semibold mb-4 border-b border-gray-700 pb-1">
                     📷 Camera & Hiển thị
@@ -57,7 +54,6 @@ const ProductInfoTab = ({ newProduct, setNewProduct }) => {
                 </div>
             </section>
 
-            {/* --- Thông số vật lý --- */}
             <section>
                 <h3 className="text-lg font-semibold mb-4 border-b border-gray-700 pb-1">
                     📱 Thông số vật lý
