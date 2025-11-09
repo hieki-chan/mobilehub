@@ -394,20 +394,6 @@ export default function Checkout() {
                   <div className="radio-desc">Chuyển khoản qua ngân hàng</div>
                 </div>
               </label>
-
-              <label className="radio-option">
-                <input
-                  type="radio"
-                  name="paymentMethod"
-                  value="momo"
-                  checked={formData.paymentMethod === 'momo'}
-                  onChange={handleChange}
-                />
-                <div className="radio-content">
-                  <div className="radio-title">Ví MoMo</div>
-                  <div className="radio-desc">Thanh toán qua ví điện tử MoMo</div>
-                </div>
-              </label>
             </div>
           </form>
         </div>

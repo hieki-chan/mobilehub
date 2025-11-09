@@ -95,7 +95,7 @@ export default function Home() {
             <div
               className="slide"
               style={{
-                backgroundImage: "linear-gradient(135deg, #06b6d4, #0ea5e9)",
+                backgroundImage: "url('http://localhost:5173/carousel1.jpg')",
               }}
             >
               <div className="slide-content">
@@ -108,11 +108,11 @@ export default function Home() {
             <div
               className="slide"
               style={{
-                backgroundImage: "linear-gradient(135deg, #06b6d4, #0891b2)",
+                backgroundImage: "url('http://localhost:5173/carousel2.jpg')",
               }}
             >
               <div className="slide-content">
-                <h2>Vphone Pro Series</h2>
+                <h2>Iphone 17 series</h2>
                 <p className="muted">
                   Hiệu năng mạnh — Camera chuyên nghiệp.
                 </p>
@@ -121,8 +121,9 @@ export default function Home() {
             <div
               className="slide"
               style={{
-                backgroundImage: "linear-gradient(135deg, #0ea5e9, #06b6d4)",
+                backgroundImage: "url('http://localhost:5173/carousel3.jpg')",
               }}
+              
             >
               <div className="slide-content">
                 <h2>Flash Sale — Số lượng có hạn</h2>
