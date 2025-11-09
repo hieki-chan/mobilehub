@@ -1,4 +1,4 @@
-package org.mobilehub.cart_service.dto;
+package org.mobilehub.cart_service.dto.response;
 
 
 import java.math.BigDecimal;
@@ -12,8 +12,12 @@ public class ProductCartResponse {
     String name;
     String material;
     String imageUrl;
-    BigDecimal price;
     Integer discountInPercent;
     BigDecimal discountedPrice;
+
+    public BigDecimal getPrice(Long variantId)
+    {
+        return new BigDecimal(0);
+    }
 }
 

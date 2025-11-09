@@ -48,7 +48,7 @@ public class ProductController {
     }
 
     @GetMapping("/admin/products/{productId}/detail")
-    public ResponseEntity<AdminProductDetailResponse> getProductDetailForAdmin(@PathVariable Long productId)
+    public ResponseEntity<AdminProductDetailsResponse> getProductDetailForAdmin(@PathVariable Long productId)
     {
         return ResponseEntity.ok(productService.getProductDetailForAdmin(productId));
     }
@@ -84,25 +84,34 @@ public class ProductController {
         return ResponseEntity.ok(productService.getProductPreview(productId));
     }
 
-    @GetMapping("/products/{productId}/detail")
-    public ResponseEntity<ProductDetailResponse> getProductDetail(@PathVariable Long productId)
-    {
-        return ResponseEntity.ok(productService.getProductDetail(productId));
-    }
-
-    @GetMapping("/products/{productId}/cart")
-    public ResponseEntity<ProductCartResponse> getProductCart(@PathVariable Long productId) {
-        return ResponseEntity.ok(productService.getProductCartResponse(productId));
-    }
-
     // region Client-side APIs
     @GetMapping("/products")
-    public ResponseEntity<Page<ProductResponse>> getProducts(
+    public ResponseEntity<Page<ProductResponse>> getPagedProducts(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "8") int size
     ) {
-        Page<ProductResponse> products = productService.getAllProducts(page, size);
+        Page<ProductResponse> products = productService.getPagedProducts(page, size);
         return ResponseEntity.ok(products);
+    }
+
+    @GetMapping("/products/{productId}/details")
+    public ResponseEntity<ProductDetailsResponse> getProductDetails(@PathVariable Long productId)
+    {
+        return ResponseEntity.ok(productService.getProductDetails(productId));
+    }
+
+    @GetMapping("/products/cart")
+    public ResponseEntity<List<ProductCartResponse>> getProductCart(@RequestParam List<Long> productIds
+    ) {
+        return ResponseEntity.ok(productService.getProductCart(productIds));
+    }
+
+    @GetMapping("/products/{productId}/validate")
+    public ResponseEntity<Boolean> checkValidVariant(
+            @PathVariable Long productId,
+            @RequestParam Long variantId
+    ) {
+        return ResponseEntity.ok(productService.isProductVariantValid(productId, variantId));
     }
 
     @GetMapping("/products/discounted")

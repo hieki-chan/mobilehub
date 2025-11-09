@@ -3,36 +3,35 @@ package org.mobilehub.cart_service.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.mobilehub.cart_service.dto.CartAddRequest;
-import org.mobilehub.cart_service.dto.CartDTO;
-import org.mobilehub.cart_service.dto.CartItemDTO;
-import org.mobilehub.cart_service.dto.CartUpdateItemRequest;
+import org.mobilehub.cart_service.dto.request.CartAddRequest;
+import org.mobilehub.cart_service.dto.response.CartResponseDTO;
+import org.mobilehub.cart_service.dto.response.CartItemResponseDTO;
+import org.mobilehub.cart_service.dto.request.CartUpdateItemRequest;
 import org.mobilehub.cart_service.service.CartService;
-import org.mobilehub.shared.common.dto.ApiResponse; // ✅ dùng chung response format
+import org.mobilehub.shared.common.dto.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
-
 @Slf4j
 @RestController
-@RequestMapping("/api/cart")
+@RequestMapping("/carts")
 @RequiredArgsConstructor
 @Validated
+@SuppressWarnings("unused")
 public class CartController {
 
     private final CartService cartService;
 
     /**
-     * ✅ Lấy giỏ hàng của user
+     * Lấy giỏ hàng của user
      */
-    @GetMapping
-    public ResponseEntity<ApiResponse<CartDTO>> getCart(@RequestParam Long userId) {
-        CartDTO cart = cartService.getCart(userId);
+    @GetMapping("/{userId}")
+    public ResponseEntity<ApiResponse<CartResponseDTO>> getCart(@PathVariable Long userId) {
+        CartResponseDTO cart = cartService.getCart(userId);
         return ResponseEntity.ok(
-                ApiResponse.<CartDTO>builder()
+                ApiResponse.<CartResponseDTO>builder()
                         .code(1000)
                         .message("Get cart successfully")
                         .result(cart)
@@ -41,17 +40,17 @@ public class CartController {
     }
 
     /**
-     * ✅ Thêm sản phẩm vào giỏ hàng (tự động lấy thông tin từ Product Service)
+     * Thêm sản phẩm vào giỏ hàng (tự động lấy thông tin từ Product Service)
      */
-    @PostMapping("/add")
-    public ResponseEntity<ApiResponse<CartDTO>> addItemToCart(
-            @RequestParam Long userId,
+    @PostMapping("/{userId}/items")
+    public ResponseEntity<ApiResponse<CartResponseDTO>> addItemToCart(
+            @PathVariable Long userId,
             @Valid @RequestBody CartAddRequest request) {
 
-        CartDTO updatedCart = cartService.addItemToCart(userId, request);
+        CartResponseDTO updatedCart = cartService.addItemToCart(userId, request);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(
-                ApiResponse.<CartDTO>builder()
+                ApiResponse.<CartResponseDTO>builder()
                         .code(1000)
                         .message("Item added to cart successfully")
                         .result(updatedCart)
@@ -60,13 +59,15 @@ public class CartController {
     }
 
     /**
-     * ✅ Cập nhật số lượng sản phẩm
+     * Cập nhật số lượng sản phẩm
      */
-    @PutMapping("/update")
-    public ResponseEntity<ApiResponse<CartItemDTO>> updateItem(@Valid @RequestBody CartUpdateItemRequest request) {
-        CartItemDTO updatedItem = cartService.updateItemQuantity(request.getItemId(), request.getQuantity());
+    @PutMapping("/{userId}/update")
+    public ResponseEntity<ApiResponse<CartItemResponseDTO>> updateItem(
+            @PathVariable Long userId,
+            @Valid @RequestBody CartUpdateItemRequest request) {
+        CartItemResponseDTO updatedItem = cartService.updateItemQuantity(request.getItemId(), request.getQuantity());
         return ResponseEntity.ok(
-                ApiResponse.<CartItemDTO>builder()
+                ApiResponse.<CartItemResponseDTO>builder()
                         .code(1000)
                         .message("Item quantity updated successfully")
                         .result(updatedItem)
@@ -75,7 +76,7 @@ public class CartController {
     }
 
     /**
-     * ✅ Xóa 1 sản phẩm khỏi giỏ hàng
+     * Xóa 1 sản phẩm khỏi giỏ hàng
      */
     @DeleteMapping("/item/{itemId}")
     public ResponseEntity<ApiResponse<Void>> removeItem(
@@ -93,7 +94,7 @@ public class CartController {
     }
 
     /**
-     * ✅ Xóa toàn bộ sản phẩm trong giỏ hàng
+     * Xóa toàn bộ sản phẩm trong giỏ hàng
      */
     @DeleteMapping("/clear")
     public ResponseEntity<ApiResponse<Void>> clearCart(@RequestParam Long userId) {
@@ -107,17 +108,17 @@ public class CartController {
     }
 
     /**
-     * ✅ Lấy tổng tiền giỏ hàng
+     * Lấy tổng tiền giỏ hàng
      */
-    @GetMapping("/total")
-    public ResponseEntity<ApiResponse<BigDecimal>> getTotal(@RequestParam Long userId) {
-        BigDecimal total = cartService.getTotal(userId);
-        return ResponseEntity.ok(
-                ApiResponse.<BigDecimal>builder()
-                        .code(1000)
-                        .message("Get total successfully")
-                        .result(total)
-                        .build()
-        );
-    }
+//    @GetMapping("/total")
+//    public ResponseEntity<ApiResponse<BigDecimal>> getTotal(@RequestParam Long userId) {
+//        BigDecimal total = cartService.getTotal(userId);
+//        return ResponseEntity.ok(
+//                ApiResponse.<BigDecimal>builder()
+//                        .code(1000)
+//                        .message("Get total successfully")
+//                        .result(total)
+//                        .build()
+//        );
+//    }
 }

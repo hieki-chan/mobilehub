@@ -16,10 +16,6 @@ public class ProductSpecResponse {
 
     String gpu;
 
-    String ram;
-
-    String storage_cap;
-
     String battery_cap;
 
     String rear_cam;

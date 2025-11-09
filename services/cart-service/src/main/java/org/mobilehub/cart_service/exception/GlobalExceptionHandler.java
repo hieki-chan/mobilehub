@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice(basePackages = "org.mobilehub.cart_service.controller")
 public class GlobalExceptionHandler {
 
-
     @ExceptionHandler(CartNotFoundException.class)
     public ResponseEntity<?> handleCartNotFound(CartNotFoundException ex) {
         ApiResponse<Object> apiResponse = ApiResponse.builder()

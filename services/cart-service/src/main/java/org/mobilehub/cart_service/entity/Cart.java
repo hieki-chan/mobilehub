@@ -25,13 +25,13 @@ public class Cart {
     @Builder.Default
     private List<CartItem> items = new ArrayList<>();
 
-    public BigDecimal getTotalAmount() {
-        if (items == null || items.isEmpty()) {
-            return BigDecimal.ZERO;
-        }
-
-        return items.stream()
-                .map(CartItem::getSubtotal)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
+//    public BigDecimal getTotalAmount() {
+//        if (items == null || items.isEmpty()) {
+//            return BigDecimal.ZERO;
+//        }
+//
+//        return items.stream()
+//                .map(CartItem::getSubtotal)
+//                .reduce(BigDecimal.ZERO, BigDecimal::add);
+//    }
 }

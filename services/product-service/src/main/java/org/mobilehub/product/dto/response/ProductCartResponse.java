@@ -1,6 +1,7 @@
 package org.mobilehub.product.dto.response;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -9,9 +10,7 @@ import lombok.experimental.FieldDefaults;
 @Getter @Setter @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ProductCartResponse {
     String name;
-    String material;
-    String imageUrl;
-    BigDecimal price;
     Integer discountInPercent;
-    BigDecimal discountedPrice;
+
+    List<ProductVariantResponse> variants;
 }

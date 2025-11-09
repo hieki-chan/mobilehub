@@ -2,8 +2,12 @@ package org.mobilehub.cart_service.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.mobilehub.cart_service.client.UserClient;
 import org.mobilehub.cart_service.client.ProductClient;
-import org.mobilehub.cart_service.dto.*;
+import org.mobilehub.cart_service.dto.request.CartAddRequest;
+import org.mobilehub.cart_service.dto.response.CartItemResponseDTO;
+import org.mobilehub.cart_service.dto.response.CartResponseDTO;
+import org.mobilehub.cart_service.dto.response.ProductCartResponse;
 import org.mobilehub.cart_service.entity.Cart;
 import org.mobilehub.cart_service.entity.CartItem;
 import org.mobilehub.cart_service.exception.CartItemNotFoundException;
@@ -15,6 +19,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -27,40 +33,28 @@ public class CartService {
     private final CartItemRepository cartItemRepository;
     private final CartMapper cartMapper;
     private final ProductClient productClient;
+    private final UserClient gatewayClient;
 
 
-    public CartDTO getCart(Long userId) {
-        if (userId == null) {
+    public CartResponseDTO getCart(Long userId) {
+        if (userId == null)
             throw new IllegalArgumentException("User ID must not be null");
-        }
+
+        if(!gatewayClient.exists(userId))
+            throw new CartNotFoundException("cart not found for user with id: " + userId);
 
         Cart cart = cartRepository.findByUserId(userId)
                 .orElseGet(() -> cartRepository.save(Cart.builder().userId(userId).build()));
 
-        CartDTO dto = cartMapper.toCartDTO(cart);
-
-        // ✅ Gắn ProductCartResponse cho từng item
-        dto.getItems().forEach(item -> {
-            ProductCartResponse product = productClient.getProductById(item.getProductId());
-            item.setProduct(product);
-            item.setSubtotal(
-                    product.getDiscountedPrice()
-                            .multiply(BigDecimal.valueOf(item.getQuantity()))
-            );
-        });
-
-        dto.setTotalAmount(cartMapper.calculateTotal(cart));
-        return dto;
+        return getCartResponse(cart.getItems());
     }
 
-
-
-    public CartDTO addItemToCart(Long userId, CartAddRequest request) {
+    public CartResponseDTO addItemToCart(Long userId, CartAddRequest request) {
         Cart cart = cartRepository.findByUserId(userId)
                 .orElseGet(() -> cartRepository.save(Cart.builder().userId(userId).build()));
 
-        ProductCartResponse productInfo = productClient.getProductById(request.getProductId());
-        if (productInfo == null) {
+        boolean isVariantValid = productClient.checkProductVariantValid(request.getProductId(), request.getVariantId());
+        if (!isVariantValid) {
             throw new RuntimeException("Không thể lấy thông tin sản phẩm từ Product Service");
         }
 
@@ -68,22 +62,15 @@ public class CartService {
                 .filter(i -> i.getProductId().equals(request.getProductId()))
                 .findFirst();
 
-        BigDecimal priceToUse = productInfo.getDiscountedPrice() != null
-                ? productInfo.getDiscountedPrice()
-                : productInfo.getPrice();
 
         if (existingOpt.isPresent()) {
             CartItem existing = existingOpt.get();
             existing.setQuantity(existing.getQuantity() + request.getQuantity());
-            existing.setPrice(priceToUse);
             cartItemRepository.save(existing);
         } else {
             CartItem newItem = CartItem.builder()
                     .cart(cart)
                     .productId(request.getProductId())
-                    .productName(productInfo.getName())
-                    .thumbnailUrl(productInfo.getImageUrl())
-                    .price(priceToUse)
                     .quantity(request.getQuantity())
                     .build();
             cartItemRepository.save(newItem);
@@ -91,22 +78,10 @@ public class CartService {
         }
 
         Cart saved = cartRepository.save(cart);
-        CartDTO dto = cartMapper.toCartDTO(saved);
-
-        // ✅ Gắn ProductCartResponse cho từng item
-        dto.getItems().forEach(item -> {
-            ProductCartResponse product = productClient.getProductById(item.getProductId());
-            item.setProduct(product);
-            item.setSubtotal(product.getDiscountedPrice()
-                    .multiply(BigDecimal.valueOf(item.getQuantity())));
-        });
-
-        dto.setTotalAmount(cartMapper.calculateTotal(saved));
-        return dto;
+        return getCartResponse(saved.getItems());
     }
 
-
-    public CartItemDTO updateItemQuantity(Long itemId, int quantity) {
+    public CartItemResponseDTO updateItemQuantity(Long itemId, int quantity) {
         if (quantity <= 0) {
             throw new IllegalArgumentException("Quantity must be greater than zero");
         }
@@ -118,7 +93,6 @@ public class CartService {
         CartItem saved = cartItemRepository.save(item);
         return cartMapper.toCartItemDTO(saved);
     }
-
 
     public void removeItem(Long userId, Long itemId) {
         Cart cart = cartRepository.findByUserId(userId)
@@ -139,9 +113,29 @@ public class CartService {
         cartItemRepository.deleteByCartId(cart.getId());
     }
 
-    public BigDecimal getTotal(Long userId) {
-        Cart cart = cartRepository.findByUserId(userId)
-                .orElseThrow(() -> new CartNotFoundException(userId));
-        return cartMapper.calculateTotal(cart);
+//    public BigDecimal getTotal(Long userId) {
+//        Cart cart = cartRepository.findByUserId(userId)
+//                .orElseThrow(() -> new CartNotFoundException(userId));
+//        return cartMapper.calculateTotal(cart);
+//    }
+
+
+    private CartResponseDTO getCartResponse(List<CartItem> items) {
+        CartResponseDTO response = new CartResponseDTO();
+        var products = productClient.getProductsInCart(
+                items.stream().map(CartItem::getProductId).toList());
+
+        List<CartItemResponseDTO> cartItems = new ArrayList<>();
+        BigDecimal total = BigDecimal.ZERO;
+        for (int i = 0; i < products.size(); i++) {
+            ProductCartResponse productResponse = products.get(i);
+            cartItems.add(cartMapper.toCartItemResponseDTO(productResponse));
+            total = total.add(productResponse.getPrice(items.get(i).getVariantId()));
+        }
+
+        response.setItems(cartItems);
+        response.setTotalPrice(total);
+
+        return response;
     }
 }

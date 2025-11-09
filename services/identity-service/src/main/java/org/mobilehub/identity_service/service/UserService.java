@@ -19,6 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 import java.util.Optional;
@@ -33,6 +34,10 @@ public class UserService {
     UserRepository userRepository;
     UserMapper userMapper;
     PasswordEncoder passwordEncoder;
+
+    public boolean existsById(Long userId) {
+        return userRepository.existsById(userId);
+    }
 
     public Page<AdminUserResponse> getAllUsersPaged(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());

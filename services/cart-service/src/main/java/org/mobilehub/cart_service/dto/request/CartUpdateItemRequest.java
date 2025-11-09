@@ -1,4 +1,4 @@
-package org.mobilehub.cart_service.dto;
+package org.mobilehub.cart_service.dto.request;
 
 import lombok.*;
 

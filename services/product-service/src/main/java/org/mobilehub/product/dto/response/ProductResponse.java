@@ -15,4 +15,6 @@ public class ProductResponse {
     String name;
 
     Integer discountInPercent;
+
+    ProductVariantResponse defaultVariant;
 }

@@ -8,6 +8,7 @@ import org.mobilehub.identity_service.dto.request.LogoutRequest;
 import org.mobilehub.identity_service.dto.request.RegisterUserRequest;
 import org.mobilehub.identity_service.dto.response.LoginResponse;
 import org.mobilehub.identity_service.dto.response.UserResponse;
+import org.mobilehub.identity_service.entity.Role;
 import org.mobilehub.identity_service.entity.User;
 import org.mobilehub.identity_service.exception.UserException;
 import org.mobilehub.identity_service.mapper.UserMapper;
@@ -32,6 +33,7 @@ public class AuthenticationService {
     public UserResponse register(RegisterUserRequest registerUserRequest) {
         User user = userMapper.toUser(registerUserRequest);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setRole(Role.USER);
 
         // check if user exists
         var existingUser = userRepository.findByEmail(registerUserRequest.getEmail());

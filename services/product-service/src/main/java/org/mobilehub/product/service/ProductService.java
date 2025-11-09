@@ -17,19 +17,17 @@ import org.mobilehub.product.dto.request.UpdateProductRequest;
 import org.mobilehub.product.exception.ProductNotFoundException;
 import org.mobilehub.product.mapper.ProductMapper;
 import org.mobilehub.product.repository.ProductRepository;
-import org.mobilehub.shared.contracts.media.ImageTopics;
 import org.mobilehub.shared.contracts.media.ImageUploadEvent;
 import org.mobilehub.shared.contracts.media.ImageUploadedEvent;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,7 +48,7 @@ public class ProductService {
     private final ProductDiscountMapper productDiscountMapper;
 
     private final CloudMediaServiceClient cloudMediaServiceClient;
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    //private final KafkaTemplate<String, Object> kafkaTemplate;
 
     // region ADMIN SERVICES
 //    @Transactional
@@ -197,7 +195,7 @@ public class ProductService {
 
     public ProductResponse getProductResponse(Long id)
     {
-        var product = getProduct(id);
+        var product = getProduct_Internal(id, true);
         var response =  productMapper.toProductResponse(product);
         return response;
     }
@@ -205,27 +203,15 @@ public class ProductService {
     @Transactional(readOnly = true)
     public ProductPreviewResponse getProductPreview(Long id)
     {
-        var product = getProduct(id);
+        var product = getProduct_Internal(id, true);
         var response =  productMapper.toProductPreviewResponse(product);
         response.setImageUrl(product.getMainImageUrlDefault());
         return response;
     }
 
-    public ProductDetailResponse getProductDetail(Long id)
-    {
-        var product = getProduct(id);
-        var response =  productMapper.toProductDetailResponse(product);
-        response.setMainImageUrl(
-                product.getMainImageUrlDefault()
-        );
 
-        response.setOtherImageUrls(
-                product.getOtherImageUrlsDefault()
-        );
-        return response;
-    }
 
-    @Transactional()
+    @Transactional
     public Page<AdminProductResponse> getProductsForAdmin(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
 
@@ -234,10 +220,10 @@ public class ProductService {
         return pageData.map(productMapper::toAdminProductResponse);
     }
 
-    @Transactional()
-    public AdminProductDetailResponse getProductDetailForAdmin(Long productId) {
-        var product = getProduct(productId);
-        var response =  productMapper.toAdminProductDetailResponse(product);
+    @Transactional
+    public AdminProductDetailsResponse getProductDetailForAdmin(Long productId) {
+        var product = getProduct_Internal(productId, false);
+        var response =  productMapper.toAdminProductDetailsResponse(product);
         response.setDefaultVariantId(product.getDefaultVariant().getId());
         return response;
     }
@@ -246,22 +232,58 @@ public class ProductService {
 
 
     // region USER SERVICES
-    public Page<ProductResponse> getAllProducts(int page, int size) {
+    @Transactional
+    public Page<ProductResponse> getPagedProducts(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        return productRepository.findAll(pageable)
+        return productRepository.findByStatus(ProductStatus.ACTIVE, pageable)
                 .map(productMapper::toProductResponse);
     }
-    // endregion
 
-    public ProductCartResponse getProductCartResponse(Long productId) {
-        var product = getProduct(productId);
-        return productMapper.toProductCartResponse(product);
+    @Transactional
+    public ProductDetailsResponse getProductDetails(Long id)
+    {
+        var product = getProduct_Internal(id, true);
+        var response =  productMapper.toProductDetailsResponse(product);
+        response.setDefaultVariantId(product.getDefaultVariant().getId());
+        return response;
     }
 
-    public Product getProduct(Long id)
+    @Transactional
+    public List<ProductCartResponse> getProductCart(List<Long> productIds)
     {
-        return productRepository.findById(id)
+        List<ProductCartResponse> productCartResponses = new ArrayList<>();
+        for (var productId : productIds) {
+            var product = getProduct_Internal(productId, true);
+            var response =  productMapper.toProductCartResponse(product);
+            productCartResponses.add(response);
+        }
+        return productCartResponses;
+    }
+
+    @Transactional
+    public boolean isProductVariantValid(Long productId, Long variantId) {
+        var product = getProduct_Internal(productId, true);
+        return isVariantValid_Internal(product, variantId);
+    }
+
+    // endregion
+
+    private Product getProduct_Internal(Long id, boolean isActiveOnly)
+    {
+        var product = productRepository.findById(id)
                 .orElseThrow(() -> new ProductNotFoundException(id));
+
+        if(isActiveOnly && product != null && product.getStatus() != ProductStatus.ACTIVE)
+            throw new ProductNotFoundException(id);
+
+        return product;
+    }
+
+    private boolean isVariantValid_Internal(Product product, Long variantId)
+    {
+        return product.getVariants()
+                .stream()
+                .anyMatch(v -> v.getId().equals(variantId));
     }
 
     public List<ProductResponse> getDiscountedProducts() {

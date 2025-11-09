@@ -9,8 +9,6 @@ import org.mobilehub.product.dto.request.UpdateProductRequest;
 import org.mobilehub.product.dto.response.*;
 import org.mobilehub.product.entity.Product;
 import org.mobilehub.product.entity.ProductDiscount;
-import org.mobilehub.product.entity.ProductImage;
-import org.mobilehub.shared.contracts.media.ImageUploadedEvent;
 
 @Mapper(componentModel = "spring")
 public interface ProductMapper {
@@ -21,7 +19,7 @@ public interface ProductMapper {
     AdminProductResponse toAdminProductResponse(Product product);
 
     //@Mapping(target = "discountInPercent", source = "discount", qualifiedByName = "mapDiscountToInteger")
-    AdminProductDetailResponse toAdminProductDetailResponse(Product product);
+    AdminProductDetailsResponse toAdminProductDetailsResponse(Product product);
 
     // endregion
     @Mapping(target = "discountInPercent", source = "discount", qualifiedByName = "mapDiscountToInteger")
@@ -30,8 +28,7 @@ public interface ProductMapper {
     @Mapping(target = "discountInPercent", source = "discount", qualifiedByName = "mapDiscountToInteger")
     ProductPreviewResponse toProductPreviewResponse(Product product);
 
-    @Mapping(target = "discountInPercent", source = "discount", qualifiedByName = "mapDiscountToInteger")
-    ProductDetailResponse toProductDetailResponse(Product product);
+    ProductDetailsResponse toProductDetailsResponse(Product product);
 
     @Mapping(target = "discountInPercent", source = "discount", qualifiedByName = "mapDiscountToInteger")
     ProductCartResponse toProductCartResponse(Product product);

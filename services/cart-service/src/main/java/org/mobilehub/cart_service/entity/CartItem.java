@@ -13,27 +13,21 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @Builder
 public class CartItem {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cart_id")
-    private Cart cart;
-
     private Long productId;
-
-    private String productName;
-
-    private String thumbnailUrl;
-
-    private BigDecimal price;
+    private Long variantId;
 
     private int quantity;
 
-    public BigDecimal getSubtotal() {
-        if (price == null) return BigDecimal.ZERO;
-        return price.multiply(BigDecimal.valueOf(quantity));
-    }
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cart_id")
+    private Cart cart;
+//
+//    public BigDecimal getSubtotal() {
+//        if (price == null) return BigDecimal.ZERO;
+//        return price.multiply(BigDecimal.valueOf(quantity));
+//    }
 }

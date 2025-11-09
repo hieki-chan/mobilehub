@@ -4,18 +4,16 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
-import org.mobilehub.product.entity.ProductStatus;
 
 import java.util.List;
 
 @Getter
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class AdminProductDetailResponse {
+public class ProductDetailsResponse {
     Long id;
     String name;
     String description;
-    ProductStatus status;
 
     ProductSpecResponse spec;
 

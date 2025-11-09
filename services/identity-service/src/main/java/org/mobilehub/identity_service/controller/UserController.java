@@ -72,12 +72,19 @@ public class UserController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping
+    @GetMapping("/users")
     public ResponseEntity<List<UserResponse>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
-    @GetMapping("/{userId}")
+
+    @GetMapping("/users/{userId}/exists")
+    public ResponseEntity<Boolean> exists(@PathVariable Long userId) {
+        boolean exists = userService.existsById(userId);
+        return ResponseEntity.ok(exists);
+    }
+
+    @GetMapping("/users/{userId}")
     public ResponseEntity<UserResponse> getUser(@PathVariable("userId") Long userId) {
         var userResponse = userService.getUser(userId);
         return ResponseEntity.ok(userResponse);

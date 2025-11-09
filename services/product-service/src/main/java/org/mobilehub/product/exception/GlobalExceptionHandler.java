@@ -7,10 +7,11 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice(basePackages = "org.mobilehub.product.controller")
+@SuppressWarnings("unused")
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(ProductNotFoundException.class)
-    public ResponseEntity<?> handleUserException(ProductNotFoundException ex) {
+    public ResponseEntity<?> handleProductNotFoundException(ProductNotFoundException ex) {
         ApiResponse<Object> apiResponse = ApiResponse.builder().code(400).message(ex.getMessage()).build();
         return ResponseEntity.badRequest().body(apiResponse);
     }
