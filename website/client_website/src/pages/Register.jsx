@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import PhoneLogin from '../components/PhoneLogin'
 import GoogleLogin from '../components/GoogleLogin'
 import '../styles/pages/login.css'
 
@@ -120,7 +119,7 @@ export default function Register() {
         <div className="divider">Hoặc</div>
 
         <GoogleLogin clientId="REPLACE_WITH_GOOGLE_CLIENT_ID" onSuccess={onLoginSuccess} />
-        <PhoneLogin onSuccess={onLoginSuccess} />
+        
         
         <p className="register">
           Bạn đã có tài khoản? {' '}

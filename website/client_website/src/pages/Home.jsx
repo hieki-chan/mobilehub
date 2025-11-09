@@ -106,7 +106,7 @@ export default function Home() {
               }}
             >
               <div className="slide-content">
-                <h2>Vphone Pro Series</h2>
+                <h2>Iphone 17 series</h2>
                 <p className="muted">
                   Hiệu năng mạnh — Camera chuyên nghiệp.
                 </p>
