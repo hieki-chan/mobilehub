@@ -32,7 +32,7 @@ export default function GoogleLogin() {
           }
         })
         if (googleBtnRef.current) {
-          window.google.accounts.id.renderButton(googleBtnRef.current, { theme: 'outline', size: 'large', width: '220' })
+          window.google.accounts.id.renderButton(googleBtnRef.current, { theme: 'outline', size: 'large', width: '220', locale: 'vi' })
         }
       } catch (e) { console.warn('GSI init error', e) }
     }

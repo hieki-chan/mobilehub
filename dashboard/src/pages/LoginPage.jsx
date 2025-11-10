@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useLogin } from "../hooks/useLogin";
 import { Mail, Lock, Loader2 } from "lucide-react";
+import useLogin from "../hooks/useLogin";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");

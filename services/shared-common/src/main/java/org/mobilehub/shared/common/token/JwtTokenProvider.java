@@ -19,7 +19,7 @@ import java.util.UUID;
 public class JwtTokenProvider implements TokenProvider {
     public static final String SIGNER_KEY = "koNAzoN/cNgpNBC6N7JFzl8Gkycz3ryA39mWjs4q1N7YPw+dB68UcwPQPNhfY3iiIE9aTl9kC5mX0640CmPGFw";
     private static final String ISSUER = "mobilehub-auth.com";
-    private static final long VALID_DURATION = 3600_000; // 1 hour in ms
+    private static final long VALID_DURATION = 3600_000 * 12; // 1 hour in ms
     private static final long REFRESHABLE_DURATION = 36_000_000; // 10 hours in ms
 
 //    @NonFinal

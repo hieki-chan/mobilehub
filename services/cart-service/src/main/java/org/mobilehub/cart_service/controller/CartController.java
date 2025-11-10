@@ -4,9 +4,11 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.mobilehub.cart_service.dto.request.CartAddRequest;
+import org.mobilehub.cart_service.dto.request.UpdateVariantRequest;
 import org.mobilehub.cart_service.dto.response.CartResponseDTO;
-import org.mobilehub.cart_service.dto.response.CartItemResponseDTO;
-import org.mobilehub.cart_service.dto.request.CartUpdateItemRequest;
+import org.mobilehub.cart_service.dto.request.UpdateQuantityRequest;
+import org.mobilehub.cart_service.dto.response.UpdateQuantityResponse;
+import org.mobilehub.cart_service.dto.response.UpdateVariantResponse;
 import org.mobilehub.cart_service.service.CartService;
 import org.mobilehub.shared.common.dto.ApiResponse;
 import org.springframework.http.HttpStatus;
@@ -61,13 +63,29 @@ public class CartController {
     /**
      * Cập nhật số lượng sản phẩm
      */
-    @PutMapping("/{userId}/update")
-    public ResponseEntity<ApiResponse<CartItemResponseDTO>> updateItem(
+    @PutMapping("/{userId}/items/{itemId}/quantity")
+    public ResponseEntity<ApiResponse<UpdateQuantityResponse>> updateItem(
             @PathVariable Long userId,
-            @Valid @RequestBody CartUpdateItemRequest request) {
-        CartItemResponseDTO updatedItem = cartService.updateItemQuantity(request.getItemId(), request.getQuantity());
+            @PathVariable Long itemId,
+            @Valid @RequestBody UpdateQuantityRequest request) {
+        var updatedItem = cartService.updateItemQuantity(userId, itemId, request.getQuantity());
         return ResponseEntity.ok(
-                ApiResponse.<CartItemResponseDTO>builder()
+                ApiResponse.<UpdateQuantityResponse>builder()
+                        .code(1000)
+                        .message("Item quantity updated successfully")
+                        .result(updatedItem)
+                        .build()
+        );
+    }
+
+    @PutMapping("/{userId}/items/{itemId}/variant")
+    public ResponseEntity<ApiResponse<UpdateVariantResponse>> updateVariant(
+            @PathVariable Long userId,
+            @PathVariable Long itemId,
+            @Valid @RequestBody UpdateVariantRequest request) {
+        var updatedItem = cartService.updateItemVariant(userId, itemId, request.getVariantId());
+        return ResponseEntity.ok(
+                ApiResponse.<UpdateVariantResponse>builder()
                         .code(1000)
                         .message("Item quantity updated successfully")
                         .result(updatedItem)
@@ -78,7 +96,7 @@ public class CartController {
     /**
      * Xóa 1 sản phẩm khỏi giỏ hàng
      */
-    @DeleteMapping("/item/{itemId}")
+    @DeleteMapping("/items/{itemId}")
     public ResponseEntity<ApiResponse<Void>> removeItem(
             @RequestParam Long userId,
             @PathVariable Long itemId) {

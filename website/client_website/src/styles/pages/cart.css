@@ -80,6 +80,12 @@
   color: rgb(107 114 128);
 }
 
+.old-price {
+  font-size: 14px;
+  color: #9ca3af; 
+  text-decoration: line-through; 
+}
+
 .cart-item-variant {
   font-size: 13px;
   color: var(--muted);
@@ -184,4 +190,37 @@
     margin-left: 0;
     max-width: 100%;
   }
+}
+
+.cart-item-variants {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.cart-item-variants label {
+  font-weight: 600;
+  font-size: 14px;
+  color: #333;
+}
+
+.variant-select-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.variant-select-wrapper select {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  font-size: 14px;
+}
+
+.color-preview {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
 }

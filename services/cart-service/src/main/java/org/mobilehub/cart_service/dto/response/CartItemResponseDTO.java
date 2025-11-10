@@ -4,6 +4,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Getter
 @Setter
@@ -18,6 +19,11 @@ public class CartItemResponseDTO {
 
     // ==product info
     String name;
+
+    Integer discountInPercent;
+    List<VariantCartResponse> variants;
+
+    Long variantId;
 
     BigDecimal subtotal;
 }

@@ -1,5 +1,6 @@
 package org.mobilehub.product.dto.request;
 
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
@@ -17,7 +18,10 @@ public class CreateProductVariantRequest {
     @Size(max = 7)
     private String color_hex;
 
+    @Min(0)
     private Integer storage_cap;
+
+    @Min(0)
     private Integer ram;
 
     @NotNull

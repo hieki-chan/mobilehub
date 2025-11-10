@@ -9,18 +9,22 @@ export const CartApi = {
   },
 
   addItem: async (userId, request) => {
-    console.log(request);
     const res = await api.post(`${BASE_URL}/${userId}/items`, request);
     return res.data.result;
   },
 
-  updateItem: async (userId, request) => {
-    const res = await api.put(`${BASE_URL}/${userId}/update`, request);
+  updateItemQuantity: async (userId, itemId, quantity) => {
+    const res = await api.put(`${BASE_URL}/${userId}/items/${itemId}/quantity`, { quantity });
+    return res.data.result;
+  },
+
+  updateItemVariant: async (userId, itemId, variantId) => {
+    const res = await api.put(`${BASE_URL}/${userId}/items/${itemId}/variant`, { variantId });
     return res.data.result;
   },
 
   removeItem: async (userId, itemId) => {
-    const res = await api.delete(`${BASE_URL}/item/${itemId}`, { params: { userId } });
+    const res = await api.delete(`${BASE_URL}/items/${itemId}`, { params: { userId } });
     return res.data;
   },
 

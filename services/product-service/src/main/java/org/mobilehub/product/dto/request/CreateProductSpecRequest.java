@@ -2,6 +2,7 @@ package org.mobilehub.product.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -45,5 +46,6 @@ public class CreateProductSpecRequest {
     private String brand;
 
     @NotNull(message = "Release date is required")
+    @PastOrPresent
     private LocalDateTime release_date;
 }
