@@ -1,0 +1,62 @@
+server:
+  port: 8087
+
+# PayOS Configuration
+payos:
+  client-id: ${PAYOS_CLIENT_ID}
+  api-key: ${PAYOS_API_KEY}
+  checksum-key: ${PAYOS_CHECKSUM_KEY}
+  return-url: ${PAYOS_RETURN_URL:http://localhost:3000/payment/success}
+  cancel-url: ${PAYOS_CANCEL_URL:http://localhost:3000/payment/cancel}
+
+spring:
+  application:
+    name: payment-service
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/mobilehub_payment?useSSL=false&serverTimezone=UTC&createDatabaseIfNotExist=true
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:root1234!}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 10
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    open-in-view: false
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+      retries: 3
+      properties:
+        enable.idempotence: true
+
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    time-zone: Asia/Ho_Chi_Minh
+
+  threads:
+    virtual:
+      enabled: true
+
+# Logging
+logging:
+  level:
+    org.mobilehub.payment_service: INFO
+    org.springframework.web: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
