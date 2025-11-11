@@ -52,7 +52,7 @@ export default function App() {
           console.warn(`⚠️ Không thể kết nối server (lần ${i}/${maxRetries})...`);
           setRetryCount(i);
 
-          await new Promise((resolve) => setTimeout(resolve, 1403));
+          await new Promise((resolve) => setTimeout(resolve, 1000));
         }
       }
 
