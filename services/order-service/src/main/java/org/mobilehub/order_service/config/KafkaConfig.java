@@ -4,6 +4,7 @@ import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.mobilehub.shared.common.topics.Topics;
+import org.mobilehub.shared.contracts.order.OrderTopics;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -44,7 +45,10 @@ public class KafkaConfig {
     }
 
     // Dev: auto-create topics
-    @Bean NewTopic orderCreated()       { return TopicBuilder.name(Topics.ORDER_CREATED).partitions(3).replicas(1).build(); }
-    @Bean NewTopic invReserved()        { return TopicBuilder.name(Topics.INVENTORY_RESERVED).partitions(3).replicas(1).build(); }
-    @Bean NewTopic invRejected()        { return TopicBuilder.name(Topics.INVENTORY_REJECTED).partitions(3).replicas(1).build(); }
+    @Bean
+    NewTopic orderCreated()       { return TopicBuilder.name(OrderTopics.ORDER_CREATED).partitions(3).replicas(1).build(); }
+    @Bean
+    NewTopic invReserved()        { return TopicBuilder.name(Topics.INVENTORY_RESERVED).partitions(3).replicas(1).build(); }
+    @Bean
+    NewTopic invRejected()        { return TopicBuilder.name(Topics.INVENTORY_REJECTED).partitions(3).replicas(1).build(); }
 }

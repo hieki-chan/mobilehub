@@ -34,9 +34,6 @@ public class Order {
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
-    @Column(name = "total_amount", nullable = false, precision = 19, scale = 2)
-    private BigDecimal totalAmount;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 32)
     private OrderStatus status;
@@ -71,14 +68,4 @@ public class Order {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<OrderItem> items = new ArrayList<>();
-
-    // helper để giữ quan hệ 2 chiều
-    public void addItem(OrderItem item) {
-        items.add(item);
-        item.setOrder(this);
-    }
-    public void removeItem(OrderItem item) {
-        items.remove(item);
-        item.setOrder(null);
-    }
 }

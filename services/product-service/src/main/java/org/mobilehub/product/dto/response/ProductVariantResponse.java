@@ -14,8 +14,8 @@ public class ProductVariantResponse {
     Long id;
     String color_label;
     String color_hex;
-    String storage_cap;
-    String ram;
+    Integer storage_cap;
+    Integer ram;
     BigDecimal price;
     String imageUrl;
 }

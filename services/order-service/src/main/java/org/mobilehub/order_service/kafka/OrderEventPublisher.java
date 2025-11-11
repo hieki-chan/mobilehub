@@ -1,8 +1,8 @@
 package org.mobilehub.order_service.kafka;
 
 import lombok.RequiredArgsConstructor;
-import org.mobilehub.shared.common.events.OrderCreatedEvent;
-import org.mobilehub.shared.common.topics.Topics;
+import org.mobilehub.shared.contracts.order.OrderCreatedEvent;
+import org.mobilehub.shared.contracts.order.OrderTopics;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
@@ -13,6 +13,6 @@ public class OrderEventPublisher {
 
     public void publish(OrderCreatedEvent evt) {
         // key = orderId để giữ thứ tự theo từng đơn
-        kafka.send(Topics.ORDER_CREATED, evt.orderId().toString(), evt);
+        kafka.send(OrderTopics.ORDER_CREATED, evt.orderId().toString(), evt);
     }
 }

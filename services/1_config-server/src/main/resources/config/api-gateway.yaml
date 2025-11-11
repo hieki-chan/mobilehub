@@ -55,45 +55,36 @@ spring:
             - StripPrefix=2
 
         # ========== ORDER ==========
-        # Service có context-path /order và controller /api/orders/**
-        # Đường thật: /order/api/orders/**
         - id: order_service
           uri: http://localhost:8085
           predicates:
             - Path=${app.api-prefix}/orders/**
           filters:
             - StripPrefix=2
-            # Sau khi bỏ /api/v1, phần còn lại là /orders/**
-            # Ta chèn cả /order và /api vào trước phần còn lại:
-            - RewritePath=/(?<remaining>.*), /order/api/${remaining}
 
         # ========== INVENTORY ==========
-        # Controller map dưới /api/inventory/**
         - id: inventory_service
           uri: http://localhost:8086
           predicates:
             - Path=${app.api-prefix}/inventory/**
           filters:
             - StripPrefix=2
-            - PrefixPath=/api
 
         # ========== PAYMENT ==========
-        # Controller map dưới /api/payments/**
         - id: payment_service
           uri: http://localhost:8087
           predicates:
             - Path=${app.api-prefix}/payments/**
           filters:
             - StripPrefix=2
-            - PrefixPath=/api
 
+        #============ RATING ============
         - id: rating_service
           uri: http://localhost:8091
           predicates:
             - Path=${app.api-prefix}/ratings/**
           filters:
             - StripPrefix=2
-            - PrefixPath=/api
 
         # ========== CLOUD MEDIA ==========
         - id: cloud_media_service

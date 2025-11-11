@@ -30,10 +30,10 @@ public class ProductVariant {
     String color_hex;
 
     @Column(nullable = false)
-    String storage_cap;
+    Integer storage_cap;
 
     @Column(nullable = false)
-    String ram;
+    Integer ram;
 
     @Column(name = "price", precision = 10, scale = 2, nullable = false)
     BigDecimal price;

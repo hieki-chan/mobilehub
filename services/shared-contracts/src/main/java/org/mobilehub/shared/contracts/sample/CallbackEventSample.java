@@ -1,10 +1,4 @@
-package org.mobilehub.shared_contracts.sample;
+package org.mobilehub.shared.contracts.sample;
 
-import lombok.Getter;
-import lombok.Setter;
 
-@Getter
-@Setter
-public class CallbackEventSample {
-    int processedValue;
-}
+public record CallbackEventSample (int processedValue) {}

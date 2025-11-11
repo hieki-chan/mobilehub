@@ -1,4 +1,4 @@
-package org.mobilehub.shared.common.events;
+package org.mobilehub.shared.contracts.order;
 
 import java.util.List;
 

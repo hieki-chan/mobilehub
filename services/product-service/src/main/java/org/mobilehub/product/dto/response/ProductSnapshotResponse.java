@@ -1,23 +1,30 @@
 package org.mobilehub.product.dto.response;
 
-import java.util.List;
 
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import org.mobilehub.product.entity.ProductStatus;
 
+import java.math.BigDecimal;
+
 @Getter
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ProductCartResponse {
-    String name;
-    Integer discountInPercent;
+@Builder
+public class ProductSnapshotResponse {
+    // info
+    BigDecimal price;
+    BigDecimal discountedPrice;
 
-    List<ProductVariantResponse> variants;
+    // product snapshot
+    String productName;
+    String productVariant;
+    String thumbnailUrl;
 
     @Enumerated(EnumType.STRING)
     ProductStatus status;

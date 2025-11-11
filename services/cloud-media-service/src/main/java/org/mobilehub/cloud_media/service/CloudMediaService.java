@@ -32,16 +32,14 @@ public class CloudMediaService {
     @KafkaListener(topics = ImageTopics.IMAGE_UPLOAD)
     public void handleUpload(ImageUploadEvent event) {
         try {
-            for (int i = 0; i < event.getFiles().size(); i++)
+            for (int i = 0; i < event.files().size(); i++)
             {
-                String base64 = event.getFiles().get(i);
-                ImageUploadedEvent uploadedEvent = uploadImage(base64, event.getFolder());
-                uploadedEvent.setProperties(event.getPropertiesMap()[i]);
-                uploadedEvent.setProperties(event.getPropertiesMap()[i]);
+                String base64 = event.files().get(i);
+                ImageUploadedEvent uploadedEvent = uploadImage(base64, event.folder(), event.propertiesMap()[i]);
 
                 kafkaTemplate.send(ImageTopics.IMAGE_UPLOADED, uploadedEvent);
 
-                System.out.println("Uploaded: " + uploadedEvent.getPublicId());
+                System.out.println("Uploaded: " + uploadedEvent.publicId());
             }
         }
         catch (Exception e) {
@@ -52,23 +50,23 @@ public class CloudMediaService {
     public MultipleImageResponse uploadImages(ImageUploadEvent event) {
         List<ImageUploadedEvent> uploadedEvents = new ArrayList<>();
         try {
-            for (int i = 0; i < event.getFiles().size(); i++) {
-                String base64 = event.getFiles().get(i);
-                ImageUploadedEvent uploadedEvent = uploadImage(base64, event.getFolder());
-                uploadedEvent.setProperties(event.getPropertiesMap()[i]);
+            for (int i = 0; i < event.files().size(); i++) {
+                String base64 = event.files().get(i);
+                ImageUploadedEvent uploadedEvent = uploadImage(base64, event.folder(), event.propertiesMap()[i]);
                 uploadedEvents.add(uploadedEvent);
 
-                System.out.println("Uploaded: " + uploadedEvent.getPublicId());
+                System.out.println("Uploaded: " + uploadedEvent.publicId());
             }
         }
         catch (Exception e) {
             System.err.println("Upload failed: " + e.getMessage());
         }
 
-        return MultipleImageResponse.builder().uploadedEvents(uploadedEvents).build();
+        return new MultipleImageResponse(uploadedEvents);
     }
 
-    private ImageUploadedEvent uploadImage(String base64, String folder) throws IOException {
+    private ImageUploadedEvent uploadImage(String base64, String folder, Map<String, Object> properties)
+            throws IOException {
         // Decode Base64 to bytes
         byte[] bytes = MediaConverter.decodeFromBase64(base64);
 
@@ -82,17 +80,14 @@ public class CloudMediaService {
         String url = (String) result.get("secure_url");
 
         // uploaded callback
-        ImageUploadedEvent uploadedEvent = new ImageUploadedEvent();
-        uploadedEvent.setPublicId(publicId);
-        uploadedEvent.setImageUrl(url);
-        return uploadedEvent;
+        return new ImageUploadedEvent(publicId, url, properties);
     }
 
     @KafkaListener(topics = ImageTopics.IMAGE_DELETE)
     public void handleImageDeleted(ImageDeleteEvent event) {
         try {
-            deleteImage(event.getPublicId());
-            System.out.println("Image deleted: " + event.getPublicId());
+            deleteImage(event.publicId());
+            System.out.println("Image deleted: " + event.publicId());
 
         } catch (IOException e) {
             throw new RuntimeException(e);

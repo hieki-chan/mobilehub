@@ -18,9 +18,10 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/orders")
+@RequestMapping("/orders")
 @RequiredArgsConstructor
 @Validated
+@SuppressWarnings("unused")
 public class OrderController {
 
     private final OrderService orderService;
@@ -31,13 +32,11 @@ public class OrderController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-
     @GetMapping("/{id}")
     public ResponseEntity<OrderResponse> getOrderById(@PathVariable Long id) {
         OrderResponse response = orderService.getOrderById(id);
         return ResponseEntity.ok(response);
     }
-
 
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<OrderSummaryResponse>> getOrdersByUser(@PathVariable Long userId) {
@@ -53,7 +52,6 @@ public class OrderController {
         OrderResponse response = orderService.updateStatus(id, request);
         return ResponseEntity.ok(response);
     }
-
 
     @PutMapping("/{id}/cancel")
     public ResponseEntity<OrderResponse> cancelOrder(

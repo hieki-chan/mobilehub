@@ -1,6 +1,7 @@
 package org.mobilehub.rating_service.controller;
 
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import org.mobilehub.rating_service.dto.request.RatingCreateRequest;
 import org.mobilehub.rating_service.dto.response.PageResponse;
 import org.mobilehub.rating_service.dto.response.RatingResponse;
@@ -13,15 +14,10 @@ import java.time.Instant;
 
 @RestController
 @RequestMapping("/ratings")
+@AllArgsConstructor
 public class RatingController {
     private final RatingService ratingService;
     private final RatingQueryService queryService;
-
-
-    public RatingController(RatingService ratingService, RatingQueryService queryService) {
-        this.ratingService = ratingService;
-        this.queryService = queryService;
-    }
 
 
     // User creates a rating
@@ -29,7 +25,6 @@ public class RatingController {
     public ResponseEntity<RatingResponse> create(@Valid @RequestBody RatingCreateRequest body) {
         return ResponseEntity.ok(ratingService.create(body));
     }
-
 
     // GET by product with pagination & special sort
     @GetMapping("/by-product")
@@ -41,7 +36,6 @@ public class RatingController {
     ) {
         return ResponseEntity.ok(queryService.getByProduct(productId, page, size, sort));
     }
-
 
     // GET by date range (inclusive) with pagination & sort
     @GetMapping("/by-date")

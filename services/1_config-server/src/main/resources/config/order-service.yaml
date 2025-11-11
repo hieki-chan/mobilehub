@@ -1,7 +1,5 @@
 server:
   port: 8085
-  servlet:
-    context-path: /order
 
 spring:
   application:
@@ -20,3 +18,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+service:
+  identity: http://localhost:8081
+  product: http://localhost:8083

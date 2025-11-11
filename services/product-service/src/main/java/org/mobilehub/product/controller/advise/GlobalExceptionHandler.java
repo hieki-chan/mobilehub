@@ -1,5 +1,7 @@
-package org.mobilehub.product.exception;
+package org.mobilehub.product.controller.advise;
 
+import org.mobilehub.product.exception.ProductNotFoundException;
+import org.mobilehub.product.exception.VariantNotFoundException;
 import org.mobilehub.shared.common.dto.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +14,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ProductNotFoundException.class)
     public ResponseEntity<?> handleProductNotFoundException(ProductNotFoundException ex) {
+        ApiResponse<Object> apiResponse = ApiResponse.builder().code(400).message(ex.getMessage()).build();
+        return ResponseEntity.badRequest().body(apiResponse);
+    }
+
+    @ExceptionHandler(VariantNotFoundException.class)
+    public ResponseEntity<?> handleVariantNotFoundException(VariantNotFoundException ex) {
         ApiResponse<Object> apiResponse = ApiResponse.builder().code(400).message(ex.getMessage()).build();
         return ResponseEntity.badRequest().body(apiResponse);
     }

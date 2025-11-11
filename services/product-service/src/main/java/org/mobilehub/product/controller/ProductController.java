@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.mobilehub.product.dto.request.CreateProductRequest;
+import org.mobilehub.product.dto.request.ProductSnapshotRequest;
 import org.mobilehub.product.dto.request.UpdateProductRequest;
 import org.mobilehub.product.dto.response.*;
 import org.mobilehub.product.service.ProductService;
@@ -100,10 +101,26 @@ public class ProductController {
         return ResponseEntity.ok(productService.getProductDetails(productId));
     }
 
-    @GetMapping("/products/cart")
-    public ResponseEntity<List<ProductCartResponse>> getProductCart(@RequestParam List<Long> productIds
+    @GetMapping("/products/discounted")
+    public ResponseEntity<List<ProductResponse>> getDiscountedProducts()
+    {
+        var discountedProducts = productService.getDiscountedProducts();
+        return ResponseEntity.ok(discountedProducts);
+    }
+    // endregion
+
+    @GetMapping("/products/carts")
+    public ResponseEntity<List<ProductCartResponse>> getProductCarts(
+            @RequestParam List<Long> productIds
     ) {
-        return ResponseEntity.ok(productService.getProductCart(productIds));
+        return ResponseEntity.ok(productService.getProductCarts(productIds));
+    }
+
+    @PostMapping("/products/snapshots")
+    public ResponseEntity<List<ProductSnapshotResponse>> getProductsSnapshot(
+            @RequestBody List<ProductSnapshotRequest> requests
+    ) {
+        return ResponseEntity.ok(productService.getProductsSnapshot(requests));
     }
 
     @GetMapping("/products/{productId}/validate")
@@ -113,12 +130,4 @@ public class ProductController {
     ) {
         return ResponseEntity.ok(productService.isProductVariantValid(productId, variantId));
     }
-
-    @GetMapping("/products/discounted")
-    public ResponseEntity<List<ProductResponse>> getDiscountedProducts()
-    {
-        var discountedProducts = productService.getDiscountedProducts();
-        return ResponseEntity.ok(discountedProducts);
-    }
-    // endregion
 }

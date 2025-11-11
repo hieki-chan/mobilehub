@@ -1,14 +1,24 @@
 package org.mobilehub.order_service.dto.request;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import lombok.experimental.FieldDefaults;
 import org.mobilehub.order_service.entity.PaymentMethod;
 
 import java.util.List;
 
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class OrderCreateRequest {
-    private Long userId;
-    private PaymentMethod paymentMethod;
-    private String note;
-    private List<OrderItemRequest> items;
+    @NotNull
+    Long userId;
+    @NotNull
+    PaymentMethod paymentMethod;
+    @NotNull
+    String note;
+    @NotNull
+    List<OrderItemRequest> items;
 }

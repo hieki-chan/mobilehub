@@ -46,36 +46,6 @@ public class Product {
     @JoinColumn(name = "default_variant_id", foreignKey = @ForeignKey(name = "fk_product_default_variant"))
     private ProductVariant defaultVariant;
 
-    public BigDecimal getDiscountedPriceDefault() {
-//        if (discount == null || discount.getValueInPercent() == null) {
-//            return price;
-//        }
-//
-//        BigDecimal discountPercent = BigDecimal.valueOf(discount.getValueInPercent());
-//        BigDecimal multiplier = BigDecimal.ONE.subtract(discountPercent.divide(BigDecimal.valueOf(100)));
-//
-//        return price.multiply(multiplier);
-        return null;
-    }
-
-    public String getImageUrlDefault(){
-        return getMainImageUrlDefault();
-    }
-
-    public String getMainImageUrlDefault() {
-
-        return null;
-    }
-
-    public List<String> getOtherImageUrlsDefault()
-    {
-//        return getImages().stream()
-//                .filter(img -> !img.isMain())
-//                .map(ProductImage::getImageUrl)
-//                .toList();
-        return null;
-    }
-
     public ProductVariant resolveVariant(Long variantId) {
         if (variantId != null) {
             return getVariants() == null ? null

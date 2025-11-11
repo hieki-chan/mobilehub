@@ -1,0 +1,23 @@
+server:
+  port: 8091
+
+spring:
+  application:
+    name: review-service
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/mobilehub_rating?createDatabaseIfNotExist=true
+    username: root
+    password: root1234!
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+
+logging:
+  level:
+    org.hibernate.SQL: debug
+    org.springframework: info

@@ -30,15 +30,16 @@ public class CartService {
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
     private final CartMapper cartMapper;
+
     private final ProductClient productClient;
-    private final UserClient gatewayClient;
+    private final UserClient userClient;
 
 
     public CartResponseDTO getCart(Long userId) {
         if (userId == null)
             throw new IllegalArgumentException("User ID must not be null");
 
-        if(!gatewayClient.exists(userId))
+        if(!userClient.exists(userId))
             throw new CartNotFoundException("cart not found for user with id: " + userId);
 
         Cart cart = cartRepository.findByUserId(userId)
@@ -47,6 +48,7 @@ public class CartService {
         return getCartResponse(cart.getItems());
     }
 
+    @Transactional
     public CartResponseDTO addItemToCart(Long userId, CartAddRequest request) {
         Cart cart = cartRepository.findByUserId(userId)
                 .orElseGet(() -> cartRepository.save(Cart.builder().userId(userId).build()));

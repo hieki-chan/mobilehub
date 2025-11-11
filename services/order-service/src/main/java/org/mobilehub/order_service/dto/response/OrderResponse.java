@@ -7,7 +7,11 @@ import org.mobilehub.order_service.entity.PaymentMethod;
 import java.math.BigDecimal;
 import java.util.List;
 
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class OrderResponse {
     private Long id;
     private Long userId;

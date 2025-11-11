@@ -1,8 +1,11 @@
 package org.mobilehub.order_service.service;
 
 import lombok.RequiredArgsConstructor;
+import org.mobilehub.order_service.client.ProductClient;
+import org.mobilehub.order_service.client.UserClient;
 import org.mobilehub.order_service.dto.request.OrderCancelRequest;
 import org.mobilehub.order_service.dto.request.OrderCreateRequest;
+import org.mobilehub.order_service.dto.request.OrderItemRequest;
 import org.mobilehub.order_service.dto.request.OrderUpdateStatusRequest;
 import org.mobilehub.order_service.dto.response.OrderResponse;
 import org.mobilehub.order_service.dto.response.OrderSummaryResponse;
@@ -12,13 +15,15 @@ import org.mobilehub.order_service.entity.OrderStatus;
 import org.mobilehub.order_service.exception.OrderCannotBeCancelledException;
 import org.mobilehub.order_service.exception.OrderNotFoundException;
 import org.mobilehub.order_service.Mapper.OrderMapper;
+import org.mobilehub.order_service.kafka.OrderEventPublisher;
 import org.mobilehub.order_service.repository.OrderRepository;
+import org.mobilehub.shared.contracts.order.OrderCreatedEvent;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -29,40 +34,60 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final OrderMapper orderMapper;
 
+    private final UserClient userClient;
+    private final ProductClient productClient;
+
+    private final OrderEventPublisher publisher;
 
     public OrderResponse createOrder(OrderCreateRequest request) {
-        // Tạo entity Order mới
-        Order order = new Order();
-        order.setUserId(request.getUserId());
-        order.setShippingAddress("Địa chỉ mặc định " + request.getUserId());
-        order.setPaymentMethod(request.getPaymentMethod());
+        if(!userClient.exists(request.getUserId()))
+            throw new RuntimeException("user is invalid" +  request.getUserId());
+
+        Order order = orderMapper.toOrder(request);
         order.setStatus(OrderStatus.PENDING);
         order.setCreatedAt(Instant.now());
 
-        // Tạo danh sách sản phẩm từ request
-        List<OrderItem> items = request.getItems().stream()
-                .map(i -> {
-                    OrderItem item = new OrderItem();
-                    item.setProductId(i.getProductId());
-                    item.setProductName(i.getProductName());
-                    item.setThumbnailUrl(i.getThumbnailUrl());
-                    item.setPrice(i.getPrice());
-                    item.setQuantity(i.getQuantity());
-                    item.setOrder(order);
-                    return item;
-                })
-                .toList();
+        return setOrderItems(order, request.getItems());
+    }
+
+    private OrderResponse setOrderItems(Order order, List<OrderItemRequest> orderItems)
+    {
+        var snapShots = productClient.getProductsSnapshot(orderMapper.toRequestList(orderItems));
+
+        List<OrderItem> items = new ArrayList<>();
+
+        for (int i = 0; i < snapShots.size(); i++) {
+            var snapshot = snapShots.get(i);
+            var orderItem = orderItems.get(i);
+            OrderItem item = orderMapper.toOrderItem(snapshot);
+            item.setProductId(orderItem.getProductId());
+            item.setQuantity(orderItem.getQuantity());
+            item.setOriginalPrice(snapshot.getPrice());
+            item.setFinalPrice(snapshot.getDiscountedPrice());
+            item.setOrder(order);
+            items.add(item);
+        }
 
         order.setItems(items);
+        var savedOrder = orderRepository.save(order);
 
-        // Tính tổng tiền
-        BigDecimal totalAmount = items.stream()
-                .map(i -> i.getPrice().multiply(BigDecimal.valueOf(i.getQuantity())))
+        // send event
+        publisher.publish(new OrderCreatedEvent(
+                "??",
+                savedOrder.getId(),
+                order.getUserId(),
+                "??",
+                new ArrayList<>()
+        ));
+
+        var response = orderMapper.toOrderResponse(savedOrder);
+
+        BigDecimal totalAmount = savedOrder.getItems().stream()
+                .map(i -> i.getFinalPrice().multiply(BigDecimal.valueOf(i.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        order.setTotalAmount(totalAmount);
 
-        // Lưu và trả về DTO thông qua mapper
-        return orderMapper.toOrderResponse(orderRepository.save(order));
+        response.setTotalAmount(totalAmount);
+        return response;
     }
 
     /**

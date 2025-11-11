@@ -9,14 +9,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.util.List;
 
 
-@FeignClient(name = "product-service", url = "${gateway.url}")
+@FeignClient(name = "product-service", url = "${service.product}")
 public interface ProductClient {
 
-    @GetMapping("/api/v1/products/{productId}/validate")
+    @GetMapping("/products/{productId}/validate")
     Boolean checkProductVariantValid(
             @PathVariable("productId") Long productId,
             @RequestParam Long variantId);
 
-    @GetMapping("/api/v1/products/cart")
+    @GetMapping("/products/carts")
     List<ProductCartResponse> getProductsInCart(@RequestParam List<Long> productIds);
 }

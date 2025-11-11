@@ -1,7 +1,10 @@
 package org.mobilehub.product.service;
 
 import org.mobilehub.product.client.CloudMediaServiceClient;
+import org.mobilehub.product.dto.request.ProductSnapshotRequest;
+import org.mobilehub.product.exception.VariantNotFoundException;
 import org.mobilehub.product.repository.ProductVariantRepository;
+import org.mobilehub.product.util.DiscountUtils;
 import org.mobilehub.shared.contracts.media.MultipleImageResponse;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -127,7 +130,7 @@ public class ProductService {
         System.out.println(files.size());
 
         // publish upload image event
-        if (files != null && !files.isEmpty()) {
+        if (!files.isEmpty()) {
             var variants = savedProduct.getVariants();
             @SuppressWarnings("unchecked")
             Map<String, Object>[] propertiesMap = new HashMap[files.size()];
@@ -147,13 +150,13 @@ public class ProductService {
                 }
             }
 
-            ImageUploadEvent event = new ImageUploadEvent();
-            event.setPropertiesMap(propertiesMap);
-            event.setFiles(MediaConverter.convertToBase64(files));
-            event.setFolder("products/" + savedProduct.getId());
+            ImageUploadEvent event = new ImageUploadEvent(
+                    MediaConverter.convertToBase64(files),
+                    "products/" + savedProduct.getId(),
+                    propertiesMap);
 
             MultipleImageResponse response = cloudMediaServiceClient.uploadImages(event);
-            for (ImageUploadedEvent uploadedEvent : response.getUploadedEvents()) {
+            for (ImageUploadedEvent uploadedEvent : response.uploadedEvents()) {
                 handleImageUploaded(uploadedEvent);
             }
         }
@@ -171,8 +174,8 @@ public class ProductService {
 
 
         ProductImage image = new ProductImage();
-        image.setImageUrl(event.getImageUrl());
-        image.setPublicId(event.getPublicId());
+        image.setImageUrl(event.imageUrl());
+        image.setPublicId(event.publicId());
         image.setVariant(variant);
 
         variant.getImages().add(image);
@@ -196,19 +199,15 @@ public class ProductService {
     public ProductResponse getProductResponse(Long id)
     {
         var product = getProduct_Internal(id, true);
-        var response =  productMapper.toProductResponse(product);
-        return response;
+        return productMapper.toProductResponse(product);
     }
 
     @Transactional(readOnly = true)
     public ProductPreviewResponse getProductPreview(Long id)
     {
         var product = getProduct_Internal(id, true);
-        var response =  productMapper.toProductPreviewResponse(product);
-        response.setImageUrl(product.getMainImageUrlDefault());
-        return response;
+        return  productMapper.toProductPreviewResponse(product);
     }
-
 
 
     @Transactional
@@ -248,12 +247,14 @@ public class ProductService {
         return response;
     }
 
+    // endregion
+
     @Transactional
-    public List<ProductCartResponse> getProductCart(List<Long> productIds)
+    public List<ProductCartResponse> getProductCarts(List<Long> productIds)
     {
         List<ProductCartResponse> productCartResponses = new ArrayList<>();
         for (var productId : productIds) {
-            var product = getProduct_Internal(productId, true);
+            var product = getProduct_Internal(productId, false);
             var response =  productMapper.toProductCartResponse(product);
             productCartResponses.add(response);
         }
@@ -261,12 +262,38 @@ public class ProductService {
     }
 
     @Transactional
+    public List<ProductSnapshotResponse> getProductsSnapshot(List<ProductSnapshotRequest> requests)
+    {
+        List<ProductSnapshotResponse> snapshotResponses = new ArrayList<>();
+        for (ProductSnapshotRequest request : requests) {
+            var product = getProduct_Internal(request.getProductId(), false);
+            var variant = product.getVariants()
+                    .stream()
+                    .filter(v -> v.getId().equals(request.getVariantId()))
+                    .findFirst()
+                    .orElseThrow(() -> new VariantNotFoundException(request.getProductId(), request.getVariantId()));
+
+            var response = ProductSnapshotResponse
+                    .builder()
+                    .productName(product.getName())
+                    .productVariant(
+                            String.format("%s-%d-%d", variant.getColor_label(), variant.getRam(), variant.getRam())
+                    )
+                    .thumbnailUrl(variant.getKeyImage().getImageUrl())
+                    .price(variant.getPrice())
+                    .discountedPrice(DiscountUtils.applyDiscount(variant.getPrice(), product.getDiscount()))
+                    .status(product.getStatus())
+                    .build();
+            snapshotResponses.add(response);
+        }
+        return snapshotResponses;
+    }
+
+    @Transactional
     public boolean isProductVariantValid(Long productId, Long variantId) {
         var product = getProduct_Internal(productId, true);
         return isVariantValid_Internal(product, variantId);
     }
-
-    // endregion
 
     private Product getProduct_Internal(Long id, boolean isActiveOnly)
     {
@@ -291,14 +318,6 @@ public class ProductService {
                 .stream()
                 .map(productMapper::toProductResponse)
                 .toList();
-    }
-
-    public Page<ProductResponse> getProducts(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
-
-        Page<Product> pageData = productRepository.findAll(pageable);
-
-        return pageData.map(productMapper::toProductResponse);
     }
 
     public void deleteProduct(Long id) {

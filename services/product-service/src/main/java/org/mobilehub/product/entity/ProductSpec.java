@@ -24,13 +24,13 @@ public class ProductSpec {
     private String cpu;
 
     @Column(nullable = false)
-    private String cpu_speed;
+    private Integer cpu_speed;
 
     @Column(nullable = false)
     private String gpu;
 
     @Column(nullable = false)
-    private String battery_cap;
+    private Integer battery_cap;
 
     @Column(nullable = false)
     private String rear_cam;
@@ -48,7 +48,7 @@ public class ProductSpec {
     private String material;
 
     @Column(nullable = false)
-    private String size_weight;
+    private Integer size_weight;
 
     @Column(nullable = false)
     private String brand;
