@@ -1,3 +1,0 @@
-- doi sang tieng viet
-- edit/add/... dep hon, animation hoi ngu
--them cai icon admin, icon thong bao (chuong)
