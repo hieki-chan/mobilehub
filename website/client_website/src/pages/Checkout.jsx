@@ -29,9 +29,9 @@ export default function Checkout() {
 
   useEffect(() => {
     // Nếu giỏ hàng trống, chuyển về trang chủ
-    if (!cart || cart.length === 0) {
-      navigate('/')
-    }
+    // if (!cart || cart.length === 0) {
+    //   navigate('/')
+    // }
 
     // Lấy thông tin user nếu đã đăng nhập
     const userStr = localStorage.getItem('user')

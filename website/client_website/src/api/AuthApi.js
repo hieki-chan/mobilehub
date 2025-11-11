@@ -24,13 +24,11 @@ export const login = async (email, password) => {
 };
 
 export const verifyToken = async (token) => {
-  try {
-    const res = await api.get(`${API_BASE_URL}/validate`, { params: { token } });
-    return res.data === "Valid";
-  } catch (err) {
-    console.warn("⚠️ Token verify failed:", err);
-    return false;
-  }
+  const res = await api.get(`${API_BASE_URL}/validate`, { params: { token } });
+
+  if (res.data === "Valid") return true;
+
+  return false;
 };
 
 export const logout = () => {
@@ -43,4 +41,5 @@ export const clearAccountData = () => {
   localStorage.removeItem("role");
   localStorage.removeItem("email");
   localStorage.removeItem("username");
+  localStorage.removeItem("user");
 };
