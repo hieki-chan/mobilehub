@@ -1,6 +1,7 @@
 package org.mobilehub.order_service.config;
 
 import org.mobilehub.shared.common.token.JwtTokenProvider;
+import org.mobilehub.shared.common.token.TokenProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -38,6 +39,11 @@ public class SecurityConfig {
     public JwtDecoder jwtDecoder() {
         SecretKeySpec secretKey = new SecretKeySpec(JwtTokenProvider.SIGNER_KEY.getBytes(), "HmacSHA512");
         return NimbusJwtDecoder.withSecretKey(secretKey).macAlgorithm(org.springframework.security.oauth2.jose.jws.MacAlgorithm.HS512).build();
+    }
+
+    @Bean
+    public TokenProvider tokenProvider() {
+        return new JwtTokenProvider();
     }
 }
 

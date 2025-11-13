@@ -49,6 +49,9 @@ public class Order {
     @Column(name = "shipping_address", length = 255)
     private String shippingAddress;
 
+    @Column()
+    private String note;
+
     // ===== fields phục vụ tích hợp inventory =====
     @Column(name = "reservation_id", length = 64)
     private String reservationId;

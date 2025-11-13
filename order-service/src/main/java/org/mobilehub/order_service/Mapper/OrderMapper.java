@@ -17,7 +17,7 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface OrderMapper {
 
-    Order toOrder(OrderCreateRequest request);
+    Order toOrder(Long userId, OrderCreateRequest request);
     OrderItem toOrderItem(ProductSnapshotResponse snapshot);
 
     List<ProductSnapshotRequest> toRequestList(List<OrderItemRequest> orderItems);

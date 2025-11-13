@@ -13,6 +13,10 @@ import org.mobilehub.cart_service.exception.CartNotFoundException;
 import org.mobilehub.cart_service.mapper.CartMapper;
 import org.mobilehub.cart_service.repository.CartItemRepository;
 import org.mobilehub.cart_service.repository.CartRepository;
+import org.mobilehub.shared.contracts.order.OrderCreatedEvent;
+import org.mobilehub.shared.contracts.order.OrderGroup;
+import org.mobilehub.shared.contracts.order.OrderTopics;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,7 +37,6 @@ public class CartService {
 
     private final ProductClient productClient;
     private final UserClient userClient;
-
 
     public CartResponseDTO getCart(Long userId) {
         if (userId == null)
@@ -158,5 +161,20 @@ public class CartService {
         //response.setTotalPrice(total);
 
         return response;
+    }
+
+    @KafkaListener( topics = OrderTopics.ORDER_CREATED, groupId = OrderGroup.GROUP_ID)
+    public void onOrderCreated(OrderCreatedEvent event) {
+        Cart cart = cartRepository.findByUserId(event.userId())
+                .orElseThrow(() -> new CartItemNotFoundException(event.userId()));
+
+        for (OrderCreatedEvent.Item item : event.items()) {
+            CartItem cartItem = cartItemRepository.findByProductIdAndVariantId(item.productId(), item.variantId())
+                    .orElse(null);
+            if(cartItem == null)
+                continue;
+
+            cartItemRepository.delete(cartItem);
+        }
     }
 }

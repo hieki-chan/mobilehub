@@ -5,11 +5,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.mobilehub.customer_service.dto.request.UpdateAddressRequest;
 import org.mobilehub.customer_service.dto.response.DeletedAddressResponse;
-import org.mobilehub.shared.common.token.TokenProvider;
 import org.mobilehub.customer_service.dto.request.CreateAddressRequest;
 import org.mobilehub.customer_service.dto.response.AddressResponse;
 import org.mobilehub.customer_service.service.CustomerService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -24,46 +24,71 @@ import java.util.List;
 public class AddressController {
 
     CustomerService addressService;
-    TokenProvider tokenProvider;
 
-    @GetMapping("/addresses")
-    public ResponseEntity<List<AddressResponse>> getAddressesFromUser() {
-        Long userId = (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    @GetMapping("/{userId}/addresses")
+    public ResponseEntity<List<AddressResponse>> getAddressesFromUser(@PathVariable Long userId) {
+        validateUserAccess(userId);
         return ResponseEntity.ok(addressService.getAddressesFromUser(userId));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/{userId}")
-    public ResponseEntity<List<AddressResponse>> getAddressesFromUser(@PathVariable Long userId) {
+    @GetMapping("/admin/{userId}/addresses")
+    public ResponseEntity<List<AddressResponse>> adminGetAddresses(@PathVariable Long userId) {
         return ResponseEntity.ok(addressService.getAddressesFromUser(userId));
     }
 
-    @PostMapping("/addresses")
-    public ResponseEntity<AddressResponse> createAddress(@RequestBody CreateAddressRequest request) {
-        Long userId = (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        AddressResponse res = addressService.createAddress(request, userId);
-        return ResponseEntity.ok(res);
+    @PostMapping("/{userId}/addresses")
+    public ResponseEntity<AddressResponse> createAddress(
+            @PathVariable Long userId,
+            @RequestBody CreateAddressRequest request) {
+
+        validateUserAccess(userId);
+        return ResponseEntity.ok(addressService.createAddress(request, userId));
     }
 
-    @PutMapping("/addresses/{addressId}/default")
-    public ResponseEntity<?> setDefaultAddress(@PathVariable Long addressId) {
-        Long userId = (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    @GetMapping("/{userId}/addresses/default")
+    public ResponseEntity<AddressResponse> getDefaultAddress(@PathVariable Long userId) {
+        validateUserAccess(userId);
+        return ResponseEntity.ok(addressService.getDefaultAddress(userId));
+    }
+
+    @PutMapping("/{userId}/addresses/{addressId}/default")
+    public ResponseEntity<?> setDefaultAddress(
+            @PathVariable Long userId,
+            @PathVariable Long addressId) {
+
+        validateUserAccess(userId);
         addressService.setDefaultAddress(userId, addressId);
         return ResponseEntity.ok("Default address has been set successfully");
     }
 
-    @PutMapping("/addresses/{addressId}")
+    @PutMapping("/{userId}/addresses/{addressId}")
     public ResponseEntity<AddressResponse> updateAddress(
+            @PathVariable Long userId,
             @PathVariable Long addressId,
             @RequestBody UpdateAddressRequest request) {
-        Long userId = (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        validateUserAccess(userId);
         return ResponseEntity.ok(addressService.updateAddress(userId, addressId, request));
     }
 
+    @DeleteMapping("/{userId}/addresses/{addressId}")
+    public ResponseEntity<DeletedAddressResponse> deleteAddress(
+            @PathVariable Long userId,
+            @PathVariable Long addressId) {
 
-    @DeleteMapping("/addresses/{addressId}")
-    public ResponseEntity<DeletedAddressResponse> deleteAddress(@PathVariable Long addressId) {
-        Long userId = (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        validateUserAccess(userId);
         return ResponseEntity.ok(addressService.deleteAddressFromUser(userId, addressId));
+    }
+
+    private Long getPrincipalId() {
+        return (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    }
+
+    private void validateUserAccess(Long pathUserId) {
+        Long principalId = getPrincipalId();
+        if (!principalId.equals(pathUserId)) {
+            throw new AccessDeniedException("You have no permission to access other customer data");
+        }
     }
 }

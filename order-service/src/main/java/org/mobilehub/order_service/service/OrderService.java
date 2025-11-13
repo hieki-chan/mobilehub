@@ -39,11 +39,11 @@ public class OrderService {
 
     private final OrderEventPublisher publisher;
 
-    public OrderResponse createOrder(OrderCreateRequest request) {
-        if(!userClient.exists(request.getUserId()))
-            throw new RuntimeException("user is invalid" +  request.getUserId());
+    public OrderResponse createOrder(Long userId, OrderCreateRequest request) {
+        if(!userClient.exists(userId))
+            throw new RuntimeException("user is invalid" +  userId);
 
-        Order order = orderMapper.toOrder(request);
+        Order order = orderMapper.toOrder(userId, request);
         order.setStatus(OrderStatus.PENDING);
         order.setCreatedAt(Instant.now());
 
@@ -73,11 +73,13 @@ public class OrderService {
 
         // send event
         publisher.publish(new OrderCreatedEvent(
-                "??",
                 savedOrder.getId(),
                 order.getUserId(),
                 "??",
-                new ArrayList<>()
+                orderItems.stream()
+                        .map(o
+                                -> new OrderCreatedEvent.Item(o.getProductId(), o.getVariantId(), o.getQuantity()))
+                        .toList()
         ));
 
         var response = orderMapper.toOrderResponse(savedOrder);

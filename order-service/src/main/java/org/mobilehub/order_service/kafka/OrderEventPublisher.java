@@ -12,7 +12,6 @@ public class OrderEventPublisher {
     private final KafkaTemplate<String, Object> kafka;
 
     public void publish(OrderCreatedEvent evt) {
-        // key = orderId để giữ thứ tự theo từng đơn
-        kafka.send(OrderTopics.ORDER_CREATED, evt.orderId().toString(), evt);
+        kafka.send(OrderTopics.ORDER_CREATED, evt);
     }
 }

@@ -11,6 +11,8 @@ import org.mobilehub.order_service.dto.response.OrderSummaryResponse;
 import org.mobilehub.order_service.service.OrderService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,9 +28,12 @@ public class OrderController {
 
     private final OrderService orderService;
 
-    @PostMapping
-    public ResponseEntity<OrderResponse> createOrder(@Valid @RequestBody OrderCreateRequest request) {
-        OrderResponse response = orderService.createOrder(request);
+    @PostMapping("/users/{userId}")
+    public ResponseEntity<OrderResponse> createOrder(
+            @PathVariable Long userId,
+            @Valid @RequestBody OrderCreateRequest request) {
+        validateUserAccess(userId);
+        OrderResponse response = orderService.createOrder(userId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -60,5 +65,16 @@ public class OrderController {
     ) {
         OrderResponse response = orderService.cancelOrder(id, request);
         return ResponseEntity.ok(response);
+    }
+
+    private Long getPrincipalId() {
+        return (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    }
+
+    private void validateUserAccess(Long pathUserId) {
+        Long principalId = getPrincipalId();
+        if (!principalId.equals(pathUserId)) {
+            throw new AccessDeniedException("You have no permission to access other customer data");
+        }
     }
 }

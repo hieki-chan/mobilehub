@@ -54,6 +54,13 @@ public class CustomerService {
         return addressMapper.toAddressResponse(saved, saved.equals(customer.getDefaultAddress()));
     }
 
+    public AddressResponse getDefaultAddress(Long userId) {
+        Customer customer = findCustomer(userId);
+        Address address = customer.getDefaultAddress();
+
+        return addressMapper.toAddressResponse(address, true);
+    }
+
     public void setDefaultAddress(Long userId, Long addressId) {
         Customer customer = findCustomer(userId);
         Address address = findAddressOfUser(userId, addressId);

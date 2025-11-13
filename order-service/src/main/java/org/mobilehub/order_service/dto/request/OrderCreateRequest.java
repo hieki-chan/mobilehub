@@ -15,8 +15,6 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class OrderCreateRequest {
     @NotNull
-    Long userId;
-    @NotNull
     PaymentMethod paymentMethod;
     @NotNull
     ShippingMethod shippingMethod;
