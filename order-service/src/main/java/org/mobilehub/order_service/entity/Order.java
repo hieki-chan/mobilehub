@@ -42,6 +42,10 @@ public class Order {
     @Column(name = "payment_method", length = 32)
     private PaymentMethod paymentMethod;
 
+    @Enumerated(EnumType.STRING)
+    @Column(length = 32)
+    private ShippingMethod shippingMethod;
+
     @Column(name = "shipping_address", length = 255)
     private String shippingAddress;
 

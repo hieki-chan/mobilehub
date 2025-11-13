@@ -29,14 +29,13 @@ spring:
           filters:
             - StripPrefix=2
 
-        # ========== USER ==========
-        - id: user_service
+        # ========== CUSTOMER ==========
+        - id: customer_service
           uri: http://localhost:8082
           predicates:
-            - Path=${app.api-prefix}/users/**, ${app.api-prefix}/user-info/**
+            - Path=${app.api-prefix}/customers/**
           filters:
             - StripPrefix=2
-            - PrefixPath=/user-info
 
         # ========== PRODUCT ==========
         - id: product_service

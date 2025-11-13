@@ -155,7 +155,7 @@ public class CartService {
         }
 
         response.setItems(cartItems);
-        response.setTotalPrice(total);
+        //response.setTotalPrice(total);
 
         return response;
     }

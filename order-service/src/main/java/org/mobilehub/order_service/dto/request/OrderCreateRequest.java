@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.mobilehub.order_service.entity.PaymentMethod;
+import org.mobilehub.order_service.entity.ShippingMethod;
 
 import java.util.List;
 
@@ -17,6 +18,8 @@ public class OrderCreateRequest {
     Long userId;
     @NotNull
     PaymentMethod paymentMethod;
+    @NotNull
+    ShippingMethod shippingMethod;
     @NotNull
     String note;
     @NotNull
