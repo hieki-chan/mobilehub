@@ -1,4 +1,4 @@
-package org.mobilehub.payment_service.web;
+package org.mobilehub.payment_service.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

@@ -6,8 +6,8 @@ import org.mobilehub.payment_service.entity.PaymentStatus;
 import org.mobilehub.payment_service.entity.WebhookEvent;
 import org.mobilehub.payment_service.exception.NotFoundException;
 import org.mobilehub.payment_service.provider.PaymentProviderGateway;
-import org.mobilehub.payment_service.repo.PaymentRepository;
-import org.mobilehub.payment_service.repo.WebhookEventRepository;
+import org.mobilehub.payment_service.repository.PaymentRepository;
+import org.mobilehub.payment_service.repository.WebhookEventRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

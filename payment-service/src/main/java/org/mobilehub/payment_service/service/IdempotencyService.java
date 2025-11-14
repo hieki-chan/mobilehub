@@ -2,7 +2,7 @@ package org.mobilehub.payment_service.service;
 
 import lombok.RequiredArgsConstructor;
 import org.mobilehub.payment_service.entity.IdempotencyKey;
-import org.mobilehub.payment_service.repo.IdempotencyKeyRepository;
+import org.mobilehub.payment_service.repository.IdempotencyKeyRepository;
 import org.mobilehub.payment_service.exception.ConflictException;
 import org.springframework.stereotype.Service;
 

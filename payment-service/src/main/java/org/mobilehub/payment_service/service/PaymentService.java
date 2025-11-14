@@ -5,7 +5,7 @@ import org.mobilehub.payment_service.entity.*;
 import org.mobilehub.payment_service.dto.*;
 import org.mobilehub.payment_service.exception.NotFoundException;
 import org.mobilehub.payment_service.provider.PaymentProviderGateway;
-import org.mobilehub.payment_service.repo.*;
+import org.mobilehub.payment_service.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.fasterxml.jackson.databind.ObjectMapper;

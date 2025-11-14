@@ -1,4 +1,4 @@
-package org.mobilehub.payment_service.repo;
+package org.mobilehub.payment_service.repository;
 
 import org.mobilehub.payment_service.entity.WebhookEvent;
 import org.springframework.data.jpa.repository.JpaRepository;
