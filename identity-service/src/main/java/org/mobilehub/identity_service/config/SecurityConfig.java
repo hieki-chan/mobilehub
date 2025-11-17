@@ -46,7 +46,10 @@ public class SecurityConfig {
                                 "/auth/resend-otp",
                                 "/auth/token",
                                 "/auth/validate",
-                                "/auth/authenticate"
+                                "/auth/authenticate",
+                                "/auth/forgot-password",
+                                "/auth/reset-password",
+                                "/auth/reset-password/validate"
                                 ).permitAll()
 
                         .requestMatchers("/admin/**").permitAll()

@@ -108,6 +108,10 @@ public class UserService {
         return userMapper.toUserResponse(user);
     }
 
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email).orElse(null);
+    }
+
     public Optional<User> findByUsername(String username) {
         return userRepository.findByUsername(username);
     }

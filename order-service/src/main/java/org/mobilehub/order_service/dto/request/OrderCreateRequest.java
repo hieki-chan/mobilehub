@@ -22,4 +22,8 @@ public class OrderCreateRequest {
     String note;
     @NotNull
     List<OrderItemRequest> items;
+
+    // shipping address
+    @NotNull
+    Long addressId;
 }

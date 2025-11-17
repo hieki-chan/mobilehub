@@ -93,4 +93,10 @@ public class JwtTokenProvider implements TokenProvider {
         SignedJWT signedJWT = SignedJWT.parse(token);
         return signedJWT.getJWTClaimsSet().getSubject();
     }
+
+    @Override
+    public Object extractClaim(String token, String name) throws ParseException {
+        SignedJWT signedJWT = SignedJWT.parse(token);
+        return signedJWT.getJWTClaimsSet().getClaim(name);
+    }
 }

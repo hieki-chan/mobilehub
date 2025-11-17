@@ -81,6 +81,13 @@ public class AddressController {
         return ResponseEntity.ok(addressService.deleteAddressFromUser(userId, addressId));
     }
 
+    @GetMapping("/addresses/{addressId}")
+    public ResponseEntity<AddressResponse> getAddress(
+            @PathVariable Long addressId) {
+
+        return ResponseEntity.ok(addressService.getAddress(addressId));
+    }
+
     private Long getPrincipalId() {
         return (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }

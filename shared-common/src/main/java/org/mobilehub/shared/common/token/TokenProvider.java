@@ -7,4 +7,5 @@ public interface TokenProvider {
     String generateToken(String subject, ClaimSet claimSet);
     boolean validateToken(String token);
     String extractSubject(String token) throws ParseException;
+    Object extractClaim(String token, String name) throws ParseException;
 }

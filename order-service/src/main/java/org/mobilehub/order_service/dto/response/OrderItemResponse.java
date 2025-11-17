@@ -1,14 +1,20 @@
 package org.mobilehub.order_service.dto.response;
 
 import lombok.*;
+import lombok.experimental.FieldDefaults;
+
 import java.math.BigDecimal;
 
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter
+@Setter
+@Builder
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class OrderItemResponse {
-    private Long productId;
-    private String productName;
-    private String thumbnailUrl;
-    private BigDecimal price;
-    private int quantity;
-    private BigDecimal subtotal;
+    Long productId;
+    String productName;
+    String productVariant;
+    String thumbnailUrl;
+    BigDecimal originalPrice;
+    BigDecimal finalPrice;
+    int quantity;
 }
