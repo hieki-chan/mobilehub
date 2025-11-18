@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: review-service
+    name: rating-service
 
   datasource:
     url: jdbc:mysql://localhost:3306/mobilehub_rating?createDatabaseIfNotExist=true
