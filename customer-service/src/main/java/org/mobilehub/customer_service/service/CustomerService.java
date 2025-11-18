@@ -132,6 +132,13 @@ public class CustomerService {
                 .toList();
     }
 
+    public AddressResponse getAddress(Long addressId) {
+        Address address = addressRepository.findById(addressId)
+                .orElseThrow(() -> new RuntimeException("Address with id " + addressId + " not found"));
+
+        return addressMapper.toAddressResponse(address, null);
+    }
+
     private Customer findCustomer(Long userId)
     {
         return customerRepository.findById(userId)

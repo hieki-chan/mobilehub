@@ -5,22 +5,18 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.mobilehub.identity_service.dto.request.*;
-import org.mobilehub.identity_service.dto.request.LoginRequest;
-import org.mobilehub.identity_service.dto.request.LogoutRequest;
-import org.mobilehub.identity_service.dto.request.RegisterUserRequest;
-import org.mobilehub.identity_service.dto.request.ResendOTPRequest;
-import org.mobilehub.identity_service.dto.request.VerifyOTPRequest;
 import org.mobilehub.identity_service.dto.response.LoginResponse;
 import org.mobilehub.identity_service.dto.response.UserResponse;
 import org.mobilehub.identity_service.service.AuthenticationService;
 import org.mobilehub.identity_service.service.MailService;
+import org.mobilehub.identity_service.service.UserService;
+import org.mobilehub.identity_service.util.MailHtml;
 import org.mobilehub.shared.common.dto.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.text.ParseException;
 
 @RestController
 @RequestMapping("/auth")
@@ -30,55 +26,48 @@ import java.util.concurrent.ConcurrentHashMap;
 public class AuthenticationController {
 
     AuthenticationService authenticationService;
+    UserService userService;
     MailService mailService;
-
-    Map<String, PendingRegistration> pendingRegistrationMap = new ConcurrentHashMap<>();
-
-    private record PendingRegistration(RegisterUserRequest registration) {
-    }
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody @Valid RegisterUserRequest registerRequest) {
-        mailService.generateAndSendOtp(registerRequest.getEmail());
-        pendingRegistrationMap.put(registerRequest.getEmail(), new PendingRegistration(registerRequest));
-        //var userResponse = authenticationService.register(registerRequest);
+        if(userService.getUserByEmail(registerRequest.getEmail()) != null)
+            return ResponseEntity.badRequest().body("Tài khoản đã được sử dụng");
 
-        return ResponseEntity.ok("register");
+        var otp = mailService.generateAndSendOtp(registerRequest.getEmail());
+        authenticationService.requestRegistration(registerRequest, otp);
+
+        return ResponseEntity.ok("OTP has been sent to email");
     }
 
     @PostMapping("/verify")
-    public ApiResponse<UserResponse> verifyRegistration(@Valid @RequestBody VerifyOTPRequest req) {
-        boolean ok = mailService.verify(req.getEmail(), req.getOtp());
-        if (ok) {
-            // TODO: create new user
-            var registration = pendingRegistrationMap.get(req.getEmail());
-            if(registration == null) {
-                return ApiResponse.<UserResponse>builder()
-                        .message("Gmail is in valid")
-                        .build();
-            }
-            var userResponse = authenticationService.register(registration.registration());
+    public ApiResponse<UserResponse> verifyRegistration(@Valid @RequestBody VerifyOTPRequest request) {
+        //boolean ok = mailService.verify(request.getEmail(), request.getOtp());
+        // TODO: create new user
+        var response = authenticationService.validateRegistration(request.getEmail(), request.getOtp());
+        if(!response.isValid()) {
             return ApiResponse.<UserResponse>builder()
-                    .result(userResponse)
-                    .message("OTP verified.")
-                    .build();
-        } else {
-            return ApiResponse.<UserResponse>builder()
-                    .result(null)
-                    .message("Invalid or expired OTP.")
+                    .message(response.message())
                     .build();
         }
+
+        var userResponse = authenticationService.register(response.registration());
+        return ApiResponse.<UserResponse>builder()
+                .result(userResponse)
+                .message(response.message())
+                .build();
     }
 
     @PostMapping("/resend-otp")
     public ResponseEntity<?> resendOtp(@RequestBody @Valid ResendOTPRequest req) {
-        var pending = pendingRegistrationMap.get(req.getEmail());
-        if (pending == null) {
+        // generate new otp
+        var otp = mailService.generateOtp();
+        var pending = authenticationService.resendRegistration(req.getEmail(), otp);
+        if (!pending) {
             return ResponseEntity.status(400).body("No pending registration for this email.");
         }
 
-        // generate new otp
-        mailService.generateAndSendOtp(req.getEmail());
+        mailService.sendOtp(req.getEmail(), otp);
         return ResponseEntity.ok("OTP resent to email: " + req.getEmail());
     }
 
@@ -89,21 +78,45 @@ public class AuthenticationController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody @Valid ForgotPasswordRequest request) {
+        String email = request.getEmail();
+        if(userService.getUserByEmail(email) == null)
+            return ResponseEntity.badRequest().body("Không tìm thấy tài khoản: " + email);
+
+        var jwtResetToken = authenticationService.requestResetPassword(email);
+
+        String resetUrl = "localhost:5173/reset-password?token=" + jwtResetToken;
+
+        String htmlBody = MailHtml.buildResetPasswordHtmlBody(resetUrl, 100);
+
+        mailService.sendEmail(email, "Reset password", htmlBody, true);
+
+        return ResponseEntity.ok("OK");
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody @Valid ResetPasswordRequest request) {
+        if(!authenticationService.resetPassword(request.getJwtResetToken(), request.getNewPassword()))
+            return ResponseEntity.badRequest().body("Fail to reset password");
+
+        return ResponseEntity.ok("New password has been set");
+    }
+
+    @GetMapping("/reset-password/validate")
+    public ResponseEntity<?> validateJwtResetPasswordToken(@RequestParam String token) {
+        return ResponseEntity.ok().body(authenticationService.validateJwtResetPasswordToken(token));
+    }
+
+    @GetMapping("/validate")
+    public ResponseEntity<?> validateAccessToken(@RequestParam String token) {
+        boolean valid = authenticationService.validateAccessToken(token);
+        return ResponseEntity.ok(valid ? "Valid" : "Invalid");
+    }
+
     @PostMapping("/logout")
     public ResponseEntity<?> logout(@Valid @RequestBody LogoutRequest logoutRequest) {
         authenticationService.logout(logoutRequest);
         return ResponseEntity.ok().body(HttpStatus.OK);
-    }
-
-    @GetMapping("/validate")
-    public ResponseEntity<?> validate(@RequestParam String token) {
-        boolean valid = authenticationService.validate(token);
-        return ResponseEntity.ok(valid ? "Valid" : "Invalid");
-    }
-
-    @GetMapping
-    public String home()
-    {
-        return "home";
     }
 }

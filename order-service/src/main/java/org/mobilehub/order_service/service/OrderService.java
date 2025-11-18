@@ -1,6 +1,7 @@
 package org.mobilehub.order_service.service;
 
 import lombok.RequiredArgsConstructor;
+import org.mobilehub.order_service.client.CustomerClient;
 import org.mobilehub.order_service.client.ProductClient;
 import org.mobilehub.order_service.client.UserClient;
 import org.mobilehub.order_service.dto.request.OrderCancelRequest;
@@ -35,6 +36,7 @@ public class OrderService {
     private final OrderMapper orderMapper;
 
     private final UserClient userClient;
+    private final CustomerClient customerClient;
     private final ProductClient productClient;
 
     private final OrderEventPublisher publisher;
@@ -46,6 +48,10 @@ public class OrderService {
         Order order = orderMapper.toOrder(userId, request);
         order.setStatus(OrderStatus.PENDING);
         order.setCreatedAt(Instant.now());
+
+        // shipping address
+        var address = customerClient.getAddress(request.getAddressId());
+        order.setShippingAddress(address.toString());
 
         return setOrderItems(order, request.getItems());
     }
@@ -82,19 +88,10 @@ public class OrderService {
                         .toList()
         ));
 
-        var response = orderMapper.toOrderResponse(savedOrder);
-
-        BigDecimal totalAmount = savedOrder.getItems().stream()
-                .map(i -> i.getFinalPrice().multiply(BigDecimal.valueOf(i.getQuantity())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        response.setTotalAmount(totalAmount);
-        return response;
+        return orderMapper.toOrderResponse(savedOrder);
     }
 
-    /**
-     * Lấy chi tiết 1 đơn hàng theo ID
-     */
+
     @Transactional(readOnly = true)
     public OrderResponse getOrderById(Long orderId) {
         Order order = orderRepository.findById(orderId)
@@ -102,15 +99,11 @@ public class OrderService {
         return orderMapper.toOrderResponse(order);
     }
 
-    /**
-     * Lấy danh sách đơn hàng của người dùng
-     */
     @Transactional(readOnly = true)
-    public List<OrderSummaryResponse> getOrdersByUser(Long userId) {
-        return orderRepository.findByUserId(userId)
-                .stream()
-                .map(orderMapper::toSummaryResponse) // ✅ Dùng MapStruct mapper
-                .toList();
+    public List<OrderResponse> getOrdersByUserId(Long userId) {
+        List<Order> orders = orderRepository.findByUserId(userId);
+
+        return orders.stream().map(orderMapper::toOrderResponse).toList();
     }
 
     /**

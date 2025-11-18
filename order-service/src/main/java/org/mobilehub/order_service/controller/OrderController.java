@@ -33,19 +33,20 @@ public class OrderController {
             @PathVariable Long userId,
             @Valid @RequestBody OrderCreateRequest request) {
         validateUserAccess(userId);
-        OrderResponse response = orderService.createOrder(userId, request);
+        var response = orderService.createOrder(userId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<OrderResponse> getOrderById(@PathVariable Long id) {
-        OrderResponse response = orderService.getOrderById(id);
+        var response = orderService.getOrderById(id);
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<OrderSummaryResponse>> getOrdersByUser(@PathVariable Long userId) {
-        List<OrderSummaryResponse> response = orderService.getOrdersByUser(userId);
+    @GetMapping("/users/{userId}")
+    public ResponseEntity<List<OrderResponse>> getOrdersByUserId(@PathVariable Long userId) {
+        validateUserAccess(userId);
+        var response = orderService.getOrdersByUserId(userId);
         return ResponseEntity.ok(response);
     }
 
