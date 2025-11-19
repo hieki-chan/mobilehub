@@ -4,21 +4,21 @@ import lombok.RequiredArgsConstructor;
 import org.mobilehub.order_service.client.CustomerClient;
 import org.mobilehub.order_service.client.ProductClient;
 import org.mobilehub.order_service.client.UserClient;
-import org.mobilehub.order_service.dto.request.OrderCancelRequest;
-import org.mobilehub.order_service.dto.request.OrderCreateRequest;
-import org.mobilehub.order_service.dto.request.OrderItemRequest;
-import org.mobilehub.order_service.dto.request.OrderUpdateStatusRequest;
+import org.mobilehub.order_service.dto.request.*;
 import org.mobilehub.order_service.dto.response.OrderResponse;
 import org.mobilehub.order_service.dto.response.OrderSummaryResponse;
-import org.mobilehub.order_service.entity.Order;
-import org.mobilehub.order_service.entity.OrderItem;
-import org.mobilehub.order_service.entity.OrderStatus;
+import org.mobilehub.order_service.entity.*;
 import org.mobilehub.order_service.exception.OrderCannotBeCancelledException;
 import org.mobilehub.order_service.exception.OrderNotFoundException;
 import org.mobilehub.order_service.Mapper.OrderMapper;
 import org.mobilehub.order_service.kafka.OrderEventPublisher;
 import org.mobilehub.order_service.repository.OrderRepository;
 import org.mobilehub.shared.contracts.order.OrderCreatedEvent;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -117,18 +117,93 @@ public class OrderService {
         return orderMapper.toOrderResponse(orderRepository.save(order));
     }
 
-    /**
-     * Hủy đơn hàng (chỉ khi đang PENDING)
-     */
-    public OrderResponse cancelOrder(Long orderId, OrderCancelRequest request) {
+
+    public OrderResponse cancelOrder(Long orderId, Long userId, String cancelReason) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new OrderNotFoundException(orderId));
 
-        if (order.getStatus() != OrderStatus.PENDING) {
-            throw new OrderCannotBeCancelledException(order.getStatus().name());
-        }
+        if(!order.getUserId().equals(userId))
+            throw new OrderCannotBeCancelledException("no access" + userId);
+
+        if(order.getStatus() != OrderStatus.PENDING)
+            throw new OrderCannotBeCancelledException(order.getStatus().toString());
 
         order.setStatus(OrderStatus.CANCELLED);
+        order.setCancelReason(cancelReason);
         return orderMapper.toOrderResponse(orderRepository.save(order));
     }
+
+    public boolean confirmOrder(Long orderId)
+    {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderNotFoundException(orderId));
+
+        if(order.getStatus() != OrderStatus.PENDING)
+            return false;
+
+        order.setStatus(OrderStatus.SHIPPING);
+        orderRepository.save(order);
+        return true;
+    }
+
+    public boolean setOrderDelivered(Long orderId)
+    {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderNotFoundException(orderId));
+
+        if(order.getStatus() != OrderStatus.SHIPPING)
+            return false;
+
+        order.setStatus(OrderStatus.DELIVERED);
+        orderRepository.save(order);
+        return true;
+    }
+
+    public boolean setOrderFailed(Long orderId)
+    {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderNotFoundException(orderId));
+
+        if(order.getStatus() == OrderStatus.DELIVERED || order.getStatus() == OrderStatus.CANCELLED)
+            return false;
+
+        order.setStatus(OrderStatus.FAILED);
+        orderRepository.save(order);
+        return true;
+    }
+
+    public Page<OrderResponse> getOrdersPaged(int page, int size,
+                                              OrderStatus status,
+                                              PaymentMethod payment,
+                                              ShippingMethod shipping)
+    {
+
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(Sort.Direction.DESC, "createdAt")
+        );
+
+        Specification<Order> spec = (root, query, cb) -> cb.conjunction();
+
+        if (status != null) {
+            spec = spec.and((root, query, cb) ->
+                    cb.equal(root.get("status"), status));
+        }
+
+        if (payment != null) {
+            spec = spec.and((root, query, cb) ->
+                    cb.equal(root.get("paymentMethod"), payment));
+        }
+
+        if (shipping != null) {
+            spec = spec.and((root, query, cb) ->
+                    cb.equal(root.get("shippingMethod"), shipping));
+        }
+
+        Page<Order> orderPage = orderRepository.findAll(spec, pageable);
+
+        return orderPage.map(orderMapper::toOrderResponse);
+    }
+
 }

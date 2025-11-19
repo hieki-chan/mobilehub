@@ -27,7 +27,7 @@ public class OrderStatusUpdater {
 
         // Không lùi trạng thái nếu đã sang các bước sau/terminal
         if (order.getStatus() == OrderStatus.PAID
-                || order.getStatus() == OrderStatus.SHIPPED
+                || order.getStatus() == OrderStatus.SHIPPING
                 || order.getStatus() == OrderStatus.DELIVERED
                 || isTerminal(order.getStatus())) {
             return;
@@ -54,7 +54,7 @@ public class OrderStatusUpdater {
 
         if (order.getStatus() == OrderStatus.PAID) return;        // idempotent
         if (isTerminal(order.getStatus())) return;                 // không lùi từ CANCELLED/FAILED/DELIVERED
-        if (order.getStatus() == OrderStatus.SHIPPED
+        if (order.getStatus() == OrderStatus.SHIPPING
                 || order.getStatus() == OrderStatus.DELIVERED) return;
 
         order.setStatus(OrderStatus.PAID);
@@ -70,12 +70,12 @@ public class OrderStatusUpdater {
         Order order = orderRepo.findById(orderId)
                 .orElseThrow(() -> new IllegalStateException("Order not found: " + orderId));
 
-        if (order.getStatus() == OrderStatus.SHIPPED || order.getStatus() == OrderStatus.DELIVERED) return;
+        if (order.getStatus() == OrderStatus.SHIPPING || order.getStatus() == OrderStatus.DELIVERED) return;
         if (isTerminal(order.getStatus())) return;
         // Chỉ cho phép ship khi đã PAID
         if (order.getStatus() != OrderStatus.PAID) return;
 
-        order.setStatus(OrderStatus.SHIPPED);
+        order.setStatus(OrderStatus.SHIPPING);
     }
 
     /** hoàn tất giao hàng */
@@ -87,7 +87,7 @@ public class OrderStatusUpdater {
         if (order.getStatus() == OrderStatus.DELIVERED) return;
         if (isTerminal(order.getStatus())) return;
         // thường: chỉ DELIVERED khi đang SHIPPED
-        if (order.getStatus() != OrderStatus.SHIPPED) return;
+        if (order.getStatus() != OrderStatus.SHIPPING) return;
 
         order.setStatus(OrderStatus.DELIVERED);
     }
@@ -100,7 +100,7 @@ public class OrderStatusUpdater {
 
         if (order.getStatus() == OrderStatus.CANCELLED) return; // idempotent
         if (order.getStatus() == OrderStatus.PAID
-                || order.getStatus() == OrderStatus.SHIPPED
+                || order.getStatus() == OrderStatus.SHIPPING
                 || order.getStatus() == OrderStatus.DELIVERED) return;
 
         order.setStatus(OrderStatus.CANCELLED);
@@ -117,7 +117,7 @@ public class OrderStatusUpdater {
 
         if (order.getStatus() == OrderStatus.FAILED) return; // idempotent
         if (order.getStatus() == OrderStatus.PAID
-                || order.getStatus() == OrderStatus.SHIPPED
+                || order.getStatus() == OrderStatus.SHIPPING
                 || order.getStatus() == OrderStatus.DELIVERED
                 || order.getStatus() == OrderStatus.CANCELLED) return;
 

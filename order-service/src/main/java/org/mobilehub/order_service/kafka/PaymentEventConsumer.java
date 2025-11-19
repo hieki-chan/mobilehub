@@ -43,7 +43,7 @@ public class PaymentEventConsumer {
                 }
                 case "PAYMENT_CANCELED" -> {
                     if (order.getStatus() == OrderStatus.PAID
-                            || order.getStatus() == OrderStatus.SHIPPED
+                            || order.getStatus() == OrderStatus.SHIPPING
                             || order.getStatus() == OrderStatus.DELIVERED) {
                         log.warn("[payment.events] CANCELLED đến muộn, order {} đã {}", order.getId(), order.getStatus());
                         return;
@@ -54,7 +54,7 @@ public class PaymentEventConsumer {
                 }
                 case "PAYMENT_FAILED" -> {
                     if (order.getStatus() == OrderStatus.PAID
-                            || order.getStatus() == OrderStatus.SHIPPED
+                            || order.getStatus() == OrderStatus.SHIPPING
                             || order.getStatus() == OrderStatus.DELIVERED) {
                         log.warn("[payment.events] FAILED đến muộn, order {} đã {}", order.getId(), order.getStatus());
                         return;

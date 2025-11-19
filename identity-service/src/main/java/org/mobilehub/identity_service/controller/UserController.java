@@ -66,7 +66,7 @@ public class UserController {
                     "message", "Xóa người dùng thành công"
             ));
         } else {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("success", false, "message", "Không thể xóa người dùng"));
         }
     }

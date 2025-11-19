@@ -11,6 +11,7 @@ import org.mobilehub.identity_service.dto.response.RegistrationResponse;
 import org.mobilehub.identity_service.dto.response.UserResponse;
 import org.mobilehub.identity_service.entity.Role;
 import org.mobilehub.identity_service.entity.User;
+import org.mobilehub.identity_service.entity.UserStatus;
 import org.mobilehub.identity_service.exception.UserException;
 import org.mobilehub.identity_service.mapper.UserMapper;
 import org.mobilehub.identity_service.repository.UserRepository;
@@ -101,6 +102,9 @@ public class AuthenticationService {
         if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
             throw new UserException("Wrong password");
         }
+
+        if(user.getStatus() != UserStatus.ACTIVE)
+            throw new UserException("User is " + user.getStatus());
 
         return LoginResponse.builder()
                 .accessToken(tokenProvider.generateToken(String.valueOf(user.getId()), buildUserClaim(user)))

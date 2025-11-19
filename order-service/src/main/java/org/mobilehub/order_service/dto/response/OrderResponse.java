@@ -5,6 +5,7 @@ import org.mobilehub.order_service.entity.OrderStatus;
 import org.mobilehub.order_service.entity.PaymentMethod;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 
 @Getter
@@ -19,5 +20,6 @@ public class OrderResponse {
     private PaymentMethod paymentMethod;
     private BigDecimal totalPrice;
     private OrderStatus status;
+    private Instant createdAt;
     private List<OrderItemResponse> items;
 }
