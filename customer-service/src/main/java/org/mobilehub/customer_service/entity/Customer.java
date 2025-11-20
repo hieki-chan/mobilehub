@@ -30,4 +30,8 @@ public class Customer {
     @JoinColumn(name = "default_address_id", referencedColumnName = "id")
     @OnDelete(action = OnDeleteAction.SET_NULL)
     private Address defaultAddress;
+
+    //@OneToOne(cascade = CascadeType.ALL)
+    //@JoinColumn(name = "user_profile_id", referencedColumnName = "id")
+    //private UserProfile userProfile;
 }
