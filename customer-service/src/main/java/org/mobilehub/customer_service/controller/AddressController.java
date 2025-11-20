@@ -7,7 +7,8 @@ import org.mobilehub.customer_service.dto.request.UpdateAddressRequest;
 import org.mobilehub.customer_service.dto.response.DeletedAddressResponse;
 import org.mobilehub.customer_service.dto.request.CreateAddressRequest;
 import org.mobilehub.customer_service.dto.response.AddressResponse;
-import org.mobilehub.customer_service.service.CustomerService;
+import org.mobilehub.customer_service.service.AddressService;
+import org.mobilehub.customer_service.util.UserAccess;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,11 +24,11 @@ import java.util.List;
 @SuppressWarnings("unused")
 public class AddressController {
 
-    CustomerService addressService;
+    AddressService addressService;
 
     @GetMapping("/{userId}/addresses")
     public ResponseEntity<List<AddressResponse>> getAddressesFromUser(@PathVariable Long userId) {
-        validateUserAccess(userId);
+        UserAccess.validateUserAccess(userId);
         return ResponseEntity.ok(addressService.getAddressesFromUser(userId));
     }
 
@@ -42,13 +43,13 @@ public class AddressController {
             @PathVariable Long userId,
             @RequestBody CreateAddressRequest request) {
 
-        validateUserAccess(userId);
+        UserAccess.validateUserAccess(userId);
         return ResponseEntity.ok(addressService.createAddress(request, userId));
     }
 
     @GetMapping("/{userId}/addresses/default")
     public ResponseEntity<AddressResponse> getDefaultAddress(@PathVariable Long userId) {
-        validateUserAccess(userId);
+        UserAccess.validateUserAccess(userId);
         return ResponseEntity.ok(addressService.getDefaultAddress(userId));
     }
 
@@ -57,7 +58,7 @@ public class AddressController {
             @PathVariable Long userId,
             @PathVariable Long addressId) {
 
-        validateUserAccess(userId);
+        UserAccess.validateUserAccess(userId);
         addressService.setDefaultAddress(userId, addressId);
         return ResponseEntity.ok("Default address has been set successfully");
     }
@@ -68,7 +69,7 @@ public class AddressController {
             @PathVariable Long addressId,
             @RequestBody UpdateAddressRequest request) {
 
-        validateUserAccess(userId);
+        UserAccess.validateUserAccess(userId);
         return ResponseEntity.ok(addressService.updateAddress(userId, addressId, request));
     }
 
@@ -77,7 +78,7 @@ public class AddressController {
             @PathVariable Long userId,
             @PathVariable Long addressId) {
 
-        validateUserAccess(userId);
+        UserAccess.validateUserAccess(userId);
         return ResponseEntity.ok(addressService.deleteAddressFromUser(userId, addressId));
     }
 
@@ -86,16 +87,5 @@ public class AddressController {
             @PathVariable Long addressId) {
 
         return ResponseEntity.ok(addressService.getAddress(addressId));
-    }
-
-    private Long getPrincipalId() {
-        return (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-    }
-
-    private void validateUserAccess(Long pathUserId) {
-        Long principalId = getPrincipalId();
-        if (!principalId.equals(pathUserId)) {
-            throw new AccessDeniedException("You have no permission to access other customer data");
-        }
     }
 }

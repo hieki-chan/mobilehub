@@ -90,6 +90,7 @@ public class AuthenticationService {
         User user = userMapper.toUser(registerUserRequest);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setRole(Role.USER);
+        user.setStatus(UserStatus.ACTIVE);
 
         User savedUser = userRepository.save(user);
         return userMapper.toUserResponse(savedUser);
