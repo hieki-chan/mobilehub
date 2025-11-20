@@ -35,10 +35,12 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        // Nếu đã seed rồi thì thôi
+        // Nếu đã seed rồi thì thôi (tránh nhân đôi dữ liệu khi restart)
         if (partnerRepo.count() > 0) {
             return;
         }
+
+        LocalDateTime now = LocalDateTime.now();
 
         // ======= PARTNERS =======
         Partner fe = partnerRepo.save(
@@ -97,7 +99,7 @@ public class DataInitializer implements CommandLineRunner {
                         .partner(home)
                         .plan(plan1)
                         .status(ApplicationStatus.APPROVED)
-                        .createdAt(LocalDateTime.now().minusDays(3))
+                        .createdAt(now.minusDays(3))
                         .build()
         );
 
@@ -113,12 +115,12 @@ public class DataInitializer implements CommandLineRunner {
                         .partner(fe)
                         .plan(plan2)
                         .status(ApplicationStatus.APPROVED)
-                        .createdAt(LocalDateTime.now().minusDays(5))
+                        .createdAt(now.minusDays(5))
                         .build()
         );
 
-        // APP-003: thêm 1 hồ sơ đang chờ duyệt để test filter
-        appRepo.save(
+        // APP-003: hồ sơ đang chờ duyệt (để test trạng thái)
+        InstallmentApplication app3Pending = appRepo.save(
                 InstallmentApplication.builder()
                         .code("APP-003")
                         .customerName("Lê Văn C")
@@ -129,12 +131,120 @@ public class DataInitializer implements CommandLineRunner {
                         .partner(fe)
                         .plan(plan2)
                         .status(ApplicationStatus.PENDING)
-                        .createdAt(LocalDateTime.now().minusDays(1))
+                        .createdAt(now.minusDays(1))
+                        .build()
+        );
+
+        // === Thêm một số hồ sơ APPROVED cho các tháng khác nhau
+        // Dùng cho hợp đồng ở T6, T8, T9, T10
+        InstallmentApplication app4 = appRepo.save(
+                InstallmentApplication.builder()
+                        .code("APP-004")
+                        .customerName("Phạm Thị D")
+                        .customerPhone("0908888888")
+                        .productName("TV Sony 55\"")
+                        .productPrice(18_000_000L)
+                        .loanAmount(15_000_000L)
+                        .partner(home)
+                        .plan(plan2)
+                        .status(ApplicationStatus.APPROVED)
+                        .createdAt(now.minusMonths(5).plusDays(2))   // T6
+                        .build()
+        );
+
+        InstallmentApplication app5 = appRepo.save(
+                InstallmentApplication.builder()
+                        .code("APP-005")
+                        .customerName("Ngô Văn E")
+                        .customerPhone("0912333444")
+                        .productName("Máy giặt LG")
+                        .productPrice(12_000_000L)
+                        .loanAmount(9_000_000L)
+                        .partner(fe)
+                        .plan(plan1)
+                        .status(ApplicationStatus.APPROVED)
+                        .createdAt(now.minusMonths(3).plusDays(3))   // T8
+                        .build()
+        );
+
+        InstallmentApplication app6 = appRepo.save(
+                InstallmentApplication.builder()
+                        .code("APP-006")
+                        .customerName("Trần Thị F")
+                        .customerPhone("0933555777")
+                        .productName("Tủ lạnh Samsung")
+                        .productPrice(20_000_000L)
+                        .loanAmount(16_000_000L)
+                        .partner(home)
+                        .plan(plan2)
+                        .status(ApplicationStatus.APPROVED)
+                        .createdAt(now.minusMonths(2).plusDays(1))   // T9
+                        .build()
+        );
+
+        InstallmentApplication app7 = appRepo.save(
+                InstallmentApplication.builder()
+                        .code("APP-007")
+                        .customerName("Lê Minh G")
+                        .customerPhone("0988111222")
+                        .productName("MacBook Air M2")
+                        .productPrice(30_000_000L)
+                        .loanAmount(25_000_000L)
+                        .partner(fe)
+                        .plan(plan1)
+                        .status(ApplicationStatus.APPROVED)
+                        .createdAt(now.minusMonths(1).plusDays(4))   // T10
+                        .build()
+        );
+
+        // === Thêm vài hồ sơ PENDING để bảng "Hồ sơ chờ duyệt gần nhất" có dữ liệu
+        appRepo.save(
+                InstallmentApplication.builder()
+                        .code("APP-008")
+                        .customerName("Đỗ Thị H")
+                        .customerPhone("0907666555")
+                        .productName("Điện thoại Oppo X")
+                        .productPrice(10_000_000L)
+                        .loanAmount(8_000_000L)
+                        .partner(home)
+                        .plan(plan1)
+                        .status(ApplicationStatus.PENDING)
+                        .createdAt(now.minusHours(6))
+                        .build()
+        );
+
+        appRepo.save(
+                InstallmentApplication.builder()
+                        .code("APP-009")
+                        .customerName("Phan Văn I")
+                        .customerPhone("0905777333")
+                        .productName("Tablet Android")
+                        .productPrice(8_000_000L)
+                        .loanAmount(6_000_000L)
+                        .partner(fe)
+                        .plan(plan2)
+                        .status(ApplicationStatus.PENDING)
+                        .createdAt(now.minusHours(3))
+                        .build()
+        );
+
+        appRepo.save(
+                InstallmentApplication.builder()
+                        .code("APP-010")
+                        .customerName("Nguyễn Thị K")
+                        .customerPhone("0914111222")
+                        .productName("Smart TV LG 65\"")
+                        .productPrice(22_000_000L)
+                        .loanAmount(18_000_000L)
+                        .partner(fe)
+                        .plan(plan2)
+                        .status(ApplicationStatus.PENDING)
+                        .createdAt(now.minusHours(1))
                         .build()
         );
 
         // ======= CONTRACTS (Hợp đồng) =======
-        // HĐ 1: CT-001 cho APP-002 (FE Credit 12 tháng)
+        // HĐ 1: CT-001 cho APP-002 (FE Credit 12 tháng) – START T7 (now - 4 tháng)
         LocalDate ct1StartDate = LocalDate.now().minusMonths(4);
         InstallmentContract ct1 = contractRepo.save(
                 InstallmentContract.builder()
@@ -150,7 +260,7 @@ public class DataInitializer implements CommandLineRunner {
                         .build()
         );
 
-        // HĐ 2: CT-002 cho APP-001 (0% 6 tháng)
+        // HĐ 2: CT-002 cho APP-001 (0% 6 tháng) – START T11 (tháng hiện tại)
         LocalDate ct2StartDate = LocalDate.now();
         InstallmentContract ct2 = contractRepo.save(
                 InstallmentContract.builder()
@@ -162,13 +272,84 @@ public class DataInitializer implements CommandLineRunner {
                         .status(ContractStatus.ACTIVE)
                         .startDate(ct2StartDate)
                         .endDate(ct2StartDate.plusMonths(6))
-                        .createdAt(LocalDateTime.now())
+                        .createdAt(now)
+                        .build()
+        );
+
+        // HĐ 3: CT-003 cho APP-004 – START T6 (now - 5 tháng)
+        LocalDate ct3StartDate = LocalDate.now().minusMonths(5);
+        InstallmentContract ct3 = contractRepo.save(
+                InstallmentContract.builder()
+                        .code("CT-003")
+                        .application(app4)
+                        .plan(plan2)
+                        .totalLoan(app4.getLoanAmount())     // 15.000.000
+                        .remainingAmount(12_000_000L)
+                        .status(ContractStatus.ACTIVE)
+                        .startDate(ct3StartDate)
+                        .endDate(ct3StartDate.plusMonths(12))
+                        .createdAt(ct3StartDate.atStartOfDay())
+                        .build()
+        );
+
+        // HĐ 4: CT-004 cho APP-005 – START T8 (now - 3 tháng)
+        LocalDate ct4StartDate = LocalDate.now().minusMonths(3);
+        InstallmentContract ct4 = contractRepo.save(
+                InstallmentContract.builder()
+                        .code("CT-004")
+                        .application(app5)
+                        .plan(plan1)
+                        .totalLoan(app5.getLoanAmount())     // 9.000.000
+                        .remainingAmount(9_000_000L)
+                        .status(ContractStatus.ACTIVE)
+                        .startDate(ct4StartDate)
+                        .endDate(ct4StartDate.plusMonths(6))
+                        .createdAt(ct4StartDate.atStartOfDay())
+                        .build()
+        );
+
+        // HĐ 5: CT-005 cho APP-006 – START T9 (now - 2 tháng)
+        LocalDate ct5StartDate = LocalDate.now().minusMonths(2);
+        InstallmentContract ct5 = contractRepo.save(
+                InstallmentContract.builder()
+                        .code("CT-005")
+                        .application(app6)
+                        .plan(plan2)
+                        .totalLoan(app6.getLoanAmount())     // 16.000.000
+                        .remainingAmount(13_000_000L)
+                        .status(ContractStatus.ACTIVE)
+                        .startDate(ct5StartDate)
+                        .endDate(ct5StartDate.plusMonths(12))
+                        .createdAt(ct5StartDate.atStartOfDay())
+                        .build()
+        );
+
+        // HĐ 6: CT-006 cho APP-007 – START T10 (now - 1 tháng)
+        LocalDate ct6StartDate = LocalDate.now().minusMonths(1);
+        InstallmentContract ct6 = contractRepo.save(
+                InstallmentContract.builder()
+                        .code("CT-006")
+                        .application(app7)
+                        .plan(plan1)
+                        .totalLoan(app7.getLoanAmount())     // 25.000.000
+                        .remainingAmount(25_000_000L)
+                        .status(ContractStatus.ACTIVE)
+                        .startDate(ct6StartDate)
+                        .endDate(ct6StartDate.plusMonths(6))
+                        .createdAt(ct6StartDate.atStartOfDay())
                         .build()
         );
 
         // ======= PAYMENT SCHEDULE (Lịch thanh toán) =======
-        seedScheduleForStandardContract(ct1, plan2, 12); // annuity 12 kỳ, có Paid/Overdue
-        seedScheduleForZeroInterestContract(ct2, plan1, 6); // 0% lãi, 6 kỳ Planned
+        // CT-001 & CT-003 & CT-005: dùng plan2 (có lãi, annuity 12 kỳ)
+        seedScheduleForStandardContract(ct1, plan2, 12);
+        seedScheduleForStandardContract(ct3, plan2, 12);
+        seedScheduleForStandardContract(ct5, plan2, 12);
+
+        // CT-002 & CT-004 & CT-006: dùng plan1 (0% lãi, chia đều 6 kỳ)
+        seedScheduleForZeroInterestContract(ct2, plan1, 6);
+        seedScheduleForZeroInterestContract(ct4, plan1, 6);
+        seedScheduleForZeroInterestContract(ct6, plan1, 6);
     }
 
     /**
@@ -204,8 +385,8 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     /**
-     * Lịch có lãi (annuity): 12 kỳ.
-     * Kỳ 1–2: PAID, kỳ 3: OVERDUE, còn lại: PLANNED.
+     * Lịch có lãi (annuity):
+     * - Một số kỳ Paid/Overdue để dashboard có đủ case.
      */
     private void seedScheduleForStandardContract(InstallmentContract contract,
                                                  InstallmentPlan plan,
