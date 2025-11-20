@@ -1,0 +1,16 @@
+version: "3.9"
+
+services:
+  cccd-api:
+    image: hiekichan/cccd_api:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cccd_api
+    ports:
+      - "9096:9096"
+    restart: unless-stopped
+    volumes:
+      - ./app:/app
+    environment:
+      - UVICORN_RELOAD=true
