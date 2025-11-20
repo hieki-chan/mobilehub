@@ -125,10 +125,25 @@ public class AddressService {
     }
 
     public List<AddressResponse> getAddressesFromUser(Long userId) {
-        Customer customer = findCustomer(userId);
+        Customer customer = customerRepository.findById(userId).orElse(null);
+        Customer savedCustomer;
+
+        // ko co cai bong den  ha=)) kia
+        if(customer == null) {
+            if(!userClient.exists(userId)) {
+                throw new RuntimeException("Invalid user with id " + userId);
+            }
+
+            customer = new Customer();
+            customer.setId(userId);
+            savedCustomer = customerRepository.save(customer);
+        } else {
+            savedCustomer = customer;
+        }
+
         return addressRepository.findAllByCustomerId(userId)
                 .stream()
-                .map(a -> addressMapper.toAddressResponse(a, a.equals(customer.getDefaultAddress())))
+                .map(a -> addressMapper.toAddressResponse(a, a.equals(savedCustomer.getDefaultAddress())))
                 .toList();
     }
 

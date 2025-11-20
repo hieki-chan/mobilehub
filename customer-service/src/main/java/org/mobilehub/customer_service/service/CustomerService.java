@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.mobilehub.customer_service.client.CCCDApiClient;
+import org.mobilehub.customer_service.client.UserClient;
 import org.mobilehub.customer_service.dto.response.VerifyResponse;
 import org.mobilehub.customer_service.entity.Customer;
 import org.mobilehub.customer_service.repository.CustomerRepository;
@@ -17,11 +18,24 @@ public class CustomerService {
 
     CustomerRepository customerRepository;
     CCCDApiClient cccdApiClient;
+    UserClient userClient;
 
     public VerifyResponse verifyCCCD(MultipartFile fontImage, Long customerId)
     {
         Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new RuntimeException("no access permission: " + customerId));
+                .orElse(null);
+
+        // java nguvl, neu = null ms gan ma cu bao cai loi j y cus
+       if(customer == null)
+       {
+           if(!userClient.exists(customerId)) {
+               throw new RuntimeException("user is invalid or has no access permission: " + customerId);
+           }
+
+           customer = new Customer();
+           customer.setId(customerId);
+           customerRepository.save(customer);
+       }
 
         VerifyResponse response = cccdApiClient.verifyCCCD(fontImage);
         if(response.getStatus().equalsIgnoreCase("ok"))
