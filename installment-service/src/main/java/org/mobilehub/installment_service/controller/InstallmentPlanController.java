@@ -25,4 +25,9 @@ public class InstallmentPlanController {
     public PlanResponse createPlan(@Valid @RequestBody PlanCreateRequest request) {
         return planService.createPlan(request);
     }
+
+    @DeleteMapping("/{id}")
+    public PlanResponse deactivatePlan(@PathVariable Long id) {
+        return planService.deactivatePlan(id);
+    }
 }

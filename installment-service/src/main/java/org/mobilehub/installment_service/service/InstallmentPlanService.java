@@ -8,4 +8,5 @@ import java.util.List;
 public interface InstallmentPlanService {
     List<PlanResponse> getAllPlans();
     PlanResponse createPlan(PlanCreateRequest request);
+    PlanResponse deactivatePlan(Long id);
 }

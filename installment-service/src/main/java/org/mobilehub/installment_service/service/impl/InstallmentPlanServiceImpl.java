@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 public class InstallmentPlanServiceImpl implements InstallmentPlanService {
 
     private final InstallmentPlanRepository planRepo;
-    private final PartnerRepository partnerRepo;
+    private final PartnerRepository        partnerRepo;
 
     @Override
     public List<PlanResponse> getAllPlans() {
@@ -47,6 +47,22 @@ public class InstallmentPlanServiceImpl implements InstallmentPlanService {
                 .build();
 
         planRepo.save(plan);
+        return toResponse(plan);
+    }
+
+    @Override
+    @Transactional
+    public PlanResponse deactivatePlan(Long id) {
+        // Tìm plan, nếu không có thì báo lỗi
+        InstallmentPlan plan = planRepo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Plan not found"));
+
+        // Only change if it is currently active
+        if (plan.isActive()) {
+            plan.setActive(false);
+            planRepo.save(plan);
+        }
+
         return toResponse(plan);
     }
 
