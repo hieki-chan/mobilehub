@@ -3,6 +3,7 @@ package org.mobilehub.identity_service.config;
 import lombok.RequiredArgsConstructor;
 import org.mobilehub.identity_service.entity.Role;
 import org.mobilehub.identity_service.entity.User;
+import org.mobilehub.identity_service.entity.UserStatus;
 import org.mobilehub.identity_service.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,6 +26,7 @@ public class CommandlineAppStartRunner implements CommandLineRunner {
                     .username("admin")
                     .password(passwordEncoder.encode("123"))
                     .role(Role.ADMIN)
+                    .status(UserStatus.ACTIVE)
                     .build();
 
             userRepository.save(admin);

@@ -89,4 +89,10 @@ public class UserController {
         var userResponse = userService.getUser(userId);
         return ResponseEntity.ok(userResponse);
     }
+
+    @GetMapping("/users/{userId}/username")
+    public ResponseEntity<String> getUserName(@PathVariable Long userId)
+    {
+        return ResponseEntity.ok(userService.getUser(userId).getUsername());
+    }
 }
