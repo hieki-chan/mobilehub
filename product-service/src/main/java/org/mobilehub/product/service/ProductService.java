@@ -6,6 +6,7 @@ import org.mobilehub.product.exception.VariantNotFoundException;
 import org.mobilehub.product.repository.ProductVariantRepository;
 import org.mobilehub.product.util.DiscountUtils;
 import org.mobilehub.shared.contracts.media.MultipleImageResponse;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.mobilehub.product.dto.response.*;
@@ -245,6 +246,65 @@ public class ProductService {
         var response =  productMapper.toProductDetailsResponse(product);
         response.setDefaultVariantId(product.getDefaultVariant().getId());
         return response;
+    }
+
+    @Transactional
+    public Page<ProductResponse> searchProducts(int page, int size, String q, String priceRange, List<String> brands) {
+        Pageable pageable = PageRequest.of(page, size);
+
+        Specification<Product> spec = (root, query, cb) ->
+                cb.equal(root.get("status"), ProductStatus.ACTIVE);
+
+        if (q != null && !q.isBlank()) {
+            String term = q.toLowerCase();
+            spec = spec.and((root, query, cb) ->
+                    cb.or(
+                            cb.like(cb.lower(root.get("name")), "%" + term + "%"),
+                            cb.like(cb.lower(root.get("description")), "%" + term + "%")
+                    )
+            );
+        }
+
+        if (brands != null && !brands.isEmpty()) {
+            spec = spec.and((root, query, cb) ->
+                    root.get("brand").in(brands)
+            );
+        }
+
+        if (!"all".equals(priceRange)) {
+            spec = spec.and((root, query, cb) -> {
+                return switch (priceRange) {
+                    case "under5" -> cb.lt(root.get("defaultVariant").get("price"), 5000000);
+                    case "5to10" -> cb.between(root.get("defaultVariant").get("price"), 5000000, 9999999);
+                    case "10to20" -> cb.between(root.get("defaultVariant").get("price"), 10000000, 19999999);
+                    case "20to30" -> cb.between(root.get("defaultVariant").get("price"), 20000000, 29999999);
+                    case "over30" -> cb.ge(root.get("defaultVariant").get("price"), 30000000);
+                    default -> null;
+                };
+            });
+        }
+
+        return productRepository.findAll(spec, pageable)
+                .map(productMapper::toProductResponse);
+    }
+
+    @Transactional
+    public List<ProductResponse> searchProductsByName(String name, int limit) {
+        if (name == null || name.isBlank()) return List.of();
+
+        String term = "%" + name.toLowerCase() + "%";
+
+        Specification<Product> spec = (root, query, cb) -> cb.and(
+                cb.like(cb.lower(root.get("name")), term),
+                cb.equal(root.get("status"), ProductStatus.ACTIVE)
+        );
+
+        Pageable pageable = PageRequest.of(0, limit);
+
+        return productRepository.findAll(spec, pageable)
+                .stream()
+                .map(productMapper::toProductResponse)
+                .toList();
     }
 
     // endregion

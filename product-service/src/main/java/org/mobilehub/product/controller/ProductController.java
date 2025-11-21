@@ -107,6 +107,28 @@ public class ProductController {
         var discountedProducts = productService.getDiscountedProducts();
         return ResponseEntity.ok(discountedProducts);
     }
+
+    @GetMapping("/products/search")
+    public ResponseEntity<Page<ProductResponse>> searchProducts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "8") int size,
+            @RequestParam(required = false) String q,
+            @RequestParam(defaultValue = "all") String priceRange,
+            @RequestParam(required = false) List<String> brands
+    ) {
+        Page<ProductResponse> products = productService.searchProducts(page, size, q, priceRange, brands);
+        return ResponseEntity.ok(products);
+    }
+
+    @GetMapping("/products/search/name")
+    public ResponseEntity<List<ProductResponse>> searchProductsByName(
+            @RequestParam String name,
+            @RequestParam(defaultValue = "10") int limit
+    ) {
+        List<ProductResponse> products = productService.searchProductsByName(name, limit);
+        return ResponseEntity.ok(products);
+    }
+
     // endregion
 
     @GetMapping("/products/carts")
