@@ -45,6 +45,9 @@ public class InstallmentApplication {
     @JoinColumn(name = "plan_id", nullable = false)
     private InstallmentPlan plan;
 
+    @Column(nullable = false)
+    private Integer tenorMonths;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private ApplicationStatus status;

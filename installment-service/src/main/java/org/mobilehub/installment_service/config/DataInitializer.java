@@ -86,6 +86,10 @@ public class DataInitializer implements CommandLineRunner {
                         .build()
         );
 
+        // ======= TENOR DEFAULT THEO PLAN =======
+        final int TENOR_PLAN1 = 6;
+        final int TENOR_PLAN2 = 12;
+
         // ======= APPLICATIONS (Hồ sơ) =======
         // APP-001: iPhone 15, Home Credit, gói 0% 6 tháng — ĐÃ DUYỆT
         InstallmentApplication app1 = appRepo.save(
@@ -98,6 +102,7 @@ public class DataInitializer implements CommandLineRunner {
                         .loanAmount(20_000_000L)
                         .partner(home)
                         .plan(plan1)
+                        .tenorMonths(TENOR_PLAN1) // ✅ BỔ SUNG
                         .status(ApplicationStatus.APPROVED)
                         .createdAt(now.minusDays(3))
                         .build()
@@ -114,6 +119,7 @@ public class DataInitializer implements CommandLineRunner {
                         .loanAmount(14_000_000L)
                         .partner(fe)
                         .plan(plan2)
+                        .tenorMonths(TENOR_PLAN2) // ✅ BỔ SUNG
                         .status(ApplicationStatus.APPROVED)
                         .createdAt(now.minusDays(5))
                         .build()
@@ -130,13 +136,13 @@ public class DataInitializer implements CommandLineRunner {
                         .loanAmount(24_000_000L)
                         .partner(fe)
                         .plan(plan2)
+                        .tenorMonths(TENOR_PLAN2) // ✅ BỔ SUNG
                         .status(ApplicationStatus.PENDING)
                         .createdAt(now.minusDays(1))
                         .build()
         );
 
         // === Thêm một số hồ sơ APPROVED cho các tháng khác nhau
-        // Dùng cho hợp đồng ở T6, T8, T9, T10
         InstallmentApplication app4 = appRepo.save(
                 InstallmentApplication.builder()
                         .code("APP-004")
@@ -147,6 +153,7 @@ public class DataInitializer implements CommandLineRunner {
                         .loanAmount(15_000_000L)
                         .partner(home)
                         .plan(plan2)
+                        .tenorMonths(TENOR_PLAN2) // ✅ BỔ SUNG
                         .status(ApplicationStatus.APPROVED)
                         .createdAt(now.minusMonths(5).plusDays(2))   // T6
                         .build()
@@ -162,6 +169,7 @@ public class DataInitializer implements CommandLineRunner {
                         .loanAmount(9_000_000L)
                         .partner(fe)
                         .plan(plan1)
+                        .tenorMonths(TENOR_PLAN1) // ✅ BỔ SUNG
                         .status(ApplicationStatus.APPROVED)
                         .createdAt(now.minusMonths(3).plusDays(3))   // T8
                         .build()
@@ -177,6 +185,7 @@ public class DataInitializer implements CommandLineRunner {
                         .loanAmount(16_000_000L)
                         .partner(home)
                         .plan(plan2)
+                        .tenorMonths(TENOR_PLAN2) // ✅ BỔ SUNG
                         .status(ApplicationStatus.APPROVED)
                         .createdAt(now.minusMonths(2).plusDays(1))   // T9
                         .build()
@@ -192,6 +201,7 @@ public class DataInitializer implements CommandLineRunner {
                         .loanAmount(25_000_000L)
                         .partner(fe)
                         .plan(plan1)
+                        .tenorMonths(TENOR_PLAN1) // ✅ BỔ SUNG
                         .status(ApplicationStatus.APPROVED)
                         .createdAt(now.minusMonths(1).plusDays(4))   // T10
                         .build()
@@ -208,6 +218,7 @@ public class DataInitializer implements CommandLineRunner {
                         .loanAmount(8_000_000L)
                         .partner(home)
                         .plan(plan1)
+                        .tenorMonths(TENOR_PLAN1) // ✅ BỔ SUNG
                         .status(ApplicationStatus.PENDING)
                         .createdAt(now.minusHours(6))
                         .build()
@@ -223,6 +234,7 @@ public class DataInitializer implements CommandLineRunner {
                         .loanAmount(6_000_000L)
                         .partner(fe)
                         .plan(plan2)
+                        .tenorMonths(TENOR_PLAN2) // ✅ BỔ SUNG
                         .status(ApplicationStatus.PENDING)
                         .createdAt(now.minusHours(3))
                         .build()
@@ -238,6 +250,7 @@ public class DataInitializer implements CommandLineRunner {
                         .loanAmount(18_000_000L)
                         .partner(fe)
                         .plan(plan2)
+                        .tenorMonths(TENOR_PLAN2) // ✅ BỔ SUNG
                         .status(ApplicationStatus.PENDING)
                         .createdAt(now.minusHours(1))
                         .build()
@@ -255,7 +268,7 @@ public class DataInitializer implements CommandLineRunner {
                         .remainingAmount(10_000_000L)
                         .status(ContractStatus.ACTIVE)
                         .startDate(ct1StartDate)
-                        .endDate(ct1StartDate.plusMonths(12))
+                        .endDate(ct1StartDate.plusMonths(app2.getTenorMonths())) // ✅ theo tenor
                         .createdAt(ct1StartDate.atStartOfDay())
                         .build()
         );
@@ -271,7 +284,7 @@ public class DataInitializer implements CommandLineRunner {
                         .remainingAmount(app1.getLoanAmount())
                         .status(ContractStatus.ACTIVE)
                         .startDate(ct2StartDate)
-                        .endDate(ct2StartDate.plusMonths(6))
+                        .endDate(ct2StartDate.plusMonths(app1.getTenorMonths())) // ✅ theo tenor
                         .createdAt(now)
                         .build()
         );
@@ -287,7 +300,7 @@ public class DataInitializer implements CommandLineRunner {
                         .remainingAmount(12_000_000L)
                         .status(ContractStatus.ACTIVE)
                         .startDate(ct3StartDate)
-                        .endDate(ct3StartDate.plusMonths(12))
+                        .endDate(ct3StartDate.plusMonths(app4.getTenorMonths())) // ✅ theo tenor
                         .createdAt(ct3StartDate.atStartOfDay())
                         .build()
         );
@@ -303,7 +316,7 @@ public class DataInitializer implements CommandLineRunner {
                         .remainingAmount(9_000_000L)
                         .status(ContractStatus.ACTIVE)
                         .startDate(ct4StartDate)
-                        .endDate(ct4StartDate.plusMonths(6))
+                        .endDate(ct4StartDate.plusMonths(app5.getTenorMonths())) // ✅ theo tenor
                         .createdAt(ct4StartDate.atStartOfDay())
                         .build()
         );
@@ -319,7 +332,7 @@ public class DataInitializer implements CommandLineRunner {
                         .remainingAmount(13_000_000L)
                         .status(ContractStatus.ACTIVE)
                         .startDate(ct5StartDate)
-                        .endDate(ct5StartDate.plusMonths(12))
+                        .endDate(ct5StartDate.plusMonths(app6.getTenorMonths())) // ✅ theo tenor
                         .createdAt(ct5StartDate.atStartOfDay())
                         .build()
         );
@@ -335,21 +348,21 @@ public class DataInitializer implements CommandLineRunner {
                         .remainingAmount(25_000_000L)
                         .status(ContractStatus.ACTIVE)
                         .startDate(ct6StartDate)
-                        .endDate(ct6StartDate.plusMonths(6))
+                        .endDate(ct6StartDate.plusMonths(app7.getTenorMonths())) // ✅ theo tenor
                         .createdAt(ct6StartDate.atStartOfDay())
                         .build()
         );
 
         // ======= PAYMENT SCHEDULE (Lịch thanh toán) =======
-        // CT-001 & CT-003 & CT-005: dùng plan2 (có lãi, annuity 12 kỳ)
-        seedScheduleForStandardContract(ct1, plan2, 12);
-        seedScheduleForStandardContract(ct3, plan2, 12);
-        seedScheduleForStandardContract(ct5, plan2, 12);
+        // CT-001 & CT-003 & CT-005: plan2 (annuity)
+        seedScheduleForStandardContract(ct1, plan2, app2.getTenorMonths());
+        seedScheduleForStandardContract(ct3, plan2, app4.getTenorMonths());
+        seedScheduleForStandardContract(ct5, plan2, app6.getTenorMonths());
 
-        // CT-002 & CT-004 & CT-006: dùng plan1 (0% lãi, chia đều 6 kỳ)
-        seedScheduleForZeroInterestContract(ct2, plan1, 6);
-        seedScheduleForZeroInterestContract(ct4, plan1, 6);
-        seedScheduleForZeroInterestContract(ct6, plan1, 6);
+        // CT-002 & CT-004 & CT-006: plan1 (0% chia đều)
+        seedScheduleForZeroInterestContract(ct2, plan1, app1.getTenorMonths());
+        seedScheduleForZeroInterestContract(ct4, plan1, app5.getTenorMonths());
+        seedScheduleForZeroInterestContract(ct6, plan1, app7.getTenorMonths());
     }
 
     /**

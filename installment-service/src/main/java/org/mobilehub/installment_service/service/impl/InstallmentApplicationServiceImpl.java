@@ -3,31 +3,23 @@ package org.mobilehub.installment_service.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.mobilehub.installment_service.domain.entity.InstallmentApplication;
 import org.mobilehub.installment_service.domain.entity.InstallmentContract;
+import org.mobilehub.installment_service.domain.entity.InstallmentPayment;
+import org.mobilehub.installment_service.domain.entity.InstallmentPlan;
+import org.mobilehub.installment_service.domain.entity.Partner;
+import org.mobilehub.installment_service.domain.enums.ApplicationStatus;
 import org.mobilehub.installment_service.domain.enums.ContractStatus;
-import org.mobilehub.installment_service.dto.application.ApplicationFilter;
-import org.mobilehub.installment_service.dto.application.ApplicationResponse;
-import org.mobilehub.installment_service.dto.application.ApplicationStatusUpdateRequest;
-import org.mobilehub.installment_service.repository.InstallmentApplicationRepository;
-import org.mobilehub.installment_service.repository.InstallmentContractRepository;
-import org.mobilehub.installment_service.repository.InstallmentPlanRepository;
-import org.mobilehub.installment_service.repository.PartnerRepository;
+import org.mobilehub.installment_service.domain.enums.PaymentStatus;
+import org.mobilehub.installment_service.dto.application.*;
+import org.mobilehub.installment_service.repository.*;
 import org.mobilehub.installment_service.service.InstallmentApplicationService;
+import org.mobilehub.installment_service.util.InstallmentCalculator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-import org.mobilehub.installment_service.domain.enums.ApplicationStatus;
-import org.mobilehub.installment_service.domain.entity.InstallmentPlan;
-import org.mobilehub.installment_service.domain.entity.Partner;
-import org.mobilehub.installment_service.dto.application.ApplicationCreateRequest;
-import org.mobilehub.installment_service.dto.application.ApplicationPrecheckRequest;
-import org.mobilehub.installment_service.dto.application.ApplicationPrecheckResponse;
-import org.mobilehub.installment_service.util.InstallmentCalculator;
-
-
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,11 +27,15 @@ import java.util.stream.Collectors;
 public class InstallmentApplicationServiceImpl implements InstallmentApplicationService {
 
     private final InstallmentApplicationRepository appRepo;
-    private final InstallmentContractRepository contractRepo;
+    private final InstallmentContractRepository    contractRepo;
+    private final InstallmentPaymentRepository     paymentRepo;
 
     private final InstallmentPlanRepository planRepo;
-    private final PartnerRepository partnerRepo;
+    private final PartnerRepository         partnerRepo;
 
+    // ============================================================
+    // SEARCH
+    // ============================================================
     @Override
     public List<ApplicationResponse> searchApplications(ApplicationFilter filter) {
         return appRepo.findAll().stream()
@@ -57,43 +53,129 @@ public class InstallmentApplicationServiceImpl implements InstallmentApplication
                 .collect(Collectors.toList());
     }
 
+    // ============================================================
+    // UPDATE STATUS
+    // ============================================================
     @Override
     @Transactional
     public void updateStatus(Long id, ApplicationStatusUpdateRequest request) {
         InstallmentApplication app = appRepo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Application not found"));
 
-        app.setStatus(request.getStatus());
+        ApplicationStatus newStatus = request.getStatus();
+        app.setStatus(newStatus);
         appRepo.save(app);
 
-        //  Nếu duỵệt thì tạo hợp đồng
-        if (request.getStatus().name().equals("APPROVED")) {
-            createContractIfNotExist(app);
+        // ✅ Nếu duyệt thì tạo hợp đồng + lịch thanh toán
+        if (newStatus == ApplicationStatus.APPROVED) {
+            createContractAndScheduleIfNotExist(app);
         }
     }
 
     // ============================================================
-    // Tự động tạo hợp đồng khi duyệt hồ sơ
+    // AUTO CREATE CONTRACT + PAYMENTS
     // ============================================================
-    private void createContractIfNotExist(InstallmentApplication app) {
+    private void createContractAndScheduleIfNotExist(InstallmentApplication app) {
 
-        // Nếu đã có contract -> bỏ qua
-        boolean exists = contractRepo.existsByApplicationId(app.getId());
-        if (exists) return;
+        if (contractRepo.existsByApplicationId(app.getId())) return;
+
+        Integer tenorMonths = app.getTenorMonths();
+        if (tenorMonths == null || tenorMonths <= 0) {
+            throw new IllegalArgumentException("tenorMonths không hợp lệ trong Application");
+        }
+
+        InstallmentPlan plan = app.getPlan();
+        validateTenorAllowed(plan, tenorMonths);
+
+        LocalDate startDate = LocalDate.now();
+        LocalDate endDate   = startDate.plusMonths(tenorMonths);
 
         InstallmentContract contract = InstallmentContract.builder()
                 .code(generateContractCode())
                 .application(app)
-                .plan(app.getPlan())
+                .plan(plan)
                 .totalLoan(app.getLoanAmount())
                 .remainingAmount(app.getLoanAmount())
                 .status(ContractStatus.ACTIVE)
-                .startDate(LocalDate.now())
-                .endDate(LocalDate.now().plusMonths(12))
+                .startDate(startDate)
+                .endDate(endDate) // ✅ lấy theo tenor thật
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        contractRepo.save(contract);
+        contract = contractRepo.save(contract);
+
+        // ✅ tạo các kỳ thanh toán
+        List<InstallmentPayment> schedule = buildPaymentSchedule(
+                contract,
+                app.getLoanAmount(),
+                plan.getInterestRate(),
+                tenorMonths,
+                startDate
+        );
+        paymentRepo.saveAll(schedule);
+    }
+
+    private List<InstallmentPayment> buildPaymentSchedule(
+            InstallmentContract contract,
+            long loanAmount,
+            double monthlyInterestRatePercent,
+            int tenorMonths,
+            LocalDate startDate
+    ) {
+        List<InstallmentPayment> result = new ArrayList<>(tenorMonths);
+
+        long monthlyPayment = InstallmentCalculator.calculateAnnuityMonthlyPayment(
+                loanAmount,
+                monthlyInterestRatePercent,
+                tenorMonths
+        );
+
+        double r = monthlyInterestRatePercent / 100.0;
+        long remainingPrincipal = loanAmount;
+
+        for (int period = 1; period <= tenorMonths; period++) {
+
+            long interest = Math.round(remainingPrincipal * r);
+            long principal = monthlyPayment - interest;
+
+            // kỳ cuối chỉnh cho hết nợ do làm tròn
+            if (period == tenorMonths) {
+                principal = remainingPrincipal;
+                monthlyPayment = principal + interest;
+            }
+
+            remainingPrincipal -= principal;
+
+            InstallmentPayment p = InstallmentPayment.builder()
+                    .contract(contract)
+                    .periodNumber(period)
+                    .dueDate(startDate.plusMonths(period)) // kỳ 1 sau 1 tháng
+                    .principalAmount(principal)
+                    .amount(monthlyPayment)               // gốc + lãi
+                    .status(PaymentStatus.PLANNED)
+                    .build();
+
+            result.add(p);
+        }
+
+        return result;
+    }
+
+    private void validateTenorAllowed(InstallmentPlan plan, Integer tenorMonths) {
+        String allowed = plan.getAllowedTenors();
+        if (!StringUtils.hasText(allowed)) return;
+
+        Set<Integer> allowedSet = Arrays.stream(allowed.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .map(Integer::parseInt)
+                .collect(Collectors.toSet());
+
+        if (!allowedSet.contains(tenorMonths)) {
+            throw new IllegalArgumentException(
+                    "Tenor " + tenorMonths + " không nằm trong allowedTenors của plan: " + allowed
+            );
+        }
     }
 
     private String generateContractCode() {
@@ -102,8 +184,106 @@ public class InstallmentApplicationServiceImpl implements InstallmentApplication
     }
 
     // ============================================================
-    // Convert entity → response
+    // PRECHECK
     // ============================================================
+    @Override
+    public ApplicationPrecheckResponse precheck(ApplicationPrecheckRequest req) {
+
+        InstallmentPlan plan = planRepo.findById(req.getPlanId())
+                .orElseThrow(() -> new IllegalArgumentException("Plan not found"));
+
+        Partner partner = partnerRepo.findById(req.getPartnerId())
+                .orElseThrow(() -> new IllegalArgumentException("Partner not found"));
+
+        if (req.getProductPrice() < plan.getMinPrice()) {
+            return ApplicationPrecheckResponse.builder()
+                    .eligible(false)
+                    .message("Giá sản phẩm nhỏ hơn mức tối thiểu của gói trả góp")
+                    .build();
+        }
+
+        long minDownPayment = req.getProductPrice() * plan.getDownPaymentPercent() / 100;
+        long maxLoanAmount  = req.getProductPrice() - minDownPayment;
+
+        if (req.getLoanAmount() > maxLoanAmount) {
+            return ApplicationPrecheckResponse.builder()
+                    .eligible(false)
+                    .message("Số tiền vay vượt quá mức cho phép với gói này")
+                    .build();
+        }
+
+        Integer tenor = req.getTenorMonths();
+        if (tenor == null || tenor <= 0) {
+            return ApplicationPrecheckResponse.builder()
+                    .eligible(false)
+                    .message("Kỳ hạn trả góp (tenorMonths) không hợp lệ")
+                    .build();
+        }
+
+        validateTenorAllowed(plan, tenor);
+
+        long monthlyPayment = InstallmentCalculator.calculateAnnuityMonthlyPayment(
+                req.getLoanAmount(),
+                plan.getInterestRate(),
+                tenor
+        );
+
+        if (monthlyPayment > req.getMonthlyIncome() * 0.4) {
+            return ApplicationPrecheckResponse.builder()
+                    .eligible(false)
+                    .message("Số tiền phải trả mỗi tháng (" + monthlyPayment
+                            + ") vượt quá 40% thu nhập của khách hàng")
+                    .build();
+        }
+
+        return ApplicationPrecheckResponse.builder()
+                .eligible(true)
+                .message("Khách hàng đủ điều kiện. Dự kiến trả mỗi tháng: " + monthlyPayment)
+                .build();
+    }
+
+    // ============================================================
+    // CREATE APPLICATION
+    // ============================================================
+    @Override
+    @Transactional
+    public ApplicationResponse create(ApplicationCreateRequest req) {
+
+        InstallmentPlan plan = planRepo.findById(req.getPlanId())
+                .orElseThrow(() -> new IllegalArgumentException("Plan not found"));
+
+        Partner partner = partnerRepo.findById(req.getPartnerId())
+                .orElseThrow(() -> new IllegalArgumentException("Partner not found"));
+
+        Integer tenor = req.getTenorMonths();
+        if (tenor == null || tenor <= 0) {
+            throw new IllegalArgumentException("tenorMonths không hợp lệ");
+        }
+        validateTenorAllowed(plan, tenor);
+
+        InstallmentApplication app = InstallmentApplication.builder()
+                .code(generateNextCode())
+                .customerName(req.getCustomerName())
+                .customerPhone(req.getCustomerPhone())
+                .productName(req.getProductName())
+                .productPrice(req.getProductPrice())
+                .loanAmount(req.getLoanAmount())
+                .partner(partner)
+                .plan(plan)
+                .tenorMonths(tenor)                 // ✅ lưu tenor
+                .status(ApplicationStatus.PENDING)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        app = appRepo.save(app);
+        return toResponse(app);
+    }
+
+    private String generateNextCode() {
+        long count = appRepo.count() + 1;
+        return String.format("APP-%03d", count);
+    }
+
     private ApplicationResponse toResponse(InstallmentApplication app) {
         return ApplicationResponse.builder()
                 .id(app.getId())
@@ -118,102 +298,4 @@ public class InstallmentApplicationServiceImpl implements InstallmentApplication
                 .status(app.getStatus())
                 .build();
     }
-
-    @Override
-    public ApplicationPrecheckResponse precheck(ApplicationPrecheckRequest req) {
-
-        // 1. Kiểm tra plan & partner có tồn tại không
-        InstallmentPlan plan = planRepo.findById(req.getPlanId())
-                .orElseThrow(() -> new IllegalArgumentException("Plan not found"));
-
-        Partner partner = partnerRepo.findById(req.getPartnerId())
-                .orElseThrow(() -> new IllegalArgumentException("Partner not found"));
-
-        // 2. Rule 1: giá sản phẩm phải >= minPrice của plan
-        if (req.getProductPrice() < plan.getMinPrice()) {
-            return ApplicationPrecheckResponse.builder()
-                    .eligible(false)
-                    .message("Giá sản phẩm nhỏ hơn mức tối thiểu của gói trả góp")
-                    .build();
-        }
-
-        // 3. Rule 2: số tiền vay không vượt quá (giá - tiền trả trước tối thiểu)
-        long minDownPayment = req.getProductPrice() * plan.getDownPaymentPercent() / 100;
-        long maxLoanAmount = req.getProductPrice() - minDownPayment;
-
-        if (req.getLoanAmount() > maxLoanAmount) {
-            return ApplicationPrecheckResponse.builder()
-                    .eligible(false)
-                    .message("Số tiền vay vượt quá mức cho phép với gói này")
-                    .build();
-        }
-
-        // 4. Rule 3: dùng công thức annuity để tính tiền trả hàng tháng
-        Integer tenor = req.getTenorMonths(); // field này bạn thêm trong DTO
-        if (tenor == null || tenor <= 0) {
-            return ApplicationPrecheckResponse.builder()
-                    .eligible(false)
-                    .message("Kỳ hạn trả góp (tenorMonths) không hợp lệ")
-                    .build();
-        }
-
-        long monthlyPayment = InstallmentCalculator.calculateAnnuityMonthlyPayment(
-                req.getLoanAmount(),
-                plan.getInterestRate(), // interestRate đang là %/tháng trong InstallmentPlan
-                tenor
-        );
-
-        // Ví dụ: không cho tiền trả góp > 40% thu nhập
-        if (monthlyPayment > req.getMonthlyIncome() * 0.4) {
-            return ApplicationPrecheckResponse.builder()
-                    .eligible(false)
-                    .message("Số tiền phải trả mỗi tháng (" + monthlyPayment
-                            + ") vượt quá 40% thu nhập của khách hàng")
-                    .build();
-        }
-
-        // Nếu tất cả rule pass → đủ điều kiện
-        return ApplicationPrecheckResponse.builder()
-                .eligible(true)
-                .message("Khách hàng đủ điều kiện. Dự kiến trả mỗi tháng: " + monthlyPayment)
-                .build();
-    }
-
-
-    @Override
-    @Transactional
-    public ApplicationResponse create(ApplicationCreateRequest req) {
-
-        InstallmentPlan plan = planRepo.findById(req.getPlanId())
-                .orElseThrow(() -> new IllegalArgumentException("Plan not found"));
-
-        Partner partner = partnerRepo.findById(req.getPartnerId())
-                .orElseThrow(() -> new IllegalArgumentException("Partner not found"));
-
-        // (Optional) gọi lại precheck để đảm bảo backend vẫn kiểm tra
-        // ApplicationPrecheckResponse precheck = precheck(convert(req));
-        // if (!precheck.isEligible()) throw new IllegalStateException("Not eligible");
-
-        InstallmentApplication app = InstallmentApplication.builder()
-                .code(generateNextCode())           // APP-003, APP-004...
-                .customerName(req.getCustomerName())
-                .customerPhone(req.getCustomerPhone())
-                .productName(req.getProductName())
-                .productPrice(req.getProductPrice())
-                .loanAmount(req.getLoanAmount())
-                .partner(partner)
-                .plan(plan)
-                .status(ApplicationStatus.PENDING)  // luôn bắt đầu từ PENDING
-                .createdAt(java.time.LocalDateTime.now())
-                .build();
-
-        app = appRepo.save(app);
-        return toResponse(app);   // dùng method private đã có sẵn ở cuối file
-    }
-
-    private String generateNextCode() {
-        long count = appRepo.count() + 1;  // đơn giản: số lượng bản ghi + 1
-        return String.format("APP-%03d", count);   // APP-001, APP-002, APP-003...
-    }
-
 }

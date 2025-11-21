@@ -26,4 +26,9 @@ public class ApplicationCreateRequest {
 
     @NotNull
     private Long planId;
+
+    // NEW: tenor chosen by customer/admin (must be one of plan.allowedTenors)
+    @NotNull
+    @Positive
+    private Integer tenorMonths;
 }

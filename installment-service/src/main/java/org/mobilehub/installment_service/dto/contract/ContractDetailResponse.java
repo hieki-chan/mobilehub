@@ -1,5 +1,6 @@
 package org.mobilehub.installment_service.dto.contract;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
 import org.mobilehub.installment_service.domain.enums.ContractStatus;
@@ -33,5 +34,6 @@ public class ContractDetailResponse {
     private Integer paidPeriods;      // Kỳ đã trả
 
     // Lịch thanh toán chi tiết
+    @JsonProperty("paymentSchedule")
     private List<PaymentScheduleItemResponse> schedule;
 }
