@@ -25,4 +25,22 @@ public class KafkaConfig {
     public NewTopic orderCreatedTopic() {
         return TopicBuilder.name(OrderTopics.ORDER_CREATED).partitions(3).replicas(1).build();
     }
+
+    @Bean
+    public NewTopic inventoryReservedTopic() {
+        return TopicBuilder.name(Topics.INVENTORY_RESERVED).partitions(3).replicas(1).build();
+    }
+    @Bean
+    public NewTopic inventoryCommittedTopic() {
+        return TopicBuilder.name(Topics.INVENTORY_COMMITTED).partitions(3).replicas(1).build();
+    }
+    @Bean
+    public NewTopic inventoryReleasedTopic() {
+        return TopicBuilder.name(Topics.INVENTORY_RELEASED).partitions(3).replicas(1).build();
+    }
+    @Bean
+    public NewTopic inventoryRejectedTopic() {
+        return TopicBuilder.name(Topics.INVENTORY_REJECTED).partitions(3).replicas(1).build();
+    }
+
 }
