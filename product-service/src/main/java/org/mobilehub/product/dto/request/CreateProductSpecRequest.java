@@ -15,14 +15,14 @@ public class CreateProductSpecRequest {
     @NotBlank(message = "CPU is required")
     private String cpu;
 
-    @NotBlank(message = "CPU speed is required")
-    private String cpu_speed;
+    @NotNull(message = "CPU speed is required")
+    private Integer cpu_speed;
 
     @NotBlank(message = "GPU is required")
     private String gpu;
 
-    @NotBlank(message = "Battery capacity is required")
-    private String battery_cap;
+    @NotNull(message = "Battery capacity is required")
+    private Integer battery_cap;
 
     @NotBlank(message = "Rear camera spec is required")
     private String rear_cam;
@@ -39,8 +39,8 @@ public class CreateProductSpecRequest {
     @NotBlank(message = "Material field is required")
     private String material;
 
-    @NotBlank(message = "Size & weight is required")
-    private String size_weight;
+    @NotNull(message = "Size & weight is required")
+    private Integer size_weight;
 
     @NotBlank(message = "Brand is required")
     private String brand;
