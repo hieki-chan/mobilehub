@@ -12,11 +12,11 @@ public class ProductSpecResponse {
 
     String cpu;
 
-    String cpu_speed;
+    Integer cpu_speed;
 
     String gpu;
 
-    String battery_cap;
+    Integer battery_cap;
 
     String rear_cam;
 
@@ -28,7 +28,7 @@ public class ProductSpecResponse {
 
     String material;
 
-    String size_weight;
+    Integer size_weight;
 
     String brand;
 

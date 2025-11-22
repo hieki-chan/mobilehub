@@ -383,8 +383,16 @@ public class ProductService {
     public void deleteProduct(Long id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ProductNotFoundException(id));
-        product.setStatus(ProductStatus.INACTIVE);
-        productRepository.save(product);
+
+        if(product.getStatus() == ProductStatus.ACTIVE) {
+            product.setStatus(ProductStatus.INACTIVE);
+            productRepository.save(product);
+        }
+        else
+        {
+            productRepository.delete(product);
+        }
+
 
         // send delete events
 //        for(ProductImage image: product.getImages())
