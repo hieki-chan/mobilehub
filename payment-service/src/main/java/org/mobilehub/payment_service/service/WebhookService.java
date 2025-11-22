@@ -1,6 +1,9 @@
 package org.mobilehub.payment_service.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.mobilehub.payment_service.client.InventoryClient;
+import org.mobilehub.payment_service.client.OrderClient;
 import org.mobilehub.payment_service.entity.Payment;
 import org.mobilehub.payment_service.entity.PaymentStatus;
 import org.mobilehub.payment_service.entity.WebhookEvent;
@@ -13,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class WebhookService {
@@ -21,37 +25,84 @@ public class WebhookService {
     private final WebhookEventRepository eventRepo;
     private final PaymentRepository paymentRepo;
 
+    private final OrderClient orderClient;
+    private final InventoryClient inventoryClient;
+
     @Transactional
     public void handle(String rawBody, Map<String, String> headers) {
         var evt = gateway.parseAndVerifyWebhook(rawBody, headers);
 
-        // idempotency: skip if processed
-        if (eventRepo.existsByEventId(evt.eventId())) return;
+        // idempotency: nếu event đã xử lý thì bỏ qua
+        if (eventRepo.existsByEventId(evt.eventId())) {
+            log.info("[payment.webhook] duplicate eventId={}, skip", evt.eventId());
+            return;
+        }
 
+        Payment p = paymentRepo.findByOrderCode(evt.orderCode())
+                .orElseThrow(() -> new NotFoundException("Payment not found for order " + evt.orderCode()));
+
+        boolean needCommit = false;
+        boolean needRelease = false;
+
+        // 1) Update trạng thái payment theo webhook
+        if (evt.status() == PaymentStatus.AUTHORIZED) {
+            p.markAuthorized();
+        } else if (evt.status() == PaymentStatus.CAPTURED) {
+            // đồng bộ capturedAmount cho AUTOMATIC capture
+            if (evt.amount() != null) {
+                p.setCapturedAmount(evt.amount());
+            }
+            p.setStatus(PaymentStatus.CAPTURED);
+            needCommit = true;
+        } else if (evt.status() == PaymentStatus.FAILED || evt.status() == PaymentStatus.CANCELED) {
+            String code = evt.errorCode() != null ? evt.errorCode() : "webhook_failed";
+            String msg  = evt.errorMessage() != null ? evt.errorMessage() : "Provider reported failure";
+            p.fail(code, msg);
+            needRelease = true;
+        } else {
+            log.info("[payment.webhook] ignore status={} orderCode={}", evt.status(), evt.orderCode());
+        }
+
+        paymentRepo.save(p);
+
+        // 2) Lấy reservationId từ order-service
+        String reservationId = null;
+        try {
+            var resDto = orderClient.getReservation(p.getOrderCode()); // orderCode = orderId
+            reservationId = resDto.reservationId();
+        } catch (Exception ex) {
+            log.warn("[payment.webhook] cannot fetch reservationId for orderCode={}, reason={}",
+                    p.getOrderCode(), ex.getMessage());
+        }
+
+        // 3) success -> commit, fail/cancel -> release
+        if (reservationId != null && !reservationId.isBlank()) {
+            if (needCommit) {
+                log.info("[payment.webhook] CAPTURED -> commit inventory reservationId={}", reservationId);
+                inventoryClient.commit(reservationId);
+            } else if (needRelease) {
+                log.info("[payment.webhook] FAILED/CANCELED -> release inventory reservationId={}", reservationId);
+                inventoryClient.release(reservationId);
+            }
+        } else {
+            log.warn("[payment.webhook] reservationId missing for orderCode={}, skip inventory action",
+                    p.getOrderCode());
+        }
+
+        // 4) Lưu webhook event SAU khi side-effect OK
         WebhookEvent entity = WebhookEvent.builder()
                 .eventId(evt.eventId())
-                .provider("PAYOS")
+                .provider(evt.provider() != null ? evt.provider() : "PAYOS")
                 .orderCode(evt.orderCode())
                 .eventType(evt.eventType())
                 .occurredAt(evt.occurredAt())
                 .payloadHash(HashingUtils.sha256(rawBody))
+                .payment(p)
                 .build();
+
         eventRepo.save(entity);
 
-        // Update payment state
-        Payment p = paymentRepo.findByOrderCode(evt.orderCode())
-                .orElseThrow(() -> new NotFoundException("Payment not found for order " + evt.orderCode()));
-        if (evt.status() == PaymentStatus.AUTHORIZED) {
-            p.markAuthorized();
-        } else if (evt.status() == PaymentStatus.CAPTURED) {
-            // Amount handled in capture flow; here we mark final if necessary
-            p.setStatus(PaymentStatus.CAPTURED);
-        } else if (evt.status() == PaymentStatus.FAILED) {
-            p.fail("webhook_failed", "Provider reported failure");
-        }
-        paymentRepo.save(p);
-
-        entity.setPayment(p);
-        eventRepo.save(entity);
+        log.info("[payment.webhook] processed eventId={}, orderCode={}, status={}",
+                evt.eventId(), evt.orderCode(), evt.status());
     }
 }

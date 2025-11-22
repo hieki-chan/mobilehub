@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class OrderItemResponse {
     Long productId;
+    Long variantId;
     String productName;
     String productVariant;
     String thumbnailUrl;

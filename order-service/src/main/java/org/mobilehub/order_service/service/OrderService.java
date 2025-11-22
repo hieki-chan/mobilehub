@@ -7,6 +7,7 @@ import org.mobilehub.order_service.client.UserClient;
 import org.mobilehub.order_service.dto.request.*;
 import org.mobilehub.order_service.dto.response.OrderResponse;
 import org.mobilehub.order_service.dto.response.OrderSummaryResponse;
+import org.mobilehub.order_service.dto.response.ProductSnapshotResponse;
 import org.mobilehub.order_service.entity.*;
 import org.mobilehub.order_service.exception.OrderCannotBeCancelledException;
 import org.mobilehub.order_service.exception.OrderNotFoundException;
@@ -22,10 +23,9 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -42,8 +42,9 @@ public class OrderService {
     private final OrderEventPublisher publisher;
 
     public OrderResponse createOrder(Long userId, OrderCreateRequest request) {
-        if(!userClient.exists(userId))
-            throw new RuntimeException("user is invalid" +  userId);
+        if (!userClient.exists(userId)) {
+            throw new RuntimeException("user is invalid " + userId);
+        }
 
         Order order = orderMapper.toOrder(userId, request);
         order.setStatus(OrderStatus.PENDING);
@@ -56,41 +57,86 @@ public class OrderService {
         return setOrderItems(order, request.getItems());
     }
 
-    private OrderResponse setOrderItems(Order order, List<OrderItemRequest> orderItems)
-    {
-        var snapShots = productClient.getProductsSnapshot(orderMapper.toRequestList(orderItems));
+    /**
+     * Tạo OrderItem từ snapshot + request
+     * - KHÔNG ghép snapshot theo index nữa (tránh lệch dữ liệu)
+     * - Lưu variantId vào OrderItem
+     * - Publish OrderCreatedEvent với idempotencyKey thật
+     */
+    private OrderResponse setOrderItems(Order order, List<OrderItemRequest> orderItems) {
+
+        // 1) Gọi product-service lấy snapshot
+        var requests = orderMapper.toRequestList(orderItems);
+        var snapshots = productClient.getProductsSnapshot(requests);
+
+        // 2) Build map snapshot theo key (productId, variantId)
+        // Assumption: ProductSnapshotResponse có getProductId() và getVariantId()
+        Map<ItemKey, ProductSnapshotResponse> snapshotMap = snapshots.stream()
+                .collect(Collectors.toMap(
+                        s -> new ItemKey(s.getProductId(), s.getVariantId()),
+                        s -> s,
+                        (a, b) -> a
+                ));
 
         List<OrderItem> items = new ArrayList<>();
 
-        for (int i = 0; i < snapShots.size(); i++) {
-            var snapshot = snapShots.get(i);
-            var orderItem = orderItems.get(i);
+        for (OrderItemRequest req : orderItems) {
+            ItemKey key = new ItemKey(req.getProductId(), req.getVariantId());
+            ProductSnapshotResponse snapshot = snapshotMap.get(key);
+
+            // Nếu snapshot thiếu -> coi như product-service trả sai / thiếu
+            if (snapshot == null) {
+                throw new IllegalStateException(
+                        "Snapshot not found for productId=" + req.getProductId()
+                                + ", variantId=" + req.getVariantId()
+                );
+            }
+
             OrderItem item = orderMapper.toOrderItem(snapshot);
-            item.setProductId(orderItem.getProductId());
-            item.setQuantity(orderItem.getQuantity());
+
+            item.setProductId(req.getProductId());
+            item.setVariantId(req.getVariantId());
+            item.setQuantity(req.getQuantity());
+
             item.setOriginalPrice(snapshot.getPrice());
-            item.setFinalPrice(snapshot.getDiscountedPrice());
+            item.setFinalPrice(
+                    snapshot.getDiscountedPrice() != null
+                            ? snapshot.getDiscountedPrice()
+                            : snapshot.getPrice()
+            );
+
             item.setOrder(order);
             items.add(item);
         }
 
         order.setItems(items);
-        var savedOrder = orderRepository.save(order);
+        Order savedOrder = orderRepository.save(order);
 
-        // send event
+        // 3) Publish OrderCreatedEvent (idempotencyKey thật)
+        String idempotencyKey = UUID.randomUUID().toString();
+
         publisher.publish(new OrderCreatedEvent(
                 savedOrder.getId(),
-                order.getUserId(),
-                "??",
+                savedOrder.getUserId(),
+                idempotencyKey,
                 orderItems.stream()
-                        .map(o
-                                -> new OrderCreatedEvent.Item(o.getProductId(), o.getVariantId(), o.getQuantity()))
+                        .map(o -> new OrderCreatedEvent.Item(
+                                o.getProductId(),
+                                o.getVariantId(),
+                                o.getQuantity()
+                        ))
                         .toList()
         ));
 
         return orderMapper.toOrderResponse(savedOrder);
     }
 
+    // record key để map snapshot
+    private record ItemKey(Long productId, Long variantId) {}
+
+    // ==========================
+    // READ APIs
+    // ==========================
 
     @Transactional(readOnly = true)
     public OrderResponse getOrderById(Long orderId) {
@@ -102,12 +148,13 @@ public class OrderService {
     @Transactional(readOnly = true)
     public List<OrderResponse> getOrdersByUserId(Long userId) {
         List<Order> orders = orderRepository.findByUserId(userId);
-
         return orders.stream().map(orderMapper::toOrderResponse).toList();
     }
 
     /**
-     * Cập nhật trạng thái đơn hàng
+     * Cập nhật trạng thái đơn hàng (ADMIN)
+     * Lưu ý: Luồng chuẩn Option 1 thì trạng thái chính phải đi qua Inventory events.
+     * Method này bạn chỉ nên dùng cho admin/manual override.
      */
     public OrderResponse updateStatus(Long orderId, OrderUpdateStatusRequest request) {
         Order order = orderRepository.findById(orderId)
@@ -117,41 +164,41 @@ public class OrderService {
         return orderMapper.toOrderResponse(orderRepository.save(order));
     }
 
-
     public OrderResponse cancelOrder(Long orderId, Long userId, String cancelReason) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new OrderNotFoundException(orderId));
 
-        if(!order.getUserId().equals(userId))
-            throw new OrderCannotBeCancelledException("no access" + userId);
+        if (!order.getUserId().equals(userId))
+            throw new OrderCannotBeCancelledException("no access " + userId);
 
-        if(order.getStatus() != OrderStatus.PENDING)
+        if (order.getStatus() != OrderStatus.PENDING)
             throw new OrderCannotBeCancelledException(order.getStatus().toString());
 
         order.setStatus(OrderStatus.CANCELLED);
         order.setCancelReason(cancelReason);
+
         return orderMapper.toOrderResponse(orderRepository.save(order));
     }
 
-    public boolean confirmOrder(Long orderId)
-    {
+    public boolean confirmOrder(Long orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new OrderNotFoundException(orderId));
 
-        if(order.getStatus() != OrderStatus.PENDING)
+        if (order.getStatus() != OrderStatus.PENDING)
             return false;
 
+        // Nếu bạn muốn chuẩn state-machine hơn:
+        // confirm chỉ nên từ PAID -> SHIPPING
         order.setStatus(OrderStatus.SHIPPING);
         orderRepository.save(order);
         return true;
     }
 
-    public boolean setOrderDelivered(Long orderId)
-    {
+    public boolean setOrderDelivered(Long orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new OrderNotFoundException(orderId));
 
-        if(order.getStatus() != OrderStatus.SHIPPING)
+        if (order.getStatus() != OrderStatus.SHIPPING)
             return false;
 
         order.setStatus(OrderStatus.DELIVERED);
@@ -159,12 +206,11 @@ public class OrderService {
         return true;
     }
 
-    public boolean setOrderFailed(Long orderId)
-    {
+    public boolean setOrderFailed(Long orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new OrderNotFoundException(orderId));
 
-        if(order.getStatus() == OrderStatus.DELIVERED || order.getStatus() == OrderStatus.CANCELLED)
+        if (order.getStatus() == OrderStatus.DELIVERED || order.getStatus() == OrderStatus.CANCELLED)
             return false;
 
         order.setStatus(OrderStatus.FAILED);
@@ -175,8 +221,7 @@ public class OrderService {
     public Page<OrderResponse> getOrdersPaged(int page, int size,
                                               OrderStatus status,
                                               PaymentMethod payment,
-                                              ShippingMethod shipping)
-    {
+                                              ShippingMethod shipping) {
 
         Pageable pageable = PageRequest.of(
                 page,
@@ -202,8 +247,6 @@ public class OrderService {
         }
 
         Page<Order> orderPage = orderRepository.findAll(spec, pageable);
-
         return orderPage.map(orderMapper::toOrderResponse);
     }
-
 }

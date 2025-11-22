@@ -12,6 +12,8 @@ import java.math.BigDecimal;
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ProductSnapshotResponse {
+    Long productId;
+    Long variantId;
     // info
     BigDecimal price;
     BigDecimal discountedPrice;

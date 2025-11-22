@@ -1,7 +1,9 @@
 package org.mobilehub.payment_service.provider;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
 
+@Component
 @ConfigurationProperties(prefix = "payos")
 public class PayOSProperties {
     private String webhookSecret = "changeme";

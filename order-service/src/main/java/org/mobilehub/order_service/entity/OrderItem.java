@@ -14,13 +14,19 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class OrderItem {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
+    @Column(nullable = false)
     Long productId;
 
+    @Column(nullable = false)
+    Long variantId;
+
     // info
+    @Column(nullable = false)
     Integer quantity;
 
     // product snapshot
@@ -31,6 +37,6 @@ public class OrderItem {
     String thumbnailUrl;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id")
+    @JoinColumn(name = "order_id", nullable = false)
     Order order;
 }

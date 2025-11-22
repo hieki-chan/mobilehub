@@ -1,15 +1,17 @@
 package org.mobilehub.payment_service.provider;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.mobilehub.payment_service.entity.PaymentStatus;
 import org.mobilehub.payment_service.exception.InvalidSignatureException;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.Map;
@@ -19,6 +21,7 @@ import java.util.UUID;
 public class PayOSGateway implements PaymentProviderGateway {
 
     private final PayOSProperties props;
+    private final ObjectMapper mapper = new ObjectMapper();
 
     public PayOSGateway(PayOSProperties props) {
         this.props = props;
@@ -29,7 +32,6 @@ public class PayOSGateway implements PaymentProviderGateway {
         // Stub: In real life, call external PSP API and return its data
         String providerPaymentId = "pay_" + UUID.randomUUID();
         String paymentUrl = props.getBaseUrl() + "/checkout/" + providerPaymentId + "?returnUrl=" + returnUrl;
-        // Assume REQUIRES_ACTION for redirect flows
         return new CreateResult(providerPaymentId, paymentUrl, null, PaymentStatus.REQUIRES_ACTION);
     }
 
@@ -51,15 +53,101 @@ public class PayOSGateway implements PaymentProviderGateway {
         if (!verifyHmac(rawBody, sigHeader, props.getWebhookSecret())) {
             throw new InvalidSignatureException();
         }
-        // For demo: parse minimal fields from a simple JSON structure or simulate a CAPTURED event.
-        // In real life, parse JSON library and map accordingly.
+
+        // ===== Parse JSON an toàn (có thì lấy, không có thì fallback) =====
         String eventId = sha256(rawBody).substring(0, 20);
-        // You would extract these fields from JSON. Here we just simulate.
-        Long orderCode = 123L;
         String providerPaymentId = "pay_simulated";
-        java.math.BigDecimal amount = new java.math.BigDecimal("0");
-        return new WebhookEventParsed(eventId, providerPaymentId, orderCode, PaymentStatus.CAPTURED, amount, Instant.now(), "payment_captured");
+        Long orderCode = null;
+        BigDecimal amount = null;
+        String eventType = "unknown";
+        String errorCode = null;
+        String errorMessage = null;
+        PaymentStatus status = PaymentStatus.NEW;
+
+        try {
+            JsonNode root = mapper.readTree(rawBody);
+
+            // Gợi ý structure phổ biến: root.type / root.eventType
+            eventType = firstNonBlank(
+                    root.path("type").asText(null),
+                    root.path("eventType").asText(null),
+                    "unknown"
+            );
+
+            // orderCode có thể nằm ở root.orderCode hoặc root.data.orderCode
+            orderCode = firstLong(
+                    root.path("orderCode"),
+                    root.path("data").path("orderCode")
+            );
+
+            // providerPaymentId có thể là paymentId / transactionId / data.paymentId
+            providerPaymentId = firstNonBlank(
+                    root.path("paymentId").asText(null),
+                    root.path("transactionId").asText(null),
+                    root.path("data").path("paymentId").asText(null),
+                    providerPaymentId
+            );
+
+            // amount có thể nằm ở root.amount hoặc root.data.amount
+            amount = firstBigDecimal(
+                    root.path("amount"),
+                    root.path("data").path("amount")
+            );
+
+            // error info (nếu failed/canceled)
+            errorCode = firstNonBlank(
+                    root.path("errorCode").asText(null),
+                    root.path("code").asText(null),
+                    null
+            );
+            errorMessage = firstNonBlank(
+                    root.path("errorMessage").asText(null),
+                    root.path("desc").asText(null),
+                    root.path("message").asText(null),
+                    null
+            );
+
+            // Map status theo eventType hoặc field status
+            String rawStatus = firstNonBlank(
+                    root.path("status").asText(null),
+                    eventType,
+                    ""
+            ).toLowerCase();
+
+            if (rawStatus.contains("authorized") || rawStatus.contains("auth")) {
+                status = PaymentStatus.AUTHORIZED;
+            } else if (rawStatus.contains("captured") || rawStatus.contains("paid") || rawStatus.contains("success")) {
+                status = PaymentStatus.CAPTURED;
+            } else if (rawStatus.contains("failed") || rawStatus.contains("fail")) {
+                status = PaymentStatus.FAILED;
+            } else if (rawStatus.contains("canceled") || rawStatus.contains("cancelled") || rawStatus.contains("cancel")) {
+                status = PaymentStatus.CANCELED; // ✅ đúng enum của bạn
+            }
+
+        } catch (Exception ignore) {
+            // Fallback stub như bạn cũ:
+            if (orderCode == null) orderCode = 123L;
+            if (amount == null) amount = BigDecimal.ZERO;
+            if (eventType == null) eventType = "payment_captured";
+            status = PaymentStatus.CAPTURED;
+        }
+
+        // ✅ Return record mới có thêm errorCode/errorMessage/provider
+        return new WebhookEventParsed(
+                eventId,
+                providerPaymentId,
+                orderCode,
+                status,
+                amount,
+                Instant.now(),
+                eventType,
+                errorCode,
+                errorMessage,
+                "PAYOS"
+        );
     }
+
+    // ===================== helpers =====================
 
     private static boolean verifyHmac(String payload, String expectedSignature, String secret) {
         if (!StringUtils.hasText(expectedSignature)) return false;
@@ -68,7 +156,10 @@ public class PayOSGateway implements PaymentProviderGateway {
             mac.init(new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
             byte[] digest = mac.doFinal(payload.getBytes(StandardCharsets.UTF_8));
             String actual = Base64.getEncoder().encodeToString(digest);
-            return MessageDigest.isEqual(actual.getBytes(StandardCharsets.UTF_8), expectedSignature.getBytes(StandardCharsets.UTF_8));
+            return MessageDigest.isEqual(
+                    actual.getBytes(StandardCharsets.UTF_8),
+                    expectedSignature.getBytes(StandardCharsets.UTF_8)
+            );
         } catch (Exception e) {
             return false;
         }
@@ -84,5 +175,29 @@ public class PayOSGateway implements PaymentProviderGateway {
         } catch (Exception e) {
             return UUID.randomUUID().toString().replace("-", "");
         }
+    }
+
+    private static String firstNonBlank(String... vals) {
+        for (String v : vals) {
+            if (v != null && !v.isBlank()) return v;
+        }
+        return null;
+    }
+
+    private static Long firstLong(JsonNode... nodes) {
+        for (JsonNode n : nodes) {
+            if (n != null && n.isNumber()) return n.asLong();
+        }
+        return null;
+    }
+
+    private static BigDecimal firstBigDecimal(JsonNode... nodes) {
+        for (JsonNode n : nodes) {
+            if (n != null && n.isNumber()) return n.decimalValue();
+            if (n != null && n.isTextual()) {
+                try { return new BigDecimal(n.asText()); } catch (Exception ignore) {}
+            }
+        }
+        return null;
     }
 }

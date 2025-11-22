@@ -8,15 +8,40 @@ import org.mobilehub.payment_service.entity.PaymentStatus;
 
 public interface PaymentProviderGateway {
 
-    record CreateResult(String providerPaymentId, String paymentUrl, String clientSecret, PaymentStatus nextStatus) {}
+    record CreateResult(
+            String providerPaymentId,
+            String paymentUrl,
+            String clientSecret,
+            PaymentStatus nextStatus
+    ) {}
 
-    record CaptureResult(String providerCaptureId, BigDecimal amount, PaymentStatus status) {}
+    record CaptureResult(
+            String providerCaptureId,
+            BigDecimal amount,
+            PaymentStatus status
+    ) {}
 
-    record RefundResult(String providerRefundId, BigDecimal amount, String status) {}
+    record RefundResult(
+            String providerRefundId,
+            BigDecimal amount,
+            String status
+    ) {}
 
-    record WebhookEventParsed(String eventId, String providerPaymentId, Long orderCode, 
-                              PaymentStatus status, BigDecimal amount, Instant occurredAt, 
-                              String eventType) {}
+
+    record WebhookEventParsed(
+            String eventId,
+            String providerPaymentId,
+            Long orderCode,
+            PaymentStatus status,
+            BigDecimal amount,
+            Instant occurredAt,
+            String eventType,
+
+            // add mới (có thể null nếu provider không gửi)
+            String errorCode,
+            String errorMessage,
+            String provider // ví dụ "PAYOS"
+    ) {}
 
     CreateResult createIntent(Long orderCode, BigDecimal amount, String currency, String channel, String returnUrl);
 
