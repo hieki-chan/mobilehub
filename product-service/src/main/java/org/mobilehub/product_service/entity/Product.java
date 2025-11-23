@@ -46,7 +46,12 @@ public class Product {
     private ProductVariant defaultVariant;
 
     public Integer getSold(){
-        return variants.stream().map(ProductVariant::getSold).reduce(0, Integer::sum);
+        if (variants == null || variants.isEmpty()) {
+            return 0;
+        }
+        return variants.stream()
+                .map(v -> v.getSold() == null ? 0 : v.getSold()) // Nếu getSold() là null thì coi là 0
+                .reduce(0, Integer::sum);
     }
 
     public ProductVariant resolveVariant(Long variantId) {
