@@ -18,8 +18,9 @@ public class CommandlineAppStartRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        boolean adminExists = userRepository.existsByRole(Role.ADMIN);
 
+        // ===== Create default ADMIN if not exists =====
+        boolean adminExists = userRepository.existsByRole(Role.ADMIN);
         if (!adminExists) {
             User admin = User.builder()
                     .email("admin@mobilehub.com")
@@ -33,6 +34,23 @@ public class CommandlineAppStartRunner implements CommandLineRunner {
             System.out.println("Default admin account created");
         } else {
             System.out.println("Admin already exists");
+        }
+
+        // ===== Create default USER if not exists =====
+        boolean userExists = userRepository.existsByRole(Role.USER);
+        if (!userExists) {
+            User user = User.builder()
+                    .email("user@mobilehub.com")
+                    .username("user")
+                    .password(passwordEncoder.encode("123"))
+                    .role(Role.USER)
+                    .status(UserStatus.ACTIVE)
+                    .build();
+
+            userRepository.save(user);
+            System.out.println("Default user account created");
+        } else {
+            System.out.println("User already exists");
         }
     }
 }

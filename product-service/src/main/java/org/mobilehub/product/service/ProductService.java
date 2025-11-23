@@ -339,6 +339,8 @@ public class ProductService {
                     .productVariant(
                             String.format("%s-%d-%d", variant.getColor_label(), variant.getRam(), variant.getRam())
                     )
+                    .productId(product.getId())
+                    .variantId(variant.getId())
                     .thumbnailUrl(variant.getKeyImage().getImageUrl())
                     .price(variant.getPrice())
                     .discountedPrice(DiscountUtils.applyDiscount(variant.getPrice(), product.getDiscount()))
