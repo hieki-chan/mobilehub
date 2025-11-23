@@ -6,6 +6,5 @@ import jakarta.validation.constraints.Size;
 
 public record ReplyRequest(
         @NotBlank @Size(max = 2000) String content,
-        Long adminId,
-        String adminName
+        Long adminId
 ) {}

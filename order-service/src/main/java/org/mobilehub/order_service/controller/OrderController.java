@@ -50,14 +50,14 @@ public class OrderController {
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/{id}/status")
-    public ResponseEntity<OrderResponse> updateStatus(
-            @PathVariable Long id,
-            @Valid @RequestBody OrderUpdateStatusRequest request
-    ) {
-        OrderResponse response = orderService.updateStatus(id, request);
-        return ResponseEntity.ok(response);
-    }
+//    @PutMapping("/{id}/status")
+//    public ResponseEntity<OrderResponse> updateStatus(
+//            @PathVariable Long id,
+//            @Valid @RequestBody OrderUpdateStatusRequest request
+//    ) {
+//        OrderResponse response = orderService.updateStatus(id, request);
+//        return ResponseEntity.ok(response);
+//    }
 
     @PutMapping("/{orderId}/cancel")
     public ResponseEntity<OrderResponse> cancelOrder(

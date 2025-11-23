@@ -4,10 +4,13 @@ import org.mobilehub.rating_service.entity.Rating;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import java.time.Instant;
+import java.util.Optional;
 
-public interface RatingRepository extends JpaRepository<Rating, Long> {
+public interface RatingRepository extends JpaRepository<Rating, Long>, JpaSpecificationExecutor<Rating> {
+    Optional<Rating> findByUserIdAndProductId(Long userId, Long productId);
     Page<Rating> findByProductId(Long productId, Pageable pageable);
     Page<Rating> findByCreatedAtBetween(Instant from, Instant to, Pageable pageable);
 }

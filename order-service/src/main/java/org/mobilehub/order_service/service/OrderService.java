@@ -13,8 +13,10 @@ import org.mobilehub.order_service.exception.OrderCannotBeCancelledException;
 import org.mobilehub.order_service.exception.OrderNotFoundException;
 import org.mobilehub.order_service.Mapper.OrderMapper;
 import org.mobilehub.order_service.kafka.OrderEventPublisher;
+import org.mobilehub.order_service.repository.OrderItemRepository;
 import org.mobilehub.order_service.repository.OrderRepository;
 import org.mobilehub.shared.contracts.order.OrderCreatedEvent;
+import org.mobilehub.shared.contracts.order.OrderDeliveredEvent;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -33,6 +35,7 @@ import java.util.stream.Collectors;
 public class OrderService {
 
     private final OrderRepository orderRepository;
+    private final OrderItemRepository orderItemRepository;
     private final OrderMapper orderMapper;
 
     private final UserClient userClient;
@@ -80,23 +83,23 @@ public class OrderService {
 
         List<OrderItem> items = new ArrayList<>();
 
-        for (OrderItemRequest req : orderItems) {
-            ItemKey key = new ItemKey(req.getProductId(), req.getVariantId());
+        for (var data : orderItems) {
+            ItemKey key = new ItemKey(data.getProductId(), data.getVariantId());
             ProductSnapshotResponse snapshot = snapshotMap.get(key);
 
             // Nếu snapshot thiếu -> coi như product-service trả sai / thiếu
             if (snapshot == null) {
                 throw new IllegalStateException(
-                        "Snapshot not found for productId=" + req.getProductId()
-                                + ", variantId=" + req.getVariantId()
+                        "Snapshot not found for productId=" + data.getProductId()
+                                + ", variantId=" + data.getVariantId()
                 );
             }
 
             OrderItem item = orderMapper.toOrderItem(snapshot);
 
-            item.setProductId(req.getProductId());
-            item.setVariantId(req.getVariantId());
-            item.setQuantity(req.getQuantity());
+            item.setProductId(data.getProductId());
+            item.setVariantId(data.getVariantId());
+            item.setQuantity(data.getQuantity());
 
             item.setOriginalPrice(snapshot.getPrice());
             item.setFinalPrice(
@@ -132,7 +135,19 @@ public class OrderService {
     }
 
     // record key để map snapshot
-    private record ItemKey(Long productId, Long variantId) {}
+    private record ItemKey(Long productId, Long variantId) {
+        @Override
+        public boolean equals(Object o) {
+            if (o == null || getClass() != o.getClass()) return false;
+            ItemKey itemKey = (ItemKey) o;
+            return Objects.equals(productId, itemKey.productId) && Objects.equals(variantId, itemKey.variantId);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(productId, variantId);
+        }
+    }
 
     // ==========================
     // READ APIs
@@ -156,13 +171,13 @@ public class OrderService {
      * Lưu ý: Luồng chuẩn Option 1 thì trạng thái chính phải đi qua Inventory events.
      * Method này bạn chỉ nên dùng cho admin/manual override.
      */
-    public OrderResponse updateStatus(Long orderId, OrderUpdateStatusRequest request) {
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new OrderNotFoundException(orderId));
-
-        order.setStatus(request.getStatus());
-        return orderMapper.toOrderResponse(orderRepository.save(order));
-    }
+//    public OrderResponse updateStatus(Long orderId, OrderUpdateStatusRequest request) {
+//        Order order = orderRepository.findById(orderId)
+//                .orElseThrow(() -> new OrderNotFoundException(orderId));
+//
+//        order.setStatus(request.getStatus());
+//        return orderMapper.toOrderResponse(orderRepository.save(order));
+//    }
 
     public OrderResponse cancelOrder(Long orderId, Long userId, String cancelReason) {
         Order order = orderRepository.findById(orderId)
@@ -203,6 +218,23 @@ public class OrderService {
 
         order.setStatus(OrderStatus.DELIVERED);
         orderRepository.save(order);
+
+        OrderDeliveredEvent deliveredEvent =
+                new OrderDeliveredEvent(
+                        order.getId(),
+                        order.getUserId(),
+                        "??",
+                        order.getItems().stream().map(
+                                        (i) -> new OrderDeliveredEvent.Item(
+                                                i.getProductId(),
+                                                i.getVariantId(),
+                                                i.getQuantity(),
+                                                orderItemRepository.countByVariantId(i.getVariantId()))
+                                )
+                                .toList());
+
+        publisher.publishOrderDeliveredEvent(deliveredEvent);
+
         return true;
     }
 

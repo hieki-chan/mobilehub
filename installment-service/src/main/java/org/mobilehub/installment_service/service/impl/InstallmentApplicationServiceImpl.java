@@ -192,7 +192,7 @@ public class InstallmentApplicationServiceImpl implements InstallmentApplication
         InstallmentPlan plan = planRepo.findById(req.getPlanId())
                 .orElseThrow(() -> new IllegalArgumentException("Plan not found"));
 
-        Partner partner = partnerRepo.findById(req.getPartnerId())
+        Partner partner = partnerRepo.findById(plan.getPartner().getId())
                 .orElseThrow(() -> new IllegalArgumentException("Partner not found"));
 
         if (req.getProductPrice() < plan.getMinPrice()) {
@@ -252,7 +252,7 @@ public class InstallmentApplicationServiceImpl implements InstallmentApplication
         InstallmentPlan plan = planRepo.findById(req.getPlanId())
                 .orElseThrow(() -> new IllegalArgumentException("Plan not found"));
 
-        Partner partner = partnerRepo.findById(req.getPartnerId())
+        Partner partner = partnerRepo.findById(plan.getPartner().getId())
                 .orElseThrow(() -> new IllegalArgumentException("Partner not found"));
 
         Integer tenor = req.getTenorMonths();

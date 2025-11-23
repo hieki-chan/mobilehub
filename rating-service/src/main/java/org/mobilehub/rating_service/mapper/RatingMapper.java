@@ -15,14 +15,13 @@ public interface RatingMapper {
             @Mapping(target = "id", source = "rating.id"),
             @Mapping(target = "productId", source = "rating.productId"),
             @Mapping(target = "userId", source = "rating.userId"),
-            @Mapping(target = "username", source = "rating.username"),
             @Mapping(target = "stars", source = "rating.stars"),
             @Mapping(target = "comment", source = "rating.comment"),
             @Mapping(target = "createdAt", source = "rating.createdAt"),
             @Mapping(target = "updatedAt", source = "rating.updatedAt"),
             @Mapping(target = "reply", expression = "java(toReplyDto(reply))")
     })
-    RatingResponse toDto(Rating rating, RatingReply reply);
+    RatingResponse toRatingDto(Rating rating, String username, RatingReply reply);
 
     default RatingResponse.ReplyDto toReplyDto(RatingReply r) {
         if (r == null) return null;

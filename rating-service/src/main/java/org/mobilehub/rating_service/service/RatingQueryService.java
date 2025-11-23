@@ -1,5 +1,7 @@
 package org.mobilehub.rating_service.service;
 
+import lombok.AllArgsConstructor;
+import org.mobilehub.rating_service.client.UserClient;
 import org.mobilehub.rating_service.dto.response.PageResponse;
 import org.mobilehub.rating_service.dto.response.RatingResponse;
 import org.mobilehub.rating_service.entity.Rating;
@@ -16,21 +18,23 @@ import java.time.Instant;
 import java.util.List;
 
 @Service
+@AllArgsConstructor
 public class RatingQueryService {
     private final RatingRepository ratingRepo;
     private final RatingReplyRepository replyRepo;
     private final RatingMapper mapper;
-
-
-    public RatingQueryService(RatingRepository ratingRepo, RatingReplyRepository replyRepo, RatingMapper mapper) {
-        this.ratingRepo = ratingRepo; this.replyRepo = replyRepo; this.mapper = mapper;
-    }
+    private final UserClient userClient;
 
 
     public PageResponse<RatingResponse> getByProduct(Long productId, int page, int size, String sortKey) {
         Pageable pageable = buildSort(page, size, sortKey);
         Page<Rating> p = ratingRepo.findByProductId(productId, pageable);
-        List<RatingResponse> items = p.map(r -> mapper.toDto(r, replyRepo.findByRating_Id(r.getId()).orElse(null))).getContent();
+        List<RatingResponse> items = p
+                .map(r -> mapper.toRatingDto(
+                        r,
+                        userClient.getUserName(r.getUserId()),
+                        replyRepo.findByRatingId(r.getId()).orElse(null)))
+                .getContent();
         return new PageResponse<>(items, p.getNumber(), p.getSize(), p.getTotalElements(), p.getTotalPages());
     }
 
@@ -38,7 +42,12 @@ public class RatingQueryService {
     public PageResponse<RatingResponse> getByDateRange(Instant from, Instant to, int page, int size, String sortKey) {
         Pageable pageable = buildSort(page, size, sortKey);
         Page<Rating> p = ratingRepo.findByCreatedAtBetween(from, to, pageable);
-        List<RatingResponse> items = p.map(r -> mapper.toDto(r, replyRepo.findByRating_Id(r.getId()).orElse(null))).getContent();
+        List<RatingResponse> items = p.
+                map(r -> mapper.toRatingDto(
+                    r,
+                    userClient.getUserName(r.getUserId()),
+                    replyRepo.findByRatingId(r.getId()).orElse(null))).
+                getContent();
         return new PageResponse<>(items, p.getNumber(), p.getSize(), p.getTotalElements(), p.getTotalPages());
     }
 

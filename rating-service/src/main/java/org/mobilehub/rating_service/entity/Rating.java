@@ -34,10 +34,6 @@ public class Rating {
     private Long userId;
 
 
-    @Column(name = "username")
-    private String username; // optional display name
-
-
     @Min(1) @Max(5)
     @Column(nullable = false)
     private int stars; // 1..5
@@ -56,4 +52,7 @@ public class Rating {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private Instant updatedAt;
+
+    @OneToOne(mappedBy = "rating")
+    private RatingReply reply;
 }

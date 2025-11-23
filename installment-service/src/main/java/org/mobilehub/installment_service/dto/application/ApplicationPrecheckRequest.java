@@ -24,9 +24,6 @@ public class ApplicationPrecheckRequest {
     private Integer tenorMonths;
 
     @NotNull
-    private Long partnerId;
-
-    @NotNull
     private Long planId;
 
     // Thông tin để check đủ điều kiện (tùy bạn có dùng hay không)

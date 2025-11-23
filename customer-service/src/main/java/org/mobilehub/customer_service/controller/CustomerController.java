@@ -3,6 +3,7 @@ package org.mobilehub.customer_service.controller;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.mobilehub.customer_service.dto.response.VerificationResponse;
 import org.mobilehub.customer_service.dto.response.VerifyResponse;
 import org.mobilehub.customer_service.service.CustomerService;
 import org.mobilehub.customer_service.util.UserAccess;
@@ -28,22 +29,22 @@ public class CustomerController {
 
 
     @GetMapping("/customers/{customerId}/verification-status")
-    public ResponseEntity<Boolean> getVerificationStatus(@PathVariable Long customerId) {
+    public ResponseEntity<VerificationResponse> getVerificationStatus(@PathVariable Long customerId) {
         UserAccess.validateUserAccess(customerId);
-        Boolean isVerified = customerService.isVerified(customerId);
+        var isVerified = customerService.checkVerified(customerId);
         return ResponseEntity.ok(isVerified);
     }
 
     @GetMapping("/customers/verification-status")
-    public ResponseEntity<Boolean> getVerificationStatus() {
-        Boolean isVerified = customerService.isVerified(UserAccess.getPrincipalId());
+    public ResponseEntity<VerificationResponse> getVerificationStatus() {
+        var isVerified = customerService.checkVerified(UserAccess.getPrincipalId());
         return ResponseEntity.ok(isVerified);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/admin/customers/{customerId}/verification-status")
-    public ResponseEntity<Boolean> getVerificationStatusAmin(@PathVariable Long customerId) {
-        Boolean isVerified = customerService.isVerified(customerId);
+    public ResponseEntity<VerificationResponse> getVerificationStatusAmin(@PathVariable Long customerId) {
+        var isVerified = customerService.checkVerified(customerId);
         return ResponseEntity.ok(isVerified);
     }
 }
