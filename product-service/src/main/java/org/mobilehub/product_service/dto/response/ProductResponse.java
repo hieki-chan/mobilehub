@@ -11,6 +11,7 @@ import lombok.experimental.FieldDefaults;
 public class ProductResponse {
     Long id;
     String name;
+    String description;
 
     Integer discountInPercent;
     Integer sold;

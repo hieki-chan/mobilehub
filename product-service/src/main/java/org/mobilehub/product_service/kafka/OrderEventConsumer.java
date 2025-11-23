@@ -25,7 +25,9 @@ public class OrderEventConsumer {
 
     private void setSoldCount(OrderDeliveredEvent.Item item) {
         variantRepository.findById(item.variantId()).ifPresent(variant -> {
+            System.out.println(item.sold());
             variant.setSold(item.sold());
+            variantRepository.save(variant);
         });
     }
 }

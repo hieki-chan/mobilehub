@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 public class ProductPreviewResponse {
     String name;
     String imageUrl;
+    String description;
 
     Integer discountInPercent;
 
