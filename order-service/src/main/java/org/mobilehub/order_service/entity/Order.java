@@ -42,6 +42,9 @@ public class Order {
     @Column(name = "payment_method", length = 32)
     private PaymentMethod paymentMethod;
 
+    @Column(name = "payment_code", unique = true)
+    private Long paymentCode;
+
     @Enumerated(EnumType.STRING)
     @Column(length = 32)
     private ShippingMethod shippingMethod;

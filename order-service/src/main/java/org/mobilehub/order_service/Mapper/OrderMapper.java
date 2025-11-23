@@ -26,6 +26,7 @@ public interface OrderMapper {
     @Mapping(target = "reservedUntil", ignore = true)
     @Mapping(target = "cancelReason", ignore = true)
     @Mapping(target = "items", ignore = true)
+    @Mapping(target = "paymentCode", ignore = true)
     Order toOrder(Long userId, OrderCreateRequest request);
 
     // Snapshot -> OrderItem

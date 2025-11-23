@@ -53,6 +53,10 @@ public class OrderService {
         order.setStatus(OrderStatus.PENDING);
         order.setCreatedAt(Instant.now());
 
+        // ✅ NEW: tạo mã thanh toán dùng riêng cho PayOS (unique + đủ dài)
+        // Không dùng order.id (nhỏ, dễ trùng/PayOS reject)
+        order.setPaymentCode(System.currentTimeMillis());
+
         // shipping address
         var address = customerClient.getAddress(request.getAddressId());
         order.setShippingAddress(address.toString());
@@ -73,7 +77,6 @@ public class OrderService {
         var snapshots = productClient.getProductsSnapshot(requests);
 
         // 2) Build map snapshot theo key (productId, variantId)
-        // Assumption: ProductSnapshotResponse có getProductId() và getVariantId()
         Map<ItemKey, ProductSnapshotResponse> snapshotMap = snapshots.stream()
                 .collect(Collectors.toMap(
                         s -> new ItemKey(s.getProductId(), s.getVariantId()),
@@ -87,7 +90,6 @@ public class OrderService {
             ItemKey key = new ItemKey(data.getProductId(), data.getVariantId());
             ProductSnapshotResponse snapshot = snapshotMap.get(key);
 
-            // Nếu snapshot thiếu -> coi như product-service trả sai / thiếu
             if (snapshot == null) {
                 throw new IllegalStateException(
                         "Snapshot not found for productId=" + data.getProductId()
@@ -140,7 +142,8 @@ public class OrderService {
         public boolean equals(Object o) {
             if (o == null || getClass() != o.getClass()) return false;
             ItemKey itemKey = (ItemKey) o;
-            return Objects.equals(productId, itemKey.productId) && Objects.equals(variantId, itemKey.variantId);
+            return Objects.equals(productId, itemKey.productId)
+                    && Objects.equals(variantId, itemKey.variantId);
         }
 
         @Override
@@ -166,19 +169,6 @@ public class OrderService {
         return orders.stream().map(orderMapper::toOrderResponse).toList();
     }
 
-    /**
-     * Cập nhật trạng thái đơn hàng (ADMIN)
-     * Lưu ý: Luồng chuẩn Option 1 thì trạng thái chính phải đi qua Inventory events.
-     * Method này bạn chỉ nên dùng cho admin/manual override.
-     */
-//    public OrderResponse updateStatus(Long orderId, OrderUpdateStatusRequest request) {
-//        Order order = orderRepository.findById(orderId)
-//                .orElseThrow(() -> new OrderNotFoundException(orderId));
-//
-//        order.setStatus(request.getStatus());
-//        return orderMapper.toOrderResponse(orderRepository.save(order));
-//    }
-
     public OrderResponse cancelOrder(Long orderId, Long userId, String cancelReason) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new OrderNotFoundException(orderId));
@@ -202,8 +192,6 @@ public class OrderService {
         if (order.getStatus() != OrderStatus.PENDING)
             return false;
 
-        // Nếu bạn muốn chuẩn state-machine hơn:
-        // confirm chỉ nên từ PAID -> SHIPPING
         order.setStatus(OrderStatus.SHIPPING);
         orderRepository.save(order);
         return true;
@@ -242,7 +230,8 @@ public class OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new OrderNotFoundException(orderId));
 
-        if (order.getStatus() == OrderStatus.DELIVERED || order.getStatus() == OrderStatus.CANCELLED)
+        if (order.getStatus() == OrderStatus.DELIVERED
+                || order.getStatus() == OrderStatus.CANCELLED)
             return false;
 
         order.setStatus(OrderStatus.FAILED);

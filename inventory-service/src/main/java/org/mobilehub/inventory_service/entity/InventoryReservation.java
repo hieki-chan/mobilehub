@@ -39,10 +39,12 @@ public class InventoryReservation {
     @Column(nullable = false)
     private Instant expiresAt;
 
-    /**
-     * Danh sách các sản phẩm thuộc reservation này
-     * mappedBy = "reservation" nghĩa là cột khóa ngoại nằm bên InventoryReservationItem
-     */
-    @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(
+            mappedBy = "reservation",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.LAZY
+    )
     private List<InventoryReservationItem> items = new ArrayList<>();
+
 }

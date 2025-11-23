@@ -7,11 +7,13 @@ import org.mobilehub.inventory_service.entity.InventoryReservation;
 import org.mobilehub.inventory_service.entity.InventoryReservationItem;
 import org.mobilehub.inventory_service.entity.InventoryStock;
 import org.mobilehub.inventory_service.entity.ReservationStatus;
+import org.mobilehub.inventory_service.exception.InsufficientStockException;
 import org.mobilehub.inventory_service.kafka.InventoryEventPublisher;
 import org.mobilehub.inventory_service.mapper.InventoryMapper;
 import org.mobilehub.inventory_service.repository.InventoryReservationRepository;
 import org.mobilehub.inventory_service.repository.InventoryStockRepository;
 import org.mobilehub.shared.common.events.InventoryCommittedEvent;
+import org.mobilehub.shared.common.events.InventoryRejectedEvent;
 import org.mobilehub.shared.common.events.InventoryReleasedEvent;
 import org.mobilehub.shared.common.events.InventoryReservedEvent;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -19,9 +21,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -76,7 +77,7 @@ public class InventoryService {
                                                 List<InventoryReservationItem> orderItems,
                                                 String idempotencyKey) {
 
-        // Idempotent: đã reserve rồi thì trả lại + publish lại RESERVED (order-service idempotent)
+        // Idempotent: đã reserve rồi thì trả lại + publish lại RESERVED
         var existed = reservationRepo.findByIdempotencyKey(idempotencyKey);
         if (existed.isPresent()) {
             InventoryReservation res = existed.get();
@@ -91,6 +92,39 @@ public class InventoryService {
             return mapper.toReservationResponse(res);
         }
 
+        // ====== (NEW) Gom request theo productId để check chuẩn ======
+        Map<Long, Long> requestedByPid = orderItems.stream()
+                .collect(Collectors.groupingBy(
+                        InventoryReservationItem::getProductId,
+                        Collectors.summingLong(InventoryReservationItem::getQuantity)
+                ));
+
+        // ===== Phase A: lock + check đủ hàng cho TẤT CẢ sản phẩm =====
+        Map<Long, InventoryStock> lockedStocks = new HashMap<>();
+        List<InventoryRejectedEvent.Missing> missing = new ArrayList<>();
+
+        for (var entry : requestedByPid.entrySet()) {
+            Long pid = entry.getKey();
+            Long reqQty = entry.getValue();
+
+            InventoryStock stock = stockRepo.lockByProductId(pid).orElse(null);
+            long available = (stock == null) ? 0L : stock.getOnHand() - stock.getReserved();
+
+            if (stock == null || available < reqQty) {
+                // ✅ dùng Missing của shared event
+                missing.add(new InventoryRejectedEvent.Missing(pid, reqQty, available));
+            } else {
+                lockedStocks.put(pid, stock);
+            }
+        }
+
+// Nếu thiếu bất kỳ line nào -> throw kèm list thiếu
+        if (!missing.isEmpty()) {
+            throw new InsufficientStockException("Out of stock", missing);
+        }
+
+
+        // ====== Phase B: tạo reservation + tăng reserved ======
         InventoryReservation reservation = new InventoryReservation();
         reservation.setReservationId(UUID.randomUUID().toString());
         reservation.setOrderId(orderId);
@@ -100,21 +134,11 @@ public class InventoryService {
         reservation.setItems(new ArrayList<>());
 
         for (InventoryReservationItem reqItem : orderItems) {
-
-            InventoryStock stock = stockRepo.lockByProductId(reqItem.getProductId())
-                    .orElseThrow(() -> new IllegalArgumentException(
-                            "Stock not found for product " + reqItem.getProductId()
-                    ));
-
-            long available = stock.getOnHand() - stock.getReserved();
-            if (available < reqItem.getQuantity()) {
-                // cứ throw, OrderEventsListener sẽ catch và publishRejected()
-                throw new IllegalArgumentException(
-                        "Out of stock for product " + reqItem.getProductId()
-                );
-            }
+            InventoryStock stock = lockedStocks.get(reqItem.getProductId());
+            // stock chắc chắn không null vì phase A đã pass
 
             stock.setReserved(stock.getReserved() + reqItem.getQuantity());
+            stockRepo.save(stock); // (optional nhưng nên có cho rõ ràng)
 
             InventoryReservationItem item = new InventoryReservationItem();
             item.setProductId(reqItem.getProductId());
@@ -126,7 +150,6 @@ public class InventoryService {
 
         InventoryReservation saved = reservationRepo.save(reservation);
 
-        // ✅ publish RESERVED đúng signature shared
         publisher.publishReserved(
                 saved.getOrderId(),
                 saved.getReservationId(),
@@ -139,10 +162,9 @@ public class InventoryService {
 
     @Transactional
     public InventoryReservationResponse commit(String reservationId) {
-        InventoryReservation reservation = reservationRepo.findByReservationId(reservationId)
+        InventoryReservation reservation = reservationRepo.findByReservationIdWithItems(reservationId)
                 .orElseThrow(() -> new IllegalArgumentException("Reservation not found: " + reservationId));
 
-        // ✅ Guard trạng thái để tránh commit nhầm RELEASED/CANCELED/CONFIRMED
         if (reservation.getStatus() != ReservationStatus.PENDING) {
             throw new IllegalStateException("Only PENDING reservation can be committed");
         }
@@ -155,12 +177,13 @@ public class InventoryService {
 
             stock.setOnHand(stock.getOnHand() - item.getQuantity());
             stock.setReserved(stock.getReserved() - item.getQuantity());
+
+            stockRepo.save(stock);
         }
 
         reservation.setStatus(ReservationStatus.CONFIRMED);
         InventoryReservation saved = reservationRepo.save(reservation);
 
-        // ✅ publish COMMITTED đúng signature shared
         publisher.publishCommitted(
                 saved.getOrderId(),
                 saved.getReservationId(),
@@ -170,12 +193,12 @@ public class InventoryService {
         return mapper.toReservationResponse(saved);
     }
 
+
     @Transactional
     public InventoryReservationResponse release(String reservationId) {
-        InventoryReservation reservation = reservationRepo.findByReservationId(reservationId)
+        InventoryReservation reservation = reservationRepo.findByReservationIdWithItems(reservationId)
                 .orElseThrow(() -> new IllegalArgumentException("Reservation not found: " + reservationId));
 
-        // Idempotent: không còn PENDING thì thôi
         if (reservation.getStatus() != ReservationStatus.PENDING) {
             return mapper.toReservationResponse(reservation);
         }
@@ -187,12 +210,13 @@ public class InventoryService {
                     ));
 
             stock.setReserved(stock.getReserved() - item.getQuantity());
+
+            stockRepo.save(stock); // ✅ explicit save
         }
 
         reservation.setStatus(ReservationStatus.RELEASED);
         InventoryReservation saved = reservationRepo.save(reservation);
 
-        // ✅ publish RELEASED đúng signature shared
         publisher.publishReleased(
                 saved.getOrderId(),
                 saved.getReservationId(),
@@ -202,7 +226,42 @@ public class InventoryService {
         return mapper.toReservationResponse(saved);
     }
 
-    /** ✅ Auto release reservation hết hạn + bắn INVENTORY_RELEASED */
+    @Transactional
+    public InventoryReservationResponse cancel(String reservationId) {
+        InventoryReservation reservation = reservationRepo.findByReservationIdWithItems(reservationId)
+                .orElseThrow(() -> new IllegalArgumentException("Reservation not found: " + reservationId));
+
+        if (reservation.getStatus() != ReservationStatus.PENDING) {
+            // idempotent: đã final rồi thì trả luôn
+            return mapper.toReservationResponse(reservation);
+        }
+
+        for (InventoryReservationItem item : reservation.getItems()) {
+            InventoryStock stock = stockRepo.lockByProductId(item.getProductId())
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "Stock not found for product " + item.getProductId()
+                    ));
+
+            stock.setReserved(stock.getReserved() - item.getQuantity());
+            stockRepo.save(stock);
+        }
+
+        reservation.setStatus(ReservationStatus.CANCELED);
+        InventoryReservation saved = reservationRepo.save(reservation);
+
+        // ✅ Tối thiểu: publish RELEASED để Order vẫn hiểu là stock được trả
+        publisher.publishReleased(
+                saved.getOrderId(),
+                saved.getReservationId(),
+                toReleasedLines(saved)
+        );
+
+        return mapper.toReservationResponse(saved);
+    }
+
+
+
+    /** Auto release reservation hết hạn */
     @Scheduled(fixedDelay = 60_000)
     @Transactional
     public void autoReleaseExpiredReservations() {
@@ -210,7 +269,7 @@ public class InventoryService {
                 .findAllByStatusAndExpiresAtBefore(ReservationStatus.PENDING, Instant.now());
 
         for (InventoryReservation res : expired) {
-            release(res.getReservationId()); // release() tự publish released event
+            release(res.getReservationId());
         }
     }
 

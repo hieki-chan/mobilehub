@@ -74,12 +74,8 @@ public class KafkaInventoryEventPublisher implements InventoryEventPublisher {
     public void publishRejected(Long orderId, String reason,
                                 List<InventoryRejectedEvent.Missing> missing) {
 
-        InventoryRejectedEvent evt = new InventoryRejectedEvent(
-                UUID.randomUUID().toString(),
-                orderId,
-                reason,
-                missing
-        );
+        InventoryRejectedEvent evt = new InventoryRejectedEvent(orderId, reason, missing);
+
 
         kafkaTemplate.send(Topics.INVENTORY_REJECTED, String.valueOf(orderId), evt);
         log.info("[inventory] Published INVENTORY_REJECTED orderId={}, reason={}, missing={}",

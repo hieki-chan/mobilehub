@@ -19,6 +19,14 @@ spring:
       hibernate:
         format_sql: true
 
+  kafka:
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        # ✅ add header __TypeId__
+        spring.json.add.type.headers: true
+
 service:
   identity: http://localhost:8081
   customer: http://localhost:8082

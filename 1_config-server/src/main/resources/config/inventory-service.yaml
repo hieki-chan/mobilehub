@@ -21,11 +21,28 @@ spring:
 
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
+
     consumer:
       group-id: inventory-service
-      # Cho phép converter deserialize các class trong module shared
+      auto-offset-reset: earliest
+
+      # Bắt buộc: sử dụng ErrorHandlingDeserializer để bọc JsonDeserializer
+      key-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+
       properties:
+        # Định nghĩa delegate cho key và value
+        spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
+
+        # Cho phép deserialize class từ shared module
         spring.json.trusted.packages: "org.mobilehub.shared.*"
+
+        # Đặt mặc định cho type của các message nhận được
+        spring.json.value.default.type: org.mobilehub.shared.contracts.order.OrderCreatedEvent
+
+        # (Tuỳ chọn) Đừng fail nếu thiếu header type
+        spring.json.use.type.headers: false
+
     listener:
-      # tuỳ chọn: số luồng consumer (cân bằng với partitions)
       concurrency: 3

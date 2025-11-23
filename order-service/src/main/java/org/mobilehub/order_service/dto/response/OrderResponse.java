@@ -18,6 +18,7 @@ public class OrderResponse {
     private Long userId;
     private String shippingAddress;
     private PaymentMethod paymentMethod;
+    private Long paymentCode;
     private BigDecimal totalPrice;
     private OrderStatus status;
     private Instant createdAt;

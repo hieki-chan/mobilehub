@@ -7,12 +7,15 @@ import java.time.Instant;
 
 @Entity
 @Table(name = "payment", indexes = {
-    @Index(name = "ux_payment_order_code", columnList = "orderCode", unique = true)
+        @Index(name = "ux_payment_order_code", columnList = "orderCode", unique = true)
 })
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Payment {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "order_id")
+    private Long orderId;
 
     @Column(nullable = false, unique = true)
     private Long orderCode;
@@ -37,6 +40,9 @@ public class Payment {
     private String providerIntentId;
     private String providerPaymentId;
     private String clientSecret;
+
+    @Column(length = 1024)
+    private String paymentUrl;
 
     private String failureCode;
     private String failureMessage;
@@ -70,8 +76,8 @@ public class Payment {
         this.status = PaymentStatus.AUTHORIZED;
     }
 
-    public void capture(java.math.BigDecimal amount) {
-        if (this.capturedAmount == null) this.capturedAmount = java.math.BigDecimal.ZERO;
+    public void capture(BigDecimal amount) {
+        if (this.capturedAmount == null) this.capturedAmount = BigDecimal.ZERO;
         this.capturedAmount = this.capturedAmount.add(amount);
         if (this.capturedAmount.compareTo(this.amount) >= 0) {
             this.status = PaymentStatus.CAPTURED;

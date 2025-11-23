@@ -68,4 +68,10 @@ public class InventoryController {
     public ResponseEntity<InventoryReservationResponse> release(@PathVariable String reservationId) {
         return ResponseEntity.ok(inventoryService.release(reservationId));
     }
+
+    @PostMapping("/reservations/{reservationId}/cancel")
+    public InventoryReservationResponse cancel(@PathVariable String reservationId) {
+        return inventoryService.cancel(reservationId);
+    }
+
 }

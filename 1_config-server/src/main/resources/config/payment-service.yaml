@@ -6,23 +6,32 @@ spring:
     name: payment-service
 
   datasource:
-    url: jdbc:mysql://localhost:3306/mobilehub_payment?createDatabaseIfNotExist=true
-    username: root
-    password: root1234!
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:mobilehub_payment}?createDatabaseIfNotExist=true
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:root1234!}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: ${JPA_SHOW_SQL:false}
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
 
 services:
-  order: http://localhost:8085
-  inventory: http://localhost:8086
+  order: ${ORDER_SERVICE_URL:http://localhost:8085}
+  inventory: ${INVENTORY_SERVICE_URL:http://localhost:8086}
+
 payos:
-  webhook-secret: mysecret
-  signature-header: X-Signature
-  base-url: http://localhost:5173/mock/payos
+  api-base-url: ${PAYOS_API_BASE_URL:https://api-merchant.payos.vn}
+  client-id: ${PAYOS_CLIENT_ID}
+  api-key: ${PAYOS_API_KEY}
+  checksum-key: ${PAYOS_CHECKSUM_KEY}
+  return-url-base: ${PAYOS_RETURN_URL_BASE}
+  cancel-url-base: ${PAYOS_CANCEL_URL_BASE}
+
+logging:
+  level:
+    org.mobilehub.payment_service: DEBUG
+    org.springframework.web.client.RestTemplate: DEBUG

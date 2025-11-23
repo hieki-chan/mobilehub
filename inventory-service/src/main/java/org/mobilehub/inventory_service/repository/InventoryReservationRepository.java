@@ -3,6 +3,8 @@ package org.mobilehub.inventory_service.repository;
 import org.mobilehub.inventory_service.entity.InventoryReservation;
 import org.mobilehub.inventory_service.entity.ReservationStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
@@ -18,4 +20,11 @@ public interface InventoryReservationRepository extends JpaRepository<InventoryR
 
     // Lấy tất cả reservation đã hết hạn mà vẫn ở trạng thái PENDING
     List<InventoryReservation> findAllByStatusAndExpiresAtBefore(ReservationStatus status, Instant expiresAt);
+
+    @Query("""
+    select r from InventoryReservation r
+    left join fetch r.items
+    where r.reservationId = :reservationId
+""")
+    Optional<InventoryReservation> findByReservationIdWithItems(@Param("reservationId") String reservationId);
 }

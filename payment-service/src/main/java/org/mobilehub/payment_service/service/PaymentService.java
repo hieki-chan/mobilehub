@@ -14,8 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 
 @Slf4j
 @Service
@@ -35,8 +33,12 @@ public class PaymentService {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    private static final String PAYOS_PROVIDER = "PAYOS";
+    private static final String DEFAULT_CURRENCY = "VND";
+    private static final String DEFAULT_CHANNEL = "QR"; // interface yêu cầu, PayOS gateway ignore
+
     // --------------------------------------------------------------------
-    // CREATE INTENT
+    // CREATE INTENT (PAYOS REAL, DTO mới)
     // --------------------------------------------------------------------
     @Transactional
     public CreateIntentResponse createIntent(CreateIntentRequest req, String idemKey) {
@@ -53,39 +55,45 @@ public class PaymentService {
             }
         }
 
-        // 2) Idempotency theo orderCode
-        var existedByOrder = paymentRepo.findByOrderCode(req.orderCode());
-        if (existedByOrder.isPresent()) {
-            return toCreateResponse(existedByOrder.get());
+        // 2) Idempotency theo orderCode (PayOS code)
+        var existedByOrderCode = paymentRepo.findByOrderCode(req.orderCode());
+        if (existedByOrderCode.isPresent()) {
+            return toCreateResponse(existedByOrderCode.get());
         }
 
-        // 3) Tạo payment mới
+        // 3) Tạo payment mới (PayOS prod-only)
         Payment p = Payment.builder()
-                .orderCode(req.orderCode())
+                .orderId(req.orderId())        // ✅ NEW: lưu orderId nội bộ để commit inventory
+                .orderCode(req.orderCode())    // ✅ PayOS code (paymentCode)
                 .amount(req.amount())
-                .currency(req.currency())
+                .currency(DEFAULT_CURRENCY)                 // ✅ set cứng VND
                 .status(PaymentStatus.NEW)
-                .captureMethod(req.captureMethod())
-                .provider(req.provider() != null ? req.provider() : "PAYOS")
+                .captureMethod(CaptureMethod.AUTOMATIC)    // ✅ PayOS luôn automatic
+                .provider(PAYOS_PROVIDER)                  // ✅ PayOS prod-only
                 .capturedAmount(BigDecimal.ZERO)
                 .build();
         paymentRepo.save(p);
 
-        // 4) Gọi PSP (mock PayOS)
+        // 4) Gọi PayOS REAL create payment link
         var res = gateway.createIntent(
                 p.getOrderCode(),
                 p.getAmount(),
-                p.getCurrency(),
-                req.channel(),
-                req.returnUrl()
+                p.getCurrency(),       // = VND
+                DEFAULT_CHANNEL,       // = QR (không ảnh hưởng)
+                req.returnUrl()        // optional, gateway fallback nếu null/blank
         );
 
+        // 5) Update payment theo kết quả provider
         p.setProviderPaymentId(res.providerPaymentId());
         p.setClientSecret(res.clientSecret());
         p.setStatus(res.nextStatus());
+
+        // ✅ Lưu checkoutUrl thật để idempotency trả lại đúng
+        p.setPaymentUrl(res.paymentUrl());
+
         paymentRepo.save(p);
 
-        // 5) Lưu idempotency map
+        // 6) Lưu idempotency map
         if (idemKey != null && !idemKey.isBlank()) {
             idemSvc.storePaymentMapping(idemKey, IDEM_ENDPOINT_CREATE, reqHash, p.getId());
         }
@@ -94,14 +102,14 @@ public class PaymentService {
                 p.getId(),
                 p.getOrderCode(),
                 p.getStatus(),
-                res.paymentUrl(),
-                res.clientSecret(),
+                p.getPaymentUrl(),
+                p.getClientSecret(),
                 p.getProviderPaymentId()
         );
     }
 
     // --------------------------------------------------------------------
-    // GET STATUS
+    // GET STATUS (theo PayOS orderCode)
     // --------------------------------------------------------------------
     @Transactional(readOnly = true)
     public PaymentStatusResponse getStatus(Long orderCode) {
@@ -118,12 +126,16 @@ public class PaymentService {
     }
 
     // --------------------------------------------------------------------
-    // CAPTURE MANUAL
+    // CAPTURE MANUAL -> PAYOS KHÔNG HỖ TRỢ
     // --------------------------------------------------------------------
     @Transactional
     public PaymentStatusResponse capture(Long paymentId, CaptureRequest req) {
         var p = paymentRepo.findById(paymentId)
                 .orElseThrow(() -> new NotFoundException("Payment not found"));
+
+        if (PAYOS_PROVIDER.equalsIgnoreCase(p.getProvider())) {
+            throw new UnsupportedOperationException("PayOS không hỗ trợ manual capture");
+        }
 
         if (p.getCaptureMethod() != CaptureMethod.MANUAL) {
             throw new IllegalStateException("Capture only allowed for MANUAL payments");
@@ -145,7 +157,6 @@ public class PaymentService {
 
         var res = gateway.capture(p.getProviderPaymentId(), req.amount());
 
-        // Domain update
         p.capture(res.amount());
         paymentRepo.save(p);
 
@@ -155,9 +166,9 @@ public class PaymentService {
                 .providerCaptureId(res.providerCaptureId())
                 .build());
 
-        // Auto commit inventory
         if (p.getStatus() == PaymentStatus.CAPTURED) {
-            commitInventoryForOrder(p.getOrderCode());
+            // ✅ NEW: commit inventory theo orderId nội bộ
+            commitInventoryForOrder(p.getOrderId());
         }
 
         return new PaymentStatusResponse(
@@ -171,12 +182,16 @@ public class PaymentService {
     }
 
     // --------------------------------------------------------------------
-    // REFUND
+    // REFUND -> PAYOS HIỆN TẠI CHƯA HỖ TRỢ AUTO REFUND
     // --------------------------------------------------------------------
     @Transactional
     public PaymentStatusResponse refund(RefundRequest req) {
         var p = paymentRepo.findById(req.paymentId())
                 .orElseThrow(() -> new NotFoundException("Payment not found"));
+
+        if (PAYOS_PROVIDER.equalsIgnoreCase(p.getProvider())) {
+            throw new UnsupportedOperationException("Refund PayOS cần nghiệp vụ payout/chi hộ, chưa hỗ trợ auto");
+        }
 
         if (req.amount() == null || req.amount().compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Refund amount must be > 0");
@@ -205,6 +220,11 @@ public class PaymentService {
     // HELPERS
     // --------------------------------------------------------------------
     private void commitInventoryForOrder(Long orderId) {
+        if (orderId == null) {
+            log.warn("[payment] orderId is null -> skip commit inventory (old data?)");
+            return;
+        }
+
         try {
             var resDto = orderClient.getReservation(orderId);
             String reservationId = resDto.reservationId();
@@ -231,30 +251,14 @@ public class PaymentService {
         }
     }
 
-    // ---------------------------------------------------------
-    // FIXED: Build correct UI mock URL for React PayOS
-    // ---------------------------------------------------------
     private CreateIntentResponse toCreateResponse(Payment p) {
-
-        // URL FE thanh toán xong quay về
-        String returnUrl = "http://localhost:5173/checkout/return?orderCode=" + p.getOrderCode();
-        String encodedReturn = URLEncoder.encode(returnUrl, StandardCharsets.UTF_8);
-
-        // UI MOCK PayOS trên React
-        String checkoutUrl =
-                "http://localhost:5173/mock/payos/checkout"
-                        + "?paymentId=" + p.getProviderPaymentId()
-                        + "&amount=" + p.getAmount()
-                        + "&returnUrl=" + encodedReturn;
-
         return new CreateIntentResponse(
                 p.getId(),
                 p.getOrderCode(),
                 p.getStatus(),
-                checkoutUrl,
+                p.getPaymentUrl(),
                 p.getClientSecret(),
                 p.getProviderPaymentId()
         );
     }
-
 }

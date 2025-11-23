@@ -30,9 +30,10 @@ public class WebhookService {
 
     @Transactional
     public void handle(String rawBody, Map<String, String> headers) {
+
         var evt = gateway.parseAndVerifyWebhook(rawBody, headers);
 
-        // idempotency: nếu event đã xử lý thì bỏ qua
+        // 0) Idempotency: nếu event đã xử lý thì bỏ qua
         if (eventRepo.existsByEventId(evt.eventId())) {
             log.info("[payment.webhook] duplicate eventId={}, skip", evt.eventId());
             return;
@@ -41,24 +42,53 @@ public class WebhookService {
         Payment p = paymentRepo.findByOrderCode(evt.orderCode())
                 .orElseThrow(() -> new NotFoundException("Payment not found for order " + evt.orderCode()));
 
+        // Optional: cảnh báo mismatch providerPaymentId
+        if (evt.providerPaymentId() != null
+                && p.getProviderPaymentId() != null
+                && !evt.providerPaymentId().equals(p.getProviderPaymentId())) {
+
+            log.warn("[payment.webhook] providerPaymentId mismatch orderCode={}, db={}, evt={}",
+                    p.getOrderCode(), p.getProviderPaymentId(), evt.providerPaymentId());
+        }
+
         boolean needCommit = false;
         boolean needRelease = false;
 
+        PaymentStatus prevStatus = p.getStatus();
+
         // 1) Update trạng thái payment theo webhook
         if (evt.status() == PaymentStatus.AUTHORIZED) {
-            p.markAuthorized();
+            if (prevStatus != PaymentStatus.AUTHORIZED) {
+                p.markAuthorized();
+            }
+
         } else if (evt.status() == PaymentStatus.CAPTURED) {
             // đồng bộ capturedAmount cho AUTOMATIC capture
             if (evt.amount() != null) {
-                p.setCapturedAmount(evt.amount());
+                p.setCapturedAmount(evt.amount()); // set thẳng để idempotent
             }
-            p.setStatus(PaymentStatus.CAPTURED);
-            needCommit = true;
-        } else if (evt.status() == PaymentStatus.FAILED || evt.status() == PaymentStatus.CANCELED) {
-            String code = evt.errorCode() != null ? evt.errorCode() : "webhook_failed";
-            String msg  = evt.errorMessage() != null ? evt.errorMessage() : "Provider reported failure";
-            p.fail(code, msg);
-            needRelease = true;
+            if (prevStatus != PaymentStatus.CAPTURED) {
+                p.setStatus(PaymentStatus.CAPTURED);
+                needCommit = true;
+            }
+
+        } else if (evt.status() == PaymentStatus.FAILED) {
+            if (prevStatus != PaymentStatus.FAILED) {
+                String code = evt.errorCode() != null ? evt.errorCode() : "webhook_failed";
+                String msg  = evt.errorMessage() != null ? evt.errorMessage() : "Provider reported failure";
+                p.fail(code, msg);
+                needRelease = true;
+            }
+
+        } else if (evt.status() == PaymentStatus.CANCELED) {
+            if (prevStatus != PaymentStatus.CANCELED) {
+                // ✅ không gọi fail() vì fail() ép status=FAILED
+                p.setStatus(PaymentStatus.CANCELED);
+                p.setFailureCode(evt.errorCode() != null ? evt.errorCode() : "webhook_canceled");
+                p.setFailureMessage(evt.errorMessage() != null ? evt.errorMessage() : "Provider reported canceled");
+                needRelease = true;
+            }
+
         } else {
             log.info("[payment.webhook] ignore status={} orderCode={}", evt.status(), evt.orderCode());
         }
@@ -84,7 +114,7 @@ public class WebhookService {
                 log.info("[payment.webhook] FAILED/CANCELED -> release inventory reservationId={}", reservationId);
                 inventoryClient.release(reservationId);
             }
-        } else {
+        } else if (needCommit || needRelease) {
             log.warn("[payment.webhook] reservationId missing for orderCode={}, skip inventory action",
                     p.getOrderCode());
         }
@@ -102,7 +132,7 @@ public class WebhookService {
 
         eventRepo.save(entity);
 
-        log.info("[payment.webhook] processed eventId={}, orderCode={}, status={}",
-                evt.eventId(), evt.orderCode(), evt.status());
+        log.info("[payment.webhook] processed eventId={}, orderCode={}, status={} (prevStatus={})",
+                evt.eventId(), evt.orderCode(), evt.status(), prevStatus);
     }
 }
