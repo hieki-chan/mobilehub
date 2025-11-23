@@ -1,7 +1,10 @@
 package org.mobilehub.rating_service.dto.response;
 
+import lombok.Builder;
+
 import java.time.Instant;
 
+@Builder
 public record RatingResponse(
         Long id,
         Long productId,

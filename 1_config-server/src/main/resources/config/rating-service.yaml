@@ -21,3 +21,6 @@ logging:
   level:
     org.hibernate.SQL: debug
     org.springframework: info
+
+service:
+  identity: http://localhost:8081

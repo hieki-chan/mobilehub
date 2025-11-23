@@ -3,6 +3,7 @@ package org.mobilehub.rating_service.controller;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.mobilehub.rating_service.dto.request.RatingCreateRequest;
+import org.mobilehub.rating_service.dto.request.RatingUpdateRequest;
 import org.mobilehub.rating_service.dto.response.PageResponse;
 import org.mobilehub.rating_service.dto.response.RatingResponse;
 import org.mobilehub.rating_service.service.RatingQueryService;
@@ -15,6 +16,7 @@ import java.time.Instant;
 @RestController
 @RequestMapping("/ratings")
 @AllArgsConstructor
+@SuppressWarnings("unused")
 public class RatingController {
     private final RatingService ratingService;
     private final RatingQueryService queryService;
@@ -24,6 +26,19 @@ public class RatingController {
     @PostMapping
     public ResponseEntity<RatingResponse> create(@Valid @RequestBody RatingCreateRequest body) {
         return ResponseEntity.ok(ratingService.create(body));
+    }
+
+    @PutMapping
+    public ResponseEntity<RatingResponse> updateRating(@Valid @RequestBody RatingUpdateRequest body) {
+        return ResponseEntity.ok(ratingService.update(body));
+    }
+
+    @GetMapping("/products")
+    public ResponseEntity<RatingResponse> getRatingOfProduct(
+            @RequestParam("userId") Long userId,
+            @RequestParam("productId") Long productId
+    ) {
+        return ResponseEntity.ok(ratingService.getRatingOfProduct(userId, productId));
     }
 
     // GET by product with pagination & special sort

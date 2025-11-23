@@ -22,9 +22,6 @@ public class ApplicationCreateRequest {
     private Long loanAmount;
 
     @NotNull
-    private Long partnerId;
-
-    @NotNull
     private Long planId;
 
     // NEW: tenor chosen by customer/admin (must be one of plan.allowedTenors)

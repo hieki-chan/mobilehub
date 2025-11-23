@@ -6,6 +6,5 @@ public record RatingCreateRequest(
         @NotNull Long productId,
         @NotNull Long userId,
         @Min(1) @Max(5) int stars,
-        @Size(max = 2000) String comment,
-        @Size(max = 255) String username
+        @Size(max = 2000) String comment
 ) {}
