@@ -49,7 +49,8 @@ public class SecurityConfig {
                                 "/auth/authenticate",
                                 "/auth/forgot-password",
                                 "/auth/reset-password",
-                                "/auth/reset-password/validate"
+                                "/auth/reset-password/validate",
+                                "auth/google"
                                 ).permitAll()
 
                         .requestMatchers("/admin/**").permitAll()

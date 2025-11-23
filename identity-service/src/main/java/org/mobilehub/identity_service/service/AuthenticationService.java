@@ -1,4 +1,5 @@
 package org.mobilehub.identity_service.service;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -10,6 +11,7 @@ import org.mobilehub.identity_service.dto.response.LoginResponse;
 import org.mobilehub.identity_service.dto.response.RegistrationResponse;
 import org.mobilehub.identity_service.dto.response.UserResponse;
 import org.mobilehub.identity_service.entity.Role;
+import org.mobilehub.identity_service.entity.SignInProvider;
 import org.mobilehub.identity_service.entity.User;
 import org.mobilehub.identity_service.entity.UserStatus;
 import org.mobilehub.identity_service.exception.UserException;
@@ -17,6 +19,7 @@ import org.mobilehub.identity_service.mapper.UserMapper;
 import org.mobilehub.identity_service.repository.UserRepository;
 import org.mobilehub.shared.common.token.ClaimSet;
 import org.mobilehub.shared.common.token.TokenProvider;
+import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -163,6 +166,29 @@ public class AuthenticationService {
         userRepository.save(user);
         pendingPasswordResetMap.remove(email);
         return true;
+    }
+
+    public LoginResponse loginWithGoogle(GoogleIdToken.Payload payload) {
+        String email = payload.getEmail();
+        String username = payload.get("name").toString();
+
+        var user = userRepository.findByEmail(email)
+                .orElseGet(() -> userRepository.save(User.builder()
+                        .email(email)
+                        .username(username)
+                        .provider(SignInProvider.GOOGLE)
+                        .role(Role.USER)
+                        .status(UserStatus.ACTIVE)
+                        .password("MOBILEHUB_GOOGLE_PASS")
+                        .build()));
+
+        if(user.getStatus() != UserStatus.ACTIVE)
+            throw new UserException("User is " + user.getStatus());
+
+        return LoginResponse.builder()
+                .accessToken(tokenProvider.generateToken(String.valueOf(user.getId()), buildUserClaim(user)))
+                .user(userMapper.toUserInfo(user))
+                .build();
     }
 
     public boolean logout(LogoutRequest logoutRequest) {

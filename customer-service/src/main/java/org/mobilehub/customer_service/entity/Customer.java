@@ -26,19 +26,19 @@ public class Customer {
     String identityNumber;
 
     @Nullable
-    @Column(length = 50, unique = true)
+    @Column(length = 50)
     String fullName;
 
     @Nullable
-    @Column(length = 12, unique = true)
+    @Column(length = 12)
     LocalDate dateOfBirth;
 
     @Nullable
-    @Column(length = 10, unique = true)
+    @Column(length = 10)
     String sex;
 
     @Nullable
-    @Column(length = 100, unique = true)
+    @Column(length = 100)
     String placeOfResidence;
 
     @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)

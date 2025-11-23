@@ -30,7 +30,7 @@ public class User {
 
     @Column
     @Enumerated(EnumType.STRING)
-    SignInProvider provider;
+    SignInProvider provider = SignInProvider.EMAIL_AND_PASSWORD;
 
     @Column
     @Enumerated(EnumType.STRING)

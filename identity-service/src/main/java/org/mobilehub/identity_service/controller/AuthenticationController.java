@@ -8,6 +8,7 @@ import org.mobilehub.identity_service.dto.request.*;
 import org.mobilehub.identity_service.dto.response.LoginResponse;
 import org.mobilehub.identity_service.dto.response.UserResponse;
 import org.mobilehub.identity_service.service.AuthenticationService;
+import org.mobilehub.identity_service.service.GoogleAuthService;
 import org.mobilehub.identity_service.service.MailService;
 import org.mobilehub.identity_service.service.UserService;
 import org.mobilehub.identity_service.util.MailHtml;
@@ -26,6 +27,7 @@ import java.text.ParseException;
 public class AuthenticationController {
 
     AuthenticationService authenticationService;
+    GoogleAuthService googleAuthService;
     UserService userService;
     MailService mailService;
 
@@ -112,6 +114,16 @@ public class AuthenticationController {
     public ResponseEntity<?> validateAccessToken(@RequestParam String token) {
         boolean valid = authenticationService.validateAccessToken(token);
         return ResponseEntity.ok(valid ? "Valid" : "Invalid");
+    }
+
+    @PostMapping("/google")
+    public ResponseEntity<LoginResponse> loginWithGoogle(@RequestBody GoogleLoginRequest request) {
+        try {
+            var payload = googleAuthService.verifyIdToken(request.getIdToken());
+            return ResponseEntity.ok(authenticationService.loginWithGoogle(payload));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(null);
+        }
     }
 
     @PostMapping("/logout")
