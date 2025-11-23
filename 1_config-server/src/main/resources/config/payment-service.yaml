@@ -22,3 +22,7 @@ spring:
 services:
   order: http://localhost:8085
   inventory: http://localhost:8086
+payos:
+  webhook-secret: mysecret
+  signature-header: X-Signature
+  base-url: http://localhost:5173/mock/payos

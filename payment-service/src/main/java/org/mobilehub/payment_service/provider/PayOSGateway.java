@@ -28,12 +28,38 @@ public class PayOSGateway implements PaymentProviderGateway {
     }
 
     @Override
-    public CreateResult createIntent(Long orderCode, BigDecimal amount, String currency, String channel, String returnUrl) {
-        // Stub: In real life, call external PSP API and return its data
+    public CreateResult createIntent(
+            Long orderCode,
+            BigDecimal amount,
+            String currency,
+            String channel,
+            String returnUrl
+    ) {
         String providerPaymentId = "pay_" + UUID.randomUUID();
-        String paymentUrl = props.getBaseUrl() + "/checkout/" + providerPaymentId + "?returnUrl=" + returnUrl;
-        return new CreateResult(providerPaymentId, paymentUrl, null, PaymentStatus.REQUIRES_ACTION);
+
+        // Phải encode returnUrl để tránh lỗi redirect
+        String encodedReturnUrl = java.net.URLEncoder.encode(
+                returnUrl,
+                java.nio.charset.StandardCharsets.UTF_8
+        );
+
+        // React UI mock PayOS
+        String paymentUrl =
+                props.getBaseUrl()
+                        + "/checkout"
+                        + "?paymentId=" + providerPaymentId
+                        + "&amount=" + amount
+                        + "&returnUrl=" + encodedReturnUrl;
+
+        return new CreateResult(
+                providerPaymentId,
+                paymentUrl,
+                null,
+                PaymentStatus.REQUIRES_ACTION
+        );
     }
+
+
 
     @Override
     public CaptureResult capture(String providerPaymentId, BigDecimal amount) {

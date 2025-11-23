@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @Slf4j
 @Service
@@ -28,17 +30,20 @@ public class PaymentService {
     private final IdempotencyService idemSvc;
     private final PaymentProviderGateway gateway;
 
-    // ✅ thêm 2 client để sync inventory theo Option 1
     private final OrderClient orderClient;
     private final InventoryClient inventoryClient;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    // --------------------------------------------------------------------
+    // CREATE INTENT
+    // --------------------------------------------------------------------
     @Transactional
     public CreateIntentResponse createIntent(CreateIntentRequest req, String idemKey) {
+
         String reqHash = HashingUtils.sha256(serialize(req));
 
-        // 1) Idempotency theo idemKey (nếu client gửi)
+        // 1) Idempotency bằng idempotency key
         if (idemKey != null && !idemKey.isBlank()) {
             var existing = idemSvc.lookupPaymentId(idemKey, IDEM_ENDPOINT_CREATE, reqHash);
             if (existing.isPresent()) {
@@ -48,12 +53,10 @@ public class PaymentService {
             }
         }
 
-        // 2) Idempotency theo orderCode (bắt buộc để tránh tạo 2 payment cho 1 order)
+        // 2) Idempotency theo orderCode
         var existedByOrder = paymentRepo.findByOrderCode(req.orderCode());
         if (existedByOrder.isPresent()) {
-            var p = existedByOrder.get();
-            // luôn trả lại intent cũ để tránh nổ unique constraint hoặc tạo double payment
-            return toCreateResponse(p);
+            return toCreateResponse(existedByOrder.get());
         }
 
         // 3) Tạo payment mới
@@ -68,7 +71,7 @@ public class PaymentService {
                 .build();
         paymentRepo.save(p);
 
-        // 4) Call PSP create intent
+        // 4) Gọi PSP (mock PayOS)
         var res = gateway.createIntent(
                 p.getOrderCode(),
                 p.getAmount(),
@@ -82,7 +85,7 @@ public class PaymentService {
         p.setStatus(res.nextStatus());
         paymentRepo.save(p);
 
-        // 5) store mapping idemKey nếu có
+        // 5) Lưu idempotency map
         if (idemKey != null && !idemKey.isBlank()) {
             idemSvc.storePaymentMapping(idemKey, IDEM_ENDPOINT_CREATE, reqHash, p.getId());
         }
@@ -97,6 +100,9 @@ public class PaymentService {
         );
     }
 
+    // --------------------------------------------------------------------
+    // GET STATUS
+    // --------------------------------------------------------------------
     @Transactional(readOnly = true)
     public PaymentStatusResponse getStatus(Long orderCode) {
         var p = paymentRepo.findByOrderCode(orderCode)
@@ -111,13 +117,9 @@ public class PaymentService {
         );
     }
 
-    /**
-     * Capture MANUAL:
-     * - chỉ cho phép khi captureMethod=MANUAL
-     * - chỉ AUTHORIZED / PARTIALLY_CAPTURED mới capture tiếp
-     * - không over-capture
-     * - khi CAPTURED xong => commit inventory (Option 1)
-     */
+    // --------------------------------------------------------------------
+    // CAPTURE MANUAL
+    // --------------------------------------------------------------------
     @Transactional
     public PaymentStatusResponse capture(Long paymentId, CaptureRequest req) {
         var p = paymentRepo.findById(paymentId)
@@ -143,7 +145,7 @@ public class PaymentService {
 
         var res = gateway.capture(p.getProviderPaymentId(), req.amount());
 
-        // Domain cập nhật capturedAmount + status
+        // Domain update
         p.capture(res.amount());
         paymentRepo.save(p);
 
@@ -153,7 +155,7 @@ public class PaymentService {
                 .providerCaptureId(res.providerCaptureId())
                 .build());
 
-        // ✅ Option 1: nếu sau capture mà final CAPTURED thì commit inventory
+        // Auto commit inventory
         if (p.getStatus() == PaymentStatus.CAPTURED) {
             commitInventoryForOrder(p.getOrderCode());
         }
@@ -168,10 +170,9 @@ public class PaymentService {
         );
     }
 
-    /**
-     * Refund không đụng inventory trong Option 1 (stock đã trừ),
-     * chỉ cập nhật payment + lưu refund record.
-     */
+    // --------------------------------------------------------------------
+    // REFUND
+    // --------------------------------------------------------------------
     @Transactional
     public PaymentStatusResponse refund(RefundRequest req) {
         var p = paymentRepo.findById(req.paymentId())
@@ -190,10 +191,6 @@ public class PaymentService {
                 .providerRefundId(res.providerRefundId())
                 .build());
 
-        // Nếu bạn có domain method refund(...) thì gọi ở đây để update refundedAmount/status
-        // p.refund(res.amount());
-        // paymentRepo.save(p);
-
         return new PaymentStatusResponse(
                 p.getId(),
                 p.getOrderCode(),
@@ -204,8 +201,9 @@ public class PaymentService {
         );
     }
 
-    // ===================== helpers =====================
-
+    // --------------------------------------------------------------------
+    // HELPERS
+    // --------------------------------------------------------------------
     private void commitInventoryForOrder(Long orderId) {
         try {
             var resDto = orderClient.getReservation(orderId);
@@ -220,7 +218,6 @@ public class PaymentService {
             log.info("[payment] committed inventory reservationId={} for orderId={}", reservationId, orderId);
 
         } catch (Exception ex) {
-            // Cho phép retry capture endpoint nếu commit fail
             log.error("[payment] commit inventory failed for orderId={}, reason={}", orderId, ex.getMessage());
             throw new RuntimeException("Commit inventory failed: " + ex.getMessage(), ex);
         }
@@ -234,14 +231,30 @@ public class PaymentService {
         }
     }
 
+    // ---------------------------------------------------------
+    // FIXED: Build correct UI mock URL for React PayOS
+    // ---------------------------------------------------------
     private CreateIntentResponse toCreateResponse(Payment p) {
+
+        // URL FE thanh toán xong quay về
+        String returnUrl = "http://localhost:5173/checkout/return?orderCode=" + p.getOrderCode();
+        String encodedReturn = URLEncoder.encode(returnUrl, StandardCharsets.UTF_8);
+
+        // UI MOCK PayOS trên React
+        String checkoutUrl =
+                "http://localhost:5173/mock/payos/checkout"
+                        + "?paymentId=" + p.getProviderPaymentId()
+                        + "&amount=" + p.getAmount()
+                        + "&returnUrl=" + encodedReturn;
+
         return new CreateIntentResponse(
                 p.getId(),
                 p.getOrderCode(),
                 p.getStatus(),
-                null,
+                checkoutUrl,
                 p.getClientSecret(),
                 p.getProviderPaymentId()
         );
     }
+
 }

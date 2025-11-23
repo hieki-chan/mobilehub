@@ -74,17 +74,17 @@ public class DataInitializer implements CommandLineRunner {
         ProductVariant natural256 = makeVariant("Natural Titanium", "#C8C7C2", 256, 8,
                 BigDecimal.valueOf(29_990_000L));
         addImages(natural256,
-                img(natural256, "iphone15pro/natural_1", "https://cdn.mobilehub.dev/products/iphone15pro/natural_1.jpg"),
-                img(natural256, "iphone15pro/natural_2", "https://cdn.mobilehub.dev/products/iphone15pro/natural_2.jpg"),
-                img(natural256, "iphone15pro/natural_3", "https://cdn.mobilehub.dev/products/iphone15pro/natural_3.jpg")
+                img(natural256, "iphone15pro/natural_1", "\"D:\\Download\\vi-vn-iphone-17-pro-max-1.jpg\""),
+                img(natural256, "iphone15pro/natural_2", "\"D:\\Download\\vi-vn-iphone-17-pro-max-1.jpg\""),
+                img(natural256, "iphone15pro/natural_3", "\"D:\\Download\\vi-vn-iphone-17-pro-max-1.jpg\"")
         );
 
         ProductVariant blue512 = makeVariant("Blue Titanium", "#5C6B7D", 512, 8,
                 BigDecimal.valueOf(35_990_000L));
         addImages(blue512,
-                img(blue512, "iphone15pro/blue_1", "https://cdn.mobilehub.dev/products/iphone15pro/blue_1.jpg"),
-                img(blue512, "iphone15pro/blue_2", "https://cdn.mobilehub.dev/products/iphone15pro/blue_2.jpg"),
-                img(blue512, "iphone15pro/blue_3", "https://cdn.mobilehub.dev/products/iphone15pro/blue_3.jpg")
+                img(blue512, "iphone15pro/blue_1", "\"D:\\Download\\vi-vn-iphone-17-pro-max-1.jpg\""),
+                img(blue512, "iphone15pro/blue_2", "\"D:\\Download\\vi-vn-iphone-17-pro-max-1.jpg\""),
+                img(blue512, "iphone15pro/blue_3", "\"D:\\Download\\vi-vn-iphone-17-pro-max-1.jpg\"")
         );
 
         attachVariants(product, natural256, blue512);
@@ -125,15 +125,15 @@ public class DataInitializer implements CommandLineRunner {
         ProductVariant gray256 = makeVariant("Titanium Gray", "#555555", 256, 12,
                 BigDecimal.valueOf(28_990_000L));
         addImages(gray256,
-                img(gray256, "s24ultra/gray_1", "https://cdn.mobilehub.dev/products/s24ultra/gray_1.jpg"),
-                img(gray256, "s24ultra/gray_2", "https://cdn.mobilehub.dev/products/s24ultra/gray_2.jpg")
+                img(gray256, "s24ultra/gray_1", "\"D:\\Download\\vi-vn-iphone-17-pro-max-1.jpg\""),
+                img(gray256, "s24ultra/gray_2", "\"D:\\Download\\vi-vn-iphone-17-pro-max-1.jpg\"")
         );
 
         ProductVariant violet512 = makeVariant("Titanium Violet", "#6C4C77", 512, 12,
                 BigDecimal.valueOf(31_990_000L));
         addImages(violet512,
-                img(violet512, "s24ultra/violet_1", "https://cdn.mobilehub.dev/products/s24ultra/violet_1.jpg"),
-                img(violet512, "s24ultra/violet_2", "https://cdn.mobilehub.dev/products/s24ultra/violet_2.jpg")
+                img(violet512, "s24ultra/violet_1", "\"D:\\Download\\vi-vn-iphone-17-pro-max-1.jpg\""),
+                img(violet512, "s24ultra/violet_2", "\"D:\\Download\\vi-vn-iphone-17-pro-max-1.jpg\"")
         );
 
         attachVariants(product, gray256, violet512);
@@ -168,13 +168,13 @@ public class DataInitializer implements CommandLineRunner {
         ProductVariant silver256 = makeVariant("Silver", "#D9D9D9", 256, 8,
                 BigDecimal.valueOf(27_990_000L));
         addImages(silver256,
-                img(silver256, "mba_m3/silver_1", "https://cdn.mobilehub.dev/products/mba_m3/silver_1.jpg")
+                img(silver256, "mba_m3/silver_1", "\"D:\\Download\\vi-vn-iphone-17-pro-max-1.jpg\"")
         );
 
         ProductVariant midnight512 = makeVariant("Midnight", "#0D1B2A", 512, 16,
                 BigDecimal.valueOf(33_990_000L));
         addImages(midnight512,
-                img(midnight512, "mba_m3/midnight_1", "https://cdn.mobilehub.dev/products/mba_m3/midnight_1.jpg")
+                img(midnight512, "mba_m3/midnight_1", "\"D:\\Download\\vi-vn-iphone-17-pro-max-1.jpg\"")
         );
 
         attachVariants(product, silver256, midnight512);
@@ -215,8 +215,8 @@ public class DataInitializer implements CommandLineRunner {
         ProductVariant platinum512 = makeVariant("Platinum", "#C0C0C0", 512, 16,
                 BigDecimal.valueOf(42_990_000L));
         addImages(platinum512,
-                img(platinum512, "xps13/platinum_1", "https://cdn.mobilehub.dev/products/xps13/platinum_1.jpg"),
-                img(platinum512, "xps13/platinum_2", "https://cdn.mobilehub.dev/products/xps13/platinum_2.jpg")
+                img(platinum512, "xps13/platinum_1", "\"D:\\Download\\vi-vn-iphone-17-pro-max-1.jpg\""),
+                img(platinum512, "xps13/platinum_2", "\"D:\\Download\\vi-vn-iphone-17-pro-max-1.jpg\"")
         );
 
         attachVariants(product, platinum512);
@@ -251,13 +251,13 @@ public class DataInitializer implements CommandLineRunner {
         ProductVariant black128 = makeVariant("Black", "#000000", 128, 6,
                 BigDecimal.valueOf(4_990_000L));
         addImages(black128,
-                img(black128, "note13/black_1", "https://cdn.mobilehub.dev/products/note13/black_1.jpg")
+                img(black128, "note13/black_1", "\"D:\\Download\\vi-vn-iphone-17-pro-max-1.jpg\"")
         );
 
         ProductVariant blue256 = makeVariant("Blue", "#2E5AAC", 256, 8,
                 BigDecimal.valueOf(5_990_000L));
         addImages(blue256,
-                img(blue256, "note13/blue_1", "https://cdn.mobilehub.dev/products/note13/blue_1.jpg")
+                img(blue256, "note13/blue_1", "\"D:\\Download\\vi-vn-iphone-17-pro-max-1.jpg\"")
         );
 
         attachVariants(product, black128, blue256);

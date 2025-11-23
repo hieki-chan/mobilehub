@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 public class PayOSProperties {
     private String webhookSecret = "changeme";
     private String signatureHeader = "X-Signature";
-    private String baseUrl = "https://payos.example";
+    private String baseUrl = "http://localhost:5173/mock/payos";
     public String getWebhookSecret(){ return webhookSecret; }
     public void setWebhookSecret(String s){ this.webhookSecret = s; }
     public String getSignatureHeader(){ return signatureHeader; }
