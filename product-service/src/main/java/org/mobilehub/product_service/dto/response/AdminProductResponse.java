@@ -17,5 +17,7 @@ public class AdminProductResponse {
     Integer discountInPercent;
     Integer sold;
 
+    Integer stock;
+
     ProductVariantResponse defaultVariant;
 }

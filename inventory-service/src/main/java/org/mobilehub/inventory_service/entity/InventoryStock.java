@@ -28,6 +28,7 @@ public class InventoryStock {
     //Tinh toan so luong con lai ko luu vao db
     @Transient
     public Long getAvailable(){
+        System.out.println((onHand != null && reserved != null) ? (onHand - reserved) : 0L);
         return (onHand != null && reserved != null) ? (onHand - reserved) : 0L;
     }
 

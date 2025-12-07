@@ -1,6 +1,7 @@
 package org.mobilehub.product_service.service;
 
 import org.mobilehub.product_service.client.CloudMediaServiceClient;
+import org.mobilehub.product_service.client.InventoryServiceClient;
 import org.mobilehub.product_service.dto.request.ProductSnapshotRequest;
 import org.mobilehub.product_service.dto.response.*;
 import org.mobilehub.product_service.entity.Product;
@@ -11,6 +12,7 @@ import org.mobilehub.product_service.exception.VariantNotFoundException;
 import org.mobilehub.product_service.repository.ProductVariantRepository;
 import org.mobilehub.product_service.util.DiscountUtils;
 import org.mobilehub.shared.contracts.media.MultipleImageResponse;
+import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -28,10 +30,6 @@ import org.mobilehub.product_service.mapper.ProductMapper;
 import org.mobilehub.product_service.repository.ProductRepository;
 import org.mobilehub.shared.contracts.media.ImageUploadEvent;
 import org.mobilehub.shared.contracts.media.ImageUploadedEvent;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -40,6 +38,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -57,6 +56,7 @@ public class ProductService {
     private final ProductDiscountMapper productDiscountMapper;
 
     private final CloudMediaServiceClient cloudMediaServiceClient;
+    private final InventoryServiceClient inventoryServiceClient;
     //private final KafkaTemplate<String, Object> kafkaTemplate;
 
     // region ADMIN SERVICES
@@ -219,19 +219,35 @@ public class ProductService {
     @Transactional
     public Page<AdminProductResponse> getProductsForAdmin(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
-
         Page<Product> pageData = productRepository.findAll(pageable);
 
-        return pageData.map(productMapper::toAdminProductResponse);
+        List<AdminProductResponse> productResponses = pageData.getContent().stream()
+                .map(product -> {
+                    InventoryStockResponse stockResponse = inventoryServiceClient.getStock(product.getId());
+
+                    AdminProductResponse response = productMapper.toAdminProductResponse(product);
+
+                    response.setStock(Math.toIntExact(stockResponse.getAvailable()));
+                    return response;
+                })
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(productResponses, pageable, pageData.getTotalElements());
     }
 
     @Transactional
     public AdminProductDetailsResponse getProductDetailForAdmin(Long productId) {
         var product = getProduct_Internal(productId, false);
-        var response =  productMapper.toAdminProductDetailsResponse(product);
+        var response = productMapper.toAdminProductDetailsResponse(product);
+
+        InventoryStockResponse stockResponse = inventoryServiceClient.getStock(productId);
+
+        response.setStock(Math.toIntExact(stockResponse.getAvailable()));
         response.setDefaultVariantId(product.getDefaultVariant().getId());
+
         return response;
     }
+
 
     // endregion
 

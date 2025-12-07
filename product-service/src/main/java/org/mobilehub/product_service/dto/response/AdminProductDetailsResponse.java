@@ -24,4 +24,6 @@ public class AdminProductDetailsResponse {
     List<AdminProductVariantResponse> variants;
 
     Long defaultVariantId;
+
+    Integer stock;
 }

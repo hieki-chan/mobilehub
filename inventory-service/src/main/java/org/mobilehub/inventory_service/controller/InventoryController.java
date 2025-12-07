@@ -10,6 +10,7 @@ import org.mobilehub.inventory_service.dto.request.ReserveRequest;
 import org.mobilehub.inventory_service.entity.InventoryReservationItem;
 import org.mobilehub.inventory_service.service.InventoryService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,7 +21,7 @@ import java.util.List;
  * - Reserve / Commit / Release
  */
 @RestController
-@RequestMapping("/api/inventory")
+@RequestMapping("/inventory")
 @RequiredArgsConstructor
 public class InventoryController {
 
@@ -36,6 +37,7 @@ public class InventoryController {
 
     /** POST /api/inventory/stock/adjust  (body: productId, delta) */
     @PostMapping("/stock/adjust")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<InventoryStockResponse> adjustStock(@RequestBody @Valid AdjustStockRequest req) {
         return ResponseEntity.ok(inventoryService.adjustStock(req.getProductId(), req.getDelta()));
     }

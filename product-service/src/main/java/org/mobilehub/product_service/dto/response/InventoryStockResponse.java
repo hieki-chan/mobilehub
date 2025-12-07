@@ -1,10 +1,8 @@
-package org.mobilehub.inventory_service.dto.response;
+package org.mobilehub.product_service.dto.response;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
-@AllArgsConstructor
 public class InventoryStockResponse {
     private Long productId;
     private Long onHand;

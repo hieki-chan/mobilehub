@@ -40,7 +40,10 @@ public class InventoryService {
     @Transactional(readOnly = true)
     public InventoryStockResponse getStock(Long productId) {
         InventoryStock stock = stockRepo.findByProductId(productId)
-                .orElseThrow(() -> new IllegalArgumentException("Product not found: " + productId));
+                .orElse(null);
+        if(stock == null)
+            return new InventoryStockResponse(0L, 0L, 0L, 0L);
+
         return mapper.toStockResponse(stock);
     }
 
