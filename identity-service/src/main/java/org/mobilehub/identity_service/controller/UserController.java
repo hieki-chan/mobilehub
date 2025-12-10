@@ -95,4 +95,11 @@ public class UserController {
     {
         return ResponseEntity.ok(userService.getUser(userId).getUsername());
     }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/admin/users/new-this-month")
+    public ResponseEntity<Long> getNewUsersThisMonth() {
+        Long count = userService.getNewUsersThisMonth();
+        return ResponseEntity.ok(count);
+    }
 }

@@ -153,4 +153,9 @@ public class ProductController {
     ) {
         return ResponseEntity.ok(productService.isProductVariantValid(productId, variantId));
     }
+
+    @GetMapping("/admin/products/sales/brand")
+    public List<BrandDistributionResponse> getBrandRevenue() {
+        return productService.getBrandDistribution();
+    }
 }

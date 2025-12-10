@@ -5,9 +5,7 @@ import org.mobilehub.order_service.client.CustomerClient;
 import org.mobilehub.order_service.client.ProductClient;
 import org.mobilehub.order_service.client.UserClient;
 import org.mobilehub.order_service.dto.request.*;
-import org.mobilehub.order_service.dto.response.OrderResponse;
-import org.mobilehub.order_service.dto.response.OrderSummaryResponse;
-import org.mobilehub.order_service.dto.response.ProductSnapshotResponse;
+import org.mobilehub.order_service.dto.response.*;
 import org.mobilehub.order_service.entity.*;
 import org.mobilehub.order_service.exception.OrderCannotBeCancelledException;
 import org.mobilehub.order_service.exception.OrderNotFoundException;
@@ -48,6 +46,9 @@ public class OrderService {
         if (!userClient.exists(userId)) {
             throw new RuntimeException("user is invalid " + userId);
         }
+
+        if(request.getPaymentMethod() != PaymentMethod.COD)
+            throw new RuntimeException("error");
 
         Order order = orderMapper.toOrder(userId, request);
         order.setStatus(OrderStatus.PENDING);
@@ -269,5 +270,25 @@ public class OrderService {
 
         Page<Order> orderPage = orderRepository.findAll(spec, pageable);
         return orderPage.map(orderMapper::toOrderResponse);
+    }
+
+    public List<MonthlySalesResponse> getMonthlySales() {
+        return orderRepository.findMonthlySales();
+    }
+
+    public List<MonthlyOrderCountResponse> getMonthlyOrderCount() {
+        return orderRepository.findMonthlyOrderCount();
+    }
+
+    public List<OrderStatusCountResponse> getOrderStatusStats() {
+        return orderRepository.countOrdersByStatus();
+    }
+
+    public List<BestSellingProductResponse> getBestSellingProducts() {
+        return orderItemRepository.findBestSellingProducts();
+    }
+
+    public Long getTotalSoldQuantity() {
+        return orderItemRepository.getTotalSoldQuantity();
     }
 }

@@ -16,8 +16,6 @@ import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.mobilehub.product_service.dto.response.*;
-import org.mobilehub.product_service.entity.*;
 import org.mobilehub.product_service.mapper.ProductDiscountMapper;
 import org.mobilehub.product_service.mapper.ProductSpecMapper;
 import org.mobilehub.product_service.repository.ProductDiscountRepository;
@@ -425,5 +423,9 @@ public class ProductService {
 //
 //            kafkaTemplate.send(ImageTopics.IMAGE_UPLOAD, event);
 //        }
+    }
+
+    public List<BrandDistributionResponse> getBrandDistribution() {
+        return productVariantRepository.getBrandDistributionData();
     }
 }
