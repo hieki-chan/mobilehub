@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.EnumSet;
 
 @Slf4j
 @Service
@@ -33,19 +34,29 @@ public class PaymentService {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    private static final String PAYOS_PROVIDER = "PAYOS";
+    private static final String PAYOS_PROVIDER   = "PAYOS";
     private static final String DEFAULT_CURRENCY = "VND";
-    private static final String DEFAULT_CHANNEL = "QR"; // interface yêu cầu, PayOS gateway ignore
+    private static final String DEFAULT_CHANNEL  = "QR";
+
+    // ✅ các trạng thái coi là "đang active" => retry phải trả về cái này
+    private static final EnumSet<PaymentStatus> ACTIVE_STATUSES = EnumSet.of(
+            PaymentStatus.NEW,
+            PaymentStatus.REQUIRES_ACTION,
+            PaymentStatus.AUTHORIZED,
+            PaymentStatus.PARTIALLY_CAPTURED
+    );
 
     // --------------------------------------------------------------------
-    // CREATE INTENT (PAYOS REAL, DTO mới)
+    // CREATE INTENT (idempotent theo orderId)
     // --------------------------------------------------------------------
     @Transactional
     public CreateIntentResponse createIntent(CreateIntentRequest req, String idemKey) {
 
+        validateCreateRequest(req);
+
         String reqHash = HashingUtils.sha256(serialize(req));
 
-        // 1) Idempotency bằng idempotency key
+        // 1) Idempotency theo idemKey (giữ nguyên)
         if (idemKey != null && !idemKey.isBlank()) {
             var existing = idemSvc.lookupPaymentId(idemKey, IDEM_ENDPOINT_CREATE, reqHash);
             if (existing.isPresent()) {
@@ -55,57 +66,64 @@ public class PaymentService {
             }
         }
 
-        // 2) Idempotency theo orderCode (PayOS code)
+        // 2) ✅ Idempotency chính theo orderId nội bộ
+        //    - Nếu orderId đã có payment ACTIVE hoặc CAPTURED => trả lại luôn
+        var latestOpt = paymentRepo.findTopByOrderIdOrderByIdDesc(req.orderId());
+        if (latestOpt.isPresent()) {
+            Payment latest = latestOpt.get();
+
+            if (latest.getStatus() == PaymentStatus.CAPTURED) {
+                return toCreateResponse(latest);
+            }
+
+            if (ACTIVE_STATUSES.contains(latest.getStatus())) {
+                return toCreateResponse(latest);
+            }
+            // Nếu latest là FAILED/CANCELED thì cho phép tạo payment mới
+        }
+
+        // 3) (Optional) Nếu bạn vẫn muốn chặn trùng theo orderCode PayOS
+        //    (đề phòng client gửi lại cùng orderCode)
         var existedByOrderCode = paymentRepo.findByOrderCode(req.orderCode());
         if (existedByOrderCode.isPresent()) {
             return toCreateResponse(existedByOrderCode.get());
         }
 
-        // 3) Tạo payment mới (PayOS prod-only)
+        // 4) Tạo payment mới
         Payment p = Payment.builder()
-                .orderId(req.orderId())        // ✅ NEW: lưu orderId nội bộ để commit inventory
-                .orderCode(req.orderCode())    // ✅ PayOS code (paymentCode)
+                .orderId(req.orderId())        // ✅ orderId nội bộ
+                .orderCode(req.orderCode())    // ✅ orderCode gửi sang PayOS
                 .amount(req.amount())
-                .currency(DEFAULT_CURRENCY)                 // ✅ set cứng VND
+                .currency(DEFAULT_CURRENCY)
                 .status(PaymentStatus.NEW)
-                .captureMethod(CaptureMethod.AUTOMATIC)    // ✅ PayOS luôn automatic
-                .provider(PAYOS_PROVIDER)                  // ✅ PayOS prod-only
+                .captureMethod(CaptureMethod.AUTOMATIC)
+                .provider(PAYOS_PROVIDER)
                 .capturedAmount(BigDecimal.ZERO)
                 .build();
         paymentRepo.save(p);
 
-        // 4) Gọi PayOS REAL create payment link
+        // 5) Gọi PayOS tạo payment link
         var res = gateway.createIntent(
                 p.getOrderCode(),
                 p.getAmount(),
-                p.getCurrency(),       // = VND
-                DEFAULT_CHANNEL,       // = QR (không ảnh hưởng)
-                req.returnUrl()        // optional, gateway fallback nếu null/blank
+                p.getCurrency(),
+                DEFAULT_CHANNEL,
+                req.returnUrl()
         );
 
-        // 5) Update payment theo kết quả provider
+        // 6) Update theo provider
         p.setProviderPaymentId(res.providerPaymentId());
         p.setClientSecret(res.clientSecret());
         p.setStatus(res.nextStatus());
-
-        // ✅ Lưu checkoutUrl thật để idempotency trả lại đúng
         p.setPaymentUrl(res.paymentUrl());
-
         paymentRepo.save(p);
 
-        // 6) Lưu idempotency map
+        // 7) Lưu idempotency map (giữ nguyên)
         if (idemKey != null && !idemKey.isBlank()) {
             idemSvc.storePaymentMapping(idemKey, IDEM_ENDPOINT_CREATE, reqHash, p.getId());
         }
 
-        return new CreateIntentResponse(
-                p.getId(),
-                p.getOrderCode(),
-                p.getStatus(),
-                p.getPaymentUrl(),
-                p.getClientSecret(),
-                p.getProviderPaymentId()
-        );
+        return toCreateResponse(p);
     }
 
     // --------------------------------------------------------------------
@@ -126,7 +144,7 @@ public class PaymentService {
     }
 
     // --------------------------------------------------------------------
-    // CAPTURE MANUAL -> PAYOS KHÔNG HỖ TRỢ
+    // CAPTURE MANUAL -> PAYOS KHÔNG HỖ TRỢ (giữ nguyên)
     // --------------------------------------------------------------------
     @Transactional
     public PaymentStatusResponse capture(Long paymentId, CaptureRequest req) {
@@ -167,8 +185,7 @@ public class PaymentService {
                 .build());
 
         if (p.getStatus() == PaymentStatus.CAPTURED) {
-            // ✅ NEW: commit inventory theo orderId nội bộ
-            commitInventoryForOrder(p.getOrderId());
+            commitInventoryForOrder(p.getOrderId()); // ✅ dùng orderId
         }
 
         return new PaymentStatusResponse(
@@ -182,7 +199,7 @@ public class PaymentService {
     }
 
     // --------------------------------------------------------------------
-    // REFUND -> PAYOS HIỆN TẠI CHƯA HỖ TRỢ AUTO REFUND
+    // REFUND (giữ nguyên)
     // --------------------------------------------------------------------
     @Transactional
     public PaymentStatusResponse refund(RefundRequest req) {
@@ -221,7 +238,7 @@ public class PaymentService {
     // --------------------------------------------------------------------
     private void commitInventoryForOrder(Long orderId) {
         if (orderId == null) {
-            log.warn("[payment] orderId is null -> skip commit inventory (old data?)");
+            log.warn("[payment] orderId is null -> skip commit inventory");
             return;
         }
 
@@ -243,11 +260,19 @@ public class PaymentService {
         }
     }
 
+    private void validateCreateRequest(CreateIntentRequest req) {
+        if (req == null) throw new IllegalArgumentException("Request is null");
+        if (req.orderId() == null) throw new IllegalArgumentException("orderId is required");
+        if (req.orderCode() == null) throw new IllegalArgumentException("orderCode is required");
+        if (req.amount() == null || req.amount().compareTo(BigDecimal.ZERO) <= 0)
+            throw new IllegalArgumentException("amount must be > 0");
+    }
+
     private String serialize(Object o) {
         try {
             return objectMapper.writeValueAsString(o);
         } catch (Exception e) {
-            return o.toString();
+            return String.valueOf(o);
         }
     }
 

@@ -27,11 +27,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DataInitializer implements CommandLineRunner {
 
-    private final PartnerRepository partnerRepo;
-    private final InstallmentPlanRepository planRepo;
+    private final PartnerRepository              partnerRepo;
+    private final InstallmentPlanRepository      planRepo;
     private final InstallmentApplicationRepository appRepo;
-    private final InstallmentContractRepository contractRepo;
-    private final InstallmentPaymentRepository paymentRepo;
+    private final InstallmentContractRepository  contractRepo;
+    private final InstallmentPaymentRepository   paymentRepo;
 
     @Override
     public void run(String... args) {
@@ -41,6 +41,10 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         LocalDateTime now = LocalDateTime.now();
+
+        // Có thể coi như demo user/address cho tất cả hồ sơ seed
+        final Long DEMO_USER_ID    = 1L;
+        final Long DEMO_ADDRESS_ID = 1L;
 
         // ======= PARTNERS =======
         Partner fe = partnerRepo.save(
@@ -102,9 +106,17 @@ public class DataInitializer implements CommandLineRunner {
                         .loanAmount(20_000_000L)
                         .partner(home)
                         .plan(plan1)
-                        .tenorMonths(TENOR_PLAN1) // ✅ BỔ SUNG
+                        .tenorMonths(TENOR_PLAN1)
                         .status(ApplicationStatus.APPROVED)
                         .createdAt(now.minusDays(3))
+
+                        // ====== NEW FIELDS TMĐT ======
+                        .userId(DEMO_USER_ID)
+                        .productId(1001L)
+                        .variantId(100101L)
+                        .quantity(1)
+                        .addressId(DEMO_ADDRESS_ID)
+                        // =============================
                         .build()
         );
 
@@ -119,9 +131,15 @@ public class DataInitializer implements CommandLineRunner {
                         .loanAmount(14_000_000L)
                         .partner(fe)
                         .plan(plan2)
-                        .tenorMonths(TENOR_PLAN2) // ✅ BỔ SUNG
+                        .tenorMonths(TENOR_PLAN2)
                         .status(ApplicationStatus.APPROVED)
                         .createdAt(now.minusDays(5))
+
+                        .userId(DEMO_USER_ID)
+                        .productId(2001L)
+                        .variantId(200101L)
+                        .quantity(1)
+                        .addressId(DEMO_ADDRESS_ID)
                         .build()
         );
 
@@ -136,9 +154,15 @@ public class DataInitializer implements CommandLineRunner {
                         .loanAmount(24_000_000L)
                         .partner(fe)
                         .plan(plan2)
-                        .tenorMonths(TENOR_PLAN2) // ✅ BỔ SUNG
+                        .tenorMonths(TENOR_PLAN2)
                         .status(ApplicationStatus.PENDING)
                         .createdAt(now.minusDays(1))
+
+                        .userId(DEMO_USER_ID)
+                        .productId(3001L)
+                        .variantId(300101L)
+                        .quantity(1)
+                        .addressId(DEMO_ADDRESS_ID)
                         .build()
         );
 
@@ -153,9 +177,15 @@ public class DataInitializer implements CommandLineRunner {
                         .loanAmount(15_000_000L)
                         .partner(home)
                         .plan(plan2)
-                        .tenorMonths(TENOR_PLAN2) // ✅ BỔ SUNG
+                        .tenorMonths(TENOR_PLAN2)
                         .status(ApplicationStatus.APPROVED)
                         .createdAt(now.minusMonths(5).plusDays(2))   // T6
+
+                        .userId(DEMO_USER_ID)
+                        .productId(4001L)
+                        .variantId(400101L)
+                        .quantity(1)
+                        .addressId(DEMO_ADDRESS_ID)
                         .build()
         );
 
@@ -169,9 +199,15 @@ public class DataInitializer implements CommandLineRunner {
                         .loanAmount(9_000_000L)
                         .partner(fe)
                         .plan(plan1)
-                        .tenorMonths(TENOR_PLAN1) // ✅ BỔ SUNG
+                        .tenorMonths(TENOR_PLAN1)
                         .status(ApplicationStatus.APPROVED)
                         .createdAt(now.minusMonths(3).plusDays(3))   // T8
+
+                        .userId(DEMO_USER_ID)
+                        .productId(5001L)
+                        .variantId(500101L)
+                        .quantity(1)
+                        .addressId(DEMO_ADDRESS_ID)
                         .build()
         );
 
@@ -185,9 +221,15 @@ public class DataInitializer implements CommandLineRunner {
                         .loanAmount(16_000_000L)
                         .partner(home)
                         .plan(plan2)
-                        .tenorMonths(TENOR_PLAN2) // ✅ BỔ SUNG
+                        .tenorMonths(TENOR_PLAN2)
                         .status(ApplicationStatus.APPROVED)
                         .createdAt(now.minusMonths(2).plusDays(1))   // T9
+
+                        .userId(DEMO_USER_ID)
+                        .productId(6001L)
+                        .variantId(600101L)
+                        .quantity(1)
+                        .addressId(DEMO_ADDRESS_ID)
                         .build()
         );
 
@@ -201,9 +243,15 @@ public class DataInitializer implements CommandLineRunner {
                         .loanAmount(25_000_000L)
                         .partner(fe)
                         .plan(plan1)
-                        .tenorMonths(TENOR_PLAN1) // ✅ BỔ SUNG
+                        .tenorMonths(TENOR_PLAN1)
                         .status(ApplicationStatus.APPROVED)
                         .createdAt(now.minusMonths(1).plusDays(4))   // T10
+
+                        .userId(DEMO_USER_ID)
+                        .productId(7001L)
+                        .variantId(700101L)
+                        .quantity(1)
+                        .addressId(DEMO_ADDRESS_ID)
                         .build()
         );
 
@@ -218,9 +266,15 @@ public class DataInitializer implements CommandLineRunner {
                         .loanAmount(8_000_000L)
                         .partner(home)
                         .plan(plan1)
-                        .tenorMonths(TENOR_PLAN1) // ✅ BỔ SUNG
+                        .tenorMonths(TENOR_PLAN1)
                         .status(ApplicationStatus.PENDING)
                         .createdAt(now.minusHours(6))
+
+                        .userId(DEMO_USER_ID)
+                        .productId(8001L)
+                        .variantId(800101L)
+                        .quantity(1)
+                        .addressId(DEMO_ADDRESS_ID)
                         .build()
         );
 
@@ -234,9 +288,15 @@ public class DataInitializer implements CommandLineRunner {
                         .loanAmount(6_000_000L)
                         .partner(fe)
                         .plan(plan2)
-                        .tenorMonths(TENOR_PLAN2) // ✅ BỔ SUNG
+                        .tenorMonths(TENOR_PLAN2)
                         .status(ApplicationStatus.PENDING)
                         .createdAt(now.minusHours(3))
+
+                        .userId(DEMO_USER_ID)
+                        .productId(9001L)
+                        .variantId(900101L)
+                        .quantity(1)
+                        .addressId(DEMO_ADDRESS_ID)
                         .build()
         );
 
@@ -250,9 +310,15 @@ public class DataInitializer implements CommandLineRunner {
                         .loanAmount(18_000_000L)
                         .partner(fe)
                         .plan(plan2)
-                        .tenorMonths(TENOR_PLAN2) // ✅ BỔ SUNG
+                        .tenorMonths(TENOR_PLAN2)
                         .status(ApplicationStatus.PENDING)
                         .createdAt(now.minusHours(1))
+
+                        .userId(DEMO_USER_ID)
+                        .productId(10001L)
+                        .variantId(1000101L)
+                        .quantity(1)
+                        .addressId(DEMO_ADDRESS_ID)
                         .build()
         );
 

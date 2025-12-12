@@ -20,8 +20,12 @@ spring:
         dialect: org.hibernate.dialect.MySQLDialect
 
 services:
-  order: ${ORDER_SERVICE_URL:http://localhost:8085}
-  inventory: ${INVENTORY_SERVICE_URL:http://localhost:8086}
+  order:
+    base-url: ${ORDER_SERVICE_URL:http://localhost:8085}
+    internal-api-key: ${ORDER_INTERNAL_API_KEY:dev-secret-key}
+  inventory:
+    base-url: ${INVENTORY_SERVICE_URL:http://localhost:8086}
+    internal-api-key: ${INVENTORY_INTERNAL_API_KEY:dev-secret-key}
 
 payos:
   api-base-url: ${PAYOS_API_BASE_URL:https://api-merchant.payos.vn}
@@ -31,7 +35,16 @@ payos:
   return-url-base: ${PAYOS_RETURN_URL_BASE}
   cancel-url-base: ${PAYOS_CANCEL_URL_BASE}
 
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 3000
+        readTimeout: 5000
+        loggerLevel: FULL
+
 logging:
   level:
     org.mobilehub.payment_service: DEBUG
     org.springframework.web.client.RestTemplate: DEBUG
+    feign: DEBUG

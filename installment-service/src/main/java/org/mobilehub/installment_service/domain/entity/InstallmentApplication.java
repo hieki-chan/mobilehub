@@ -54,4 +54,26 @@ public class InstallmentApplication {
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
+
+    // ===================== [NEW] – dữ liệu TMĐT để tạo Order =====================
+
+    /** Id user trong hệ thống thương mại điện tử (user đã tạo hồ sơ trả góp) */
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
+
+    /** Id sản phẩm bên product-service */
+    @Column(name = "product_id", nullable = false)
+    private Long productId;
+
+    /** Id biến thể sản phẩm (màu, dung lượng…) */
+    @Column(name = "variant_id", nullable = false)
+    private Long variantId;
+
+    /** Số lượng sản phẩm muốn mua */
+    @Column(name = "quantity", nullable = false)
+    private Integer quantity;
+
+    /** Id địa chỉ giao hàng mặc định của user */
+    @Column(name = "address_id", nullable = false)
+    private Long addressId;
 }

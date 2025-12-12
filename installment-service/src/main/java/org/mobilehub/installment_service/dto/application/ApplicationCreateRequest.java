@@ -28,4 +28,21 @@ public class ApplicationCreateRequest {
     @NotNull
     @Positive
     private Integer tenorMonths;
+
+    @NotNull
+    private Long userId;        // id user trong hệ thống TMĐT
+
+    @NotNull
+    private Long productId;     // id sản phẩm trong product-service
+
+    @NotNull
+    private Long variantId;     // id biến thể (màu, dung lượng...)
+
+    @NotNull
+    @Positive
+    private Integer quantity;   // số lượng mua
+
+    @NotNull
+    private Long addressId;     // id địa chỉ giao hàng mặc định
+
 }

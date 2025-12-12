@@ -67,8 +67,17 @@ public class OrderController {
     }
 
     private Long getPrincipalId() {
-        return (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        if (principal instanceof Long l) return l;
+
+        if (principal instanceof String s) {
+            return Long.valueOf(s); // phòng trường hợp subject là "2"
+        }
+
+        throw new AccessDeniedException("Unauthorized");
     }
+
 
     private void validateUserAccess(Long pathUserId) {
         Long principalId = getPrincipalId();

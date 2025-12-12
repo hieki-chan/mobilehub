@@ -32,30 +32,68 @@ import java.util.stream.Collectors;
 @Transactional
 public class OrderService {
 
-    private final OrderRepository orderRepository;
-    private final OrderItemRepository orderItemRepository;
-    private final OrderMapper orderMapper;
+    private final OrderRepository      orderRepository;
+    private final OrderItemRepository  orderItemRepository;
+    private final OrderMapper          orderMapper;
 
-    private final UserClient userClient;
-    private final CustomerClient customerClient;
-    private final ProductClient productClient;
+    private final UserClient           userClient;
+    private final CustomerClient       customerClient;
+    private final ProductClient        productClient;
 
-    private final OrderEventPublisher publisher;
+    private final OrderEventPublisher  publisher;
 
+    // ============================================================
+    // FLOW ĐẶT HÀNG BÌNH THƯỜNG (COD + PAYOS(BANK_TRANSFER))
+    // ============================================================
     public OrderResponse createOrder(Long userId, OrderCreateRequest request) {
         if (!userClient.exists(userId)) {
             throw new RuntimeException("user is invalid " + userId);
         }
 
-        if(request.getPaymentMethod() != PaymentMethod.COD)
-            throw new RuntimeException("error");
+        // ✅ SỬA: Cho phép COD + BANK_TRANSFER (PayOS)
+        // INSTALLMENT phải đi bằng flow riêng (Kafka)
+        PaymentMethod pm = request.getPaymentMethod();
+        if (pm == PaymentMethod.INSTALLMENT) {
+            throw new RuntimeException("INSTALLMENT orders must come from installment flow");
+        }
 
+        if (pm != PaymentMethod.COD && pm != PaymentMethod.BANK_TRANSFER) {
+            throw new RuntimeException("Unsupported payment method: " + pm);
+        }
+
+        return doCreateBaseOrder(userId, request);
+    }
+
+    // ============================================================
+    // FLOW ĐẶT HÀNG TỪ TRẢ GÓP (INSTALLMENT-SERVICE → KAFKA)
+    // ============================================================
+    /**
+     * Dùng cho flow: installment-service APPROVED → gửi Kafka → order-service tạo đơn.
+     * - Enforce paymentMethod = INSTALLMENT
+     */
+    public OrderResponse createOrderFromInstallment(Long userId, OrderCreateRequest request) {
+        if (!userClient.exists(userId)) {
+            throw new RuntimeException("user is invalid " + userId);
+        }
+
+        if (request.getPaymentMethod() != PaymentMethod.INSTALLMENT) {
+            throw new RuntimeException("PaymentMethod must be INSTALLMENT for installment orders");
+        }
+
+        return doCreateBaseOrder(userId, request);
+    }
+
+    // ============================================================
+    // CORE: TẠO ORDER + SET SNAPSHOT ITEM + PUBLISH EVENT
+    // ============================================================
+    private OrderResponse doCreateBaseOrder(Long userId, OrderCreateRequest request) {
+        // build order từ mapper
         Order order = orderMapper.toOrder(userId, request);
         order.setStatus(OrderStatus.PENDING);
         order.setCreatedAt(Instant.now());
 
-        // ✅ NEW: tạo mã thanh toán dùng riêng cho PayOS (unique + đủ dài)
-        // Không dùng order.id (nhỏ, dễ trùng/PayOS reject)
+        // Mã thanh toán dùng riêng cho PayOS / tracking (unique, không dùng order.id)
+        // (Bạn đang set cho cả COD cũng OK nếu DB cần not-null)
         order.setPaymentCode(System.currentTimeMillis());
 
         // shipping address
@@ -67,14 +105,14 @@ public class OrderService {
 
     /**
      * Tạo OrderItem từ snapshot + request
-     * - KHÔNG ghép snapshot theo index nữa (tránh lệch dữ liệu)
+     * - Map snapshot theo (productId, variantId)
      * - Lưu variantId vào OrderItem
-     * - Publish OrderCreatedEvent với idempotencyKey thật
+     * - Publish OrderCreatedEvent với idempotencyKey
      */
     private OrderResponse setOrderItems(Order order, List<OrderItemRequest> orderItems) {
 
         // 1) Gọi product-service lấy snapshot
-        var requests = orderMapper.toRequestList(orderItems);
+        var requests  = orderMapper.toRequestList(orderItems);
         var snapshots = productClient.getProductsSnapshot(requests);
 
         // 2) Build map snapshot theo key (productId, variantId)

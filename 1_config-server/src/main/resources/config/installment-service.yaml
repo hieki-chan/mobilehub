@@ -5,6 +5,14 @@ spring:
   application:
     name: installment-service
 
+  kafka:
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    properties:
+      spring.json.add.type.headers: false
+
+
   datasource:
     url: jdbc:mysql://localhost:3306/mobilehub_installment?createDatabaseIfNotExist=true
     username: root

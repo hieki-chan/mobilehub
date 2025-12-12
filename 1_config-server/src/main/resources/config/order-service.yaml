@@ -31,3 +31,5 @@ service:
   identity: http://localhost:8081
   customer: http://localhost:8082
   product: http://localhost:8083
+internal:
+  api-key: ${INTERNAL_API_KEY:dev-secret-key}

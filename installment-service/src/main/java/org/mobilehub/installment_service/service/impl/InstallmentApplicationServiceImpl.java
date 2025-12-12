@@ -22,6 +22,10 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+// [NEW]
+import org.mobilehub.installment_service.messaging.InstallmentOrderCreateMessage;
+import org.mobilehub.installment_service.messaging.InstallmentOrderMessagePublisher;
+
 @Service
 @RequiredArgsConstructor
 public class InstallmentApplicationServiceImpl implements InstallmentApplicationService {
@@ -32,6 +36,9 @@ public class InstallmentApplicationServiceImpl implements InstallmentApplication
 
     private final InstallmentPlanRepository planRepo;
     private final PartnerRepository         partnerRepo;
+
+    // [NEW] publisher Kafka để yêu cầu order-service tạo đơn
+    private final InstallmentOrderMessagePublisher orderMessagePublisher;
 
     // ============================================================
     // SEARCH
@@ -66,10 +73,37 @@ public class InstallmentApplicationServiceImpl implements InstallmentApplication
         app.setStatus(newStatus);
         appRepo.save(app);
 
-        // ✅ Nếu duyệt thì tạo hợp đồng + lịch thanh toán
+        // ✅ Nếu duyệt thì tạo hợp đồng + lịch thanh toán + bắn event tạo Order
         if (newStatus == ApplicationStatus.APPROVED) {
             createContractAndScheduleIfNotExist(app);
+            publishOrderCreateEvent(app);   // [NEW]
         }
+    }
+
+    // ============================================================
+    // [NEW] PUBLISH EVENT TẠO ORDER QUA KAFKA
+    // ============================================================
+    private void publishOrderCreateEvent(InstallmentApplication app) {
+        // build item từ thông tin application
+        InstallmentOrderCreateMessage.Item item =
+                InstallmentOrderCreateMessage.Item.builder()
+                        .productId(app.getProductId())
+                        .variantId(app.getVariantId())
+                        .quantity(app.getQuantity())
+                        .build();
+
+        InstallmentOrderCreateMessage msg =
+                InstallmentOrderCreateMessage.builder()
+                        .applicationId(app.getId())
+                        .userId(app.getUserId())
+                        .paymentMethod("INSTALLMENT")     // map sang PaymentMethod.INSTALLMENT bên order-service
+                        .shippingMethod("DELIVERY")       // tuỳ enum ShippingMethod bên order-service
+                        .note("Order created from installment application " + app.getCode())
+                        .addressId(app.getAddressId())
+                        .items(List.of(item))
+                        .build();
+
+        orderMessagePublisher.publishInstallmentOrderCreate(msg);
     }
 
     // ============================================================
@@ -188,7 +222,8 @@ public class InstallmentApplicationServiceImpl implements InstallmentApplication
     // ============================================================
     @Override
     public ApplicationPrecheckResponse precheck(ApplicationPrecheckRequest req) {
-
+        // giữ nguyên như bạn đã có
+        // ...
         InstallmentPlan plan = planRepo.findById(req.getPlanId())
                 .orElseThrow(() -> new IllegalArgumentException("Plan not found"));
 
@@ -270,9 +305,16 @@ public class InstallmentApplicationServiceImpl implements InstallmentApplication
                 .loanAmount(req.getLoanAmount())
                 .partner(partner)
                 .plan(plan)
-                .tenorMonths(tenor)                 // ✅ lưu tenor
+                .tenorMonths(tenor)
                 .status(ApplicationStatus.PENDING)
                 .createdAt(LocalDateTime.now())
+
+                // [NEW] set các field TMĐT
+                .userId(req.getUserId())
+                .productId(req.getProductId())
+                .variantId(req.getVariantId())
+                .quantity(req.getQuantity())
+                .addressId(req.getAddressId())
                 .build();
 
         app = appRepo.save(app);
