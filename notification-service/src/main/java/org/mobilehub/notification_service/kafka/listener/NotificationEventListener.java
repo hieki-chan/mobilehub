@@ -2,9 +2,9 @@ package org.mobilehub.notification_service.kafka.listener;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.mobilehub.notification_service.service.NotificationService;
 import org.mobilehub.notification_service.enums.NotificationType;
 import org.mobilehub.notification_service.port.EmailSenderPort;
+import org.mobilehub.notification_service.service.NotificationService;
 import org.mobilehub.shared.contracts.notification.*;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
@@ -22,6 +22,7 @@ public class NotificationEventListener {
     public void onPaymentCaptured(PaymentCapturedEvent e) {
         log.info("[NOTI] payment captured order={}", e.orderId());
 
+        // ✅ Luôn lưu notification vào DB trước
         notiSvc.create(
                 e.userId(),
                 "Thanh toán thành công",
@@ -32,16 +33,17 @@ public class NotificationEventListener {
                 e.orderId().toString()
         );
 
-        if (e.userEmail() != null && !e.userEmail().isBlank()) {
-            emailSender.send(
-                    e.userEmail(),
-                    "MobileHub - Thanh toán thành công",
-                    "Chào bạn,\n\n"
-                            + "Đơn hàng #" + e.orderId() + " đã được thanh toán thành công.\n"
-                            + "Số tiền: " + e.amount() + " " + e.currency() + "\n\n"
-                            + "Cảm ơn bạn đã mua hàng tại MobileHub!"
-            );
-        }
+        // ✅ Gửi email: FAIL thì log, KHÔNG throw để tránh kẹt consumer
+        safeSendEmail(
+                e.userEmail(),
+                "MobileHub - Thanh toán thành công",
+                "Chào bạn,\n\n"
+                        + "Đơn hàng #" + e.orderId() + " đã được thanh toán thành công.\n"
+                        + "Số tiền: " + e.amount() + " " + e.currency() + "\n\n"
+                        + "Cảm ơn bạn đã mua hàng tại MobileHub!",
+                "PAYMENT_CAPTURED",
+                e.orderId() != null ? e.orderId().toString() : "null"
+        );
     }
 
     // 2) Trả góp được duyệt
@@ -60,17 +62,17 @@ public class NotificationEventListener {
                 e.applicationId().toString()
         );
 
-        if (e.userEmail() != null && !e.userEmail().isBlank()) {
-            emailSender.send(
-                    e.userEmail(),
-                    "MobileHub - Duyệt trả góp thành công",
-                    "Chào bạn,\n\n"
-                            + "Yêu cầu trả góp #" + e.applicationId() + " đã được duyệt.\n"
-                            + "Gói: " + e.planName() + "\n"
-                            + "Kỳ hạn: " + e.tenorMonths() + " tháng.\n\n"
-                            + "Bạn có thể theo dõi hợp đồng và lịch thanh toán trong mục Trả góp."
-            );
-        }
+        safeSendEmail(
+                e.userEmail(),
+                "MobileHub - Duyệt trả góp thành công",
+                "Chào bạn,\n\n"
+                        + "Yêu cầu trả góp #" + e.applicationId() + " đã được duyệt.\n"
+                        + "Gói: " + e.planName() + "\n"
+                        + "Kỳ hạn: " + e.tenorMonths() + " tháng.\n\n"
+                        + "Bạn có thể theo dõi hợp đồng và lịch thanh toán trong mục Trả góp.",
+                "INSTALLMENT_APPROVED",
+                e.applicationId() != null ? e.applicationId().toString() : "null"
+        );
     }
 
     // 3) Nhắc đóng tiền đến kỳ
@@ -90,17 +92,33 @@ public class NotificationEventListener {
                 e.contractId().toString()
         );
 
-        if (e.userEmail() != null && !e.userEmail().isBlank()) {
-            emailSender.send(
-                    e.userEmail(),
-                    "MobileHub - Nhắc đóng tiền trả góp",
-                    "Chào bạn,\n\n"
-                            + "Kỳ #" + e.installmentNo() + "/" + e.totalInstallments()
-                            + " của hợp đồng #" + e.contractId()
-                            + " đến hạn vào " + e.dueDate() + ".\n"
-                            + "Số tiền cần đóng: " + e.amountDue() + " " + e.currency() + ".\n\n"
-                            + "Vui lòng thanh toán đúng hạn để tránh phí phạt."
-            );
+        safeSendEmail(
+                e.userEmail(),
+                "MobileHub - Nhắc đóng tiền trả góp",
+                "Chào bạn,\n\n"
+                        + "Kỳ #" + e.installmentNo() + "/" + e.totalInstallments()
+                        + " của hợp đồng #" + e.contractId()
+                        + " đến hạn vào " + e.dueDate() + ".\n"
+                        + "Số tiền cần đóng: " + e.amountDue() + " " + e.currency() + ".\n\n"
+                        + "Vui lòng thanh toán đúng hạn để tránh phí phạt.",
+                "INSTALLMENT_PAYMENT_DUE",
+                e.paymentId() != null ? e.paymentId().toString() : "null"
+        );
+    }
+
+    private void safeSendEmail(String to, String subject, String body, String eventType, String refId) {
+        if (to == null || to.isBlank()) {
+            log.debug("[NOTI][EMAIL] skip (missing email) eventType={}, refId={}", eventType, refId);
+            return;
+        }
+
+        try {
+            emailSender.send(to, subject, body);
+            log.info("[NOTI][EMAIL] sent to={} eventType={}, refId={}", to, eventType, refId);
+        } catch (Exception ex) {
+            // ✅ quan trọng: không throw, để Kafka commit offset
+            log.error("[NOTI][EMAIL] FAILED to={} eventType={}, refId={}, reason={}",
+                    to, eventType, refId, ex.getMessage(), ex);
         }
     }
 }

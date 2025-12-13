@@ -18,9 +18,11 @@ public class PaymentIntentController {
     @PostMapping("/intents")
     public ResponseEntity<CreateIntentResponse> create(
             @Valid @RequestBody CreateIntentRequest req,
-            @RequestHeader(name = "Idempotency-Key", required = false) String idemKey
+            @RequestHeader(name = "Idempotency-Key", required = false) String idemKey,
+            @RequestHeader(name = "X-User-Id", required = false) String userId,
+            @RequestHeader(name = "X-User-Email", required = false) String userEmail
     ) {
-        var res = paymentService.createIntent(req, idemKey);
+        var res = paymentService.createIntent(req, idemKey, userId, userEmail);
         return ResponseEntity.status(HttpStatus.CREATED).body(res);
     }
 
@@ -29,10 +31,6 @@ public class PaymentIntentController {
         return ResponseEntity.ok(paymentService.getStatus(orderCode));
     }
 
-    /**
-     * PayOS prod-only không hỗ trợ manual capture.
-     * Endpoint giữ lại để không phá contract cũ, nhưng trả 501 rõ ràng.
-     */
     @PostMapping("/intents/{paymentId}/capture")
     public ResponseEntity<PaymentStatusResponse> capture(
             @PathVariable Long paymentId,
@@ -45,10 +43,6 @@ public class PaymentIntentController {
         }
     }
 
-    /**
-     * PayOS prod-only chưa hỗ trợ auto refund (thường cần payout/chi hộ).
-     * Trả 501 rõ ràng.
-     */
     @PostMapping("/refunds")
     public ResponseEntity<PaymentStatusResponse> refund(@Valid @RequestBody RefundRequest req) {
         try {

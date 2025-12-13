@@ -26,6 +26,7 @@
         <module>cloud-media-service</module>
         <module>shared-common</module>
         <module>shared-contracts</module>
+        <module>notification-service</module>
     </modules>
 
 

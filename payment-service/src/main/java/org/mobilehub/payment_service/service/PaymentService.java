@@ -10,8 +10,12 @@ import org.mobilehub.payment_service.entity.*;
 import org.mobilehub.payment_service.exception.NotFoundException;
 import org.mobilehub.payment_service.provider.PaymentProviderGateway;
 import org.mobilehub.payment_service.repository.*;
+import org.mobilehub.shared.contracts.notification.PaymentCapturedEvent;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.math.BigDecimal;
 import java.util.EnumSet;
@@ -22,6 +26,7 @@ import java.util.EnumSet;
 public class PaymentService {
 
     public static final String IDEM_ENDPOINT_CREATE = "/api/payments/intents";
+    private static final String TOPIC_PAYMENT_CAPTURED = "payment.captured";
 
     private final PaymentRepository paymentRepo;
     private final PaymentCaptureRepository captureRepo;
@@ -31,6 +36,9 @@ public class PaymentService {
 
     private final OrderClient orderClient;
     private final InventoryClient inventoryClient;
+
+    // ✅ Kafka producer (cần spring-kafka + spring.kafka.bootstrap-servers)
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -49,10 +57,19 @@ public class PaymentService {
     // --------------------------------------------------------------------
     // CREATE INTENT (idempotent theo orderId)
     // --------------------------------------------------------------------
+    /**
+     * ✅ SỬA: truyền userId/userEmail từ Controller (lấy từ JWT)
+     * - userId: BẮT BUỘC để sau này webhook CAPTURED publish event cho notification-service.
+     * - userEmail: optional.
+     */
     @Transactional
-    public CreateIntentResponse createIntent(CreateIntentRequest req, String idemKey) {
+    public CreateIntentResponse createIntent(CreateIntentRequest req, String idemKey, String userId, String userEmail) {
 
         validateCreateRequest(req);
+
+        if (userId == null || userId.isBlank()) {
+            throw new IllegalArgumentException("userId is required");
+        }
 
         String reqHash = HashingUtils.sha256(serialize(req));
 
@@ -82,8 +99,7 @@ public class PaymentService {
             // Nếu latest là FAILED/CANCELED thì cho phép tạo payment mới
         }
 
-        // 3) (Optional) Nếu bạn vẫn muốn chặn trùng theo orderCode PayOS
-        //    (đề phòng client gửi lại cùng orderCode)
+        // 3) (Optional) Chặn trùng theo orderCode PayOS
         var existedByOrderCode = paymentRepo.findByOrderCode(req.orderCode());
         if (existedByOrderCode.isPresent()) {
             return toCreateResponse(existedByOrderCode.get());
@@ -92,6 +108,8 @@ public class PaymentService {
         // 4) Tạo payment mới
         Payment p = Payment.builder()
                 .orderId(req.orderId())        // ✅ orderId nội bộ
+                .userId(userId)                // ✅ BẮT BUỘC
+                .userEmail(userEmail)          // ✅ optional
                 .orderCode(req.orderCode())    // ✅ orderCode gửi sang PayOS
                 .amount(req.amount())
                 .currency(DEFAULT_CURRENCY)
@@ -184,8 +202,12 @@ public class PaymentService {
                 .providerCaptureId(res.providerCaptureId())
                 .build());
 
+        // ✅ nếu capture xong thành CAPTURED -> commit inventory + publish event
         if (p.getStatus() == PaymentStatus.CAPTURED) {
-            commitInventoryForOrder(p.getOrderId()); // ✅ dùng orderId
+            commitInventoryForOrder(p.getOrderId());
+
+            // publish notification event AFTER_COMMIT
+            publishPaymentCapturedAfterCommit(p);
         }
 
         return new PaymentStatusResponse(
@@ -236,6 +258,48 @@ public class PaymentService {
     // --------------------------------------------------------------------
     // HELPERS
     // --------------------------------------------------------------------
+    private void publishPaymentCapturedAfterCommit(Payment p) {
+        if (p == null) return;
+
+        // userId là BẮT BUỘC nếu bạn muốn notification-service hiển thị theo user
+        if (p.getUserId() == null || p.getUserId().isBlank()) {
+            log.warn("[payment.kafka] userId missing for paymentId={}, orderId={}, skip publish PaymentCapturedEvent",
+                    p.getId(), p.getOrderId());
+            return;
+        }
+
+        PaymentCapturedEvent evt = new PaymentCapturedEvent(
+                p.getOrderId(),
+                p.getUserId(),
+                p.getCapturedAmount() != null ? p.getCapturedAmount() : BigDecimal.ZERO,
+                (p.getCurrency() == null || p.getCurrency().isBlank()) ? DEFAULT_CURRENCY : p.getCurrency(),
+                p.getUserEmail()
+        );
+
+        Runnable publishTask = () -> {
+            try {
+                String key = evt.orderId() == null ? null : String.valueOf(evt.orderId());
+                kafkaTemplate.send(TOPIC_PAYMENT_CAPTURED, key, evt);
+                log.info("[payment.kafka] published topic={}, orderId={}, userId={}, amount={}",
+                        TOPIC_PAYMENT_CAPTURED, evt.orderId(), evt.userId(), evt.amount());
+            } catch (Exception ex) {
+                log.error("[payment.kafka] publish FAILED topic={}, orderId={}, reason={}",
+                        TOPIC_PAYMENT_CAPTURED, evt.orderId(), ex.getMessage(), ex);
+            }
+        };
+
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    publishTask.run();
+                }
+            });
+        } else {
+            publishTask.run();
+        }
+    }
+
     private void commitInventoryForOrder(Long orderId) {
         if (orderId == null) {
             log.warn("[payment] orderId is null -> skip commit inventory");
