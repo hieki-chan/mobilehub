@@ -17,13 +17,17 @@ public class NotificationEventListener {
     private final NotificationService notiSvc;
     private final EmailSenderPort emailSender;
 
-    // 1) Thanh toán thành công
-    @KafkaListener(topics = NotificationTopics.PAYMENT_CAPTURED, groupId = "notification-service")
+    // ============================================================
+    // 1) PAYMENT CAPTURED
+    // ============================================================
+    @KafkaListener(
+            topics = NotificationTopics.PAYMENT_CAPTURED,
+            containerFactory = "paymentCapturedListenerFactory"  // ✅ Chỉ định factory
+    )
     public void onPaymentCaptured(PaymentCapturedEvent e) {
-        log.info("[NOTI] payment captured order={}, userId={}, userEmail={}", 
-                e.orderId(), e.userId(), e.userEmail() != null ? e.userEmail() : "null");
+        log.info("[NOTI] Received PaymentCapturedEvent: orderId={}, userId={}, amount={}, userEmail={}",
+                e.orderId(), e.userId(), e.amount(), e.userEmail());
 
-        // ✅ Luôn lưu notification vào DB trước
         notiSvc.create(
                 e.userId(),
                 "Thanh toán thành công",
@@ -34,7 +38,6 @@ public class NotificationEventListener {
                 e.orderId().toString()
         );
 
-        // ✅ Gửi email: FAIL thì log, KHÔNG throw để tránh kẹt consumer
         safeSendEmail(
                 e.userEmail(),
                 "MobileHub - Thanh toán thành công",
@@ -47,10 +50,16 @@ public class NotificationEventListener {
         );
     }
 
-    // 2) Trả góp được duyệt
-    @KafkaListener(topics = NotificationTopics.INSTALLMENT_APPROVED, groupId = "notification-service")
+    // ============================================================
+    // 2) INSTALLMENT APPROVED
+    // ============================================================
+    @KafkaListener(
+            topics = NotificationTopics.INSTALLMENT_APPROVED,
+            containerFactory = "installmentApprovedListenerFactory"  // ✅ Chỉ định factory
+    )
     public void onInstallmentApproved(InstallmentApprovedEvent e) {
-        log.info("[NOTI] installment approved app={}", e.applicationId());
+        log.info("[NOTI] Received InstallmentApprovedEvent: applicationId={}, userId={}, planName={}, tenorMonths={}, userEmail={}",
+                e.applicationId(), e.userId(), e.planName(), e.tenorMonths(), e.userEmail());
 
         notiSvc.create(
                 e.userId(),
@@ -76,10 +85,16 @@ public class NotificationEventListener {
         );
     }
 
-    // 3) Nhắc đóng tiền đến kỳ
-    @KafkaListener(topics = NotificationTopics.INSTALLMENT_PAYMENT_DUE, groupId = "notification-service")
+    // ============================================================
+    // 3) INSTALLMENT PAYMENT DUE
+    // ============================================================
+    @KafkaListener(
+            topics = NotificationTopics.INSTALLMENT_PAYMENT_DUE,
+            containerFactory = "installmentPaymentDueListenerFactory"  // ✅ Chỉ định factory
+    )
     public void onInstallmentPaymentDue(InstallmentPaymentDueEvent e) {
-        log.info("[NOTI] installment due payment={}", e.paymentId());
+        log.info("[NOTI] Received InstallmentPaymentDueEvent: contractId={}, paymentId={}, userId={}, dueDate={}, amountDue={}",
+                e.contractId(), e.paymentId(), e.userId(), e.dueDate(), e.amountDue());
 
         notiSvc.create(
                 e.userId(),
@@ -107,20 +122,21 @@ public class NotificationEventListener {
         );
     }
 
+    // ============================================================
+    // HELPER
+    // ============================================================
     private void safeSendEmail(String to, String subject, String body, String eventType, String refId) {
         if (to == null || to.isBlank()) {
-            log.warn("[NOTI][EMAIL] SKIP - missing email: eventType={}, refId={}, to={}", 
-                    eventType, refId, to);
+            log.warn("[NOTI][EMAIL] SKIP - missing email: eventType={}, refId={}", eventType, refId);
             return;
         }
 
         try {
-            log.info("[NOTI][EMAIL] Sending to={}, subject={}, eventType={}, refId={}", 
+            log.info("[NOTI][EMAIL] Sending to={}, subject={}, eventType={}, refId={}",
                     to, subject, eventType, refId);
             emailSender.send(to, subject, body);
             log.info("[NOTI][EMAIL] SUCCESS - sent to={}, eventType={}, refId={}", to, eventType, refId);
         } catch (Exception ex) {
-            // ✅ quan trọng: không throw, để Kafka commit offset
             log.error("[NOTI][EMAIL] FAILED to={}, eventType={}, refId={}, reason={}",
                     to, eventType, refId, ex.getMessage(), ex);
         }
