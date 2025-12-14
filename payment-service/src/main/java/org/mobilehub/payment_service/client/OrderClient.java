@@ -13,4 +13,9 @@ public interface OrderClient {
     ReservationDto getReservation(@PathVariable Long orderId);
 
     record ReservationDto(Long orderId, String reservationId) {}
+
+    @GetMapping("/internal/orders/{orderId}")
+    OrderDto getOrder(@PathVariable Long orderId);
+
+    record OrderDto(Long id, Long userId) {}
 }

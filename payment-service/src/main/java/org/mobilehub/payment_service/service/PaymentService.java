@@ -1,16 +1,19 @@
 package org.mobilehub.payment_service.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.mobilehub.payment_service.client.InventoryClient;
 import org.mobilehub.payment_service.client.OrderClient;
+import org.mobilehub.payment_service.client.UserClient;
 import org.mobilehub.payment_service.dto.*;
 import org.mobilehub.payment_service.entity.*;
 import org.mobilehub.payment_service.exception.NotFoundException;
 import org.mobilehub.payment_service.provider.PaymentProviderGateway;
 import org.mobilehub.payment_service.repository.*;
 import org.mobilehub.shared.contracts.notification.PaymentCapturedEvent;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,8 +28,25 @@ import java.util.EnumSet;
 @RequiredArgsConstructor
 public class PaymentService {
 
+    /* ================= CONFIG / CONSTANTS ================= */
+
     public static final String IDEM_ENDPOINT_CREATE = "/api/payments/intents";
-    private static final String TOPIC_PAYMENT_CAPTURED = "payment.captured";
+
+    private static final EnumSet<PaymentStatus> ACTIVE_STATUSES = EnumSet.of(
+            PaymentStatus.NEW,
+            PaymentStatus.REQUIRES_ACTION,
+            PaymentStatus.AUTHORIZED,
+            PaymentStatus.PARTIALLY_CAPTURED
+    );
+
+    private static final String DEFAULT_CURRENCY = "VND";
+    private static final String DEFAULT_CHANNEL  = "QR";
+    private static final String PAYOS_PROVIDER   = "PAYOS";
+
+    @Value("${kafka.topics.payment-captured:payment.captured}")
+    private String paymentCapturedTopic;
+
+    /* ================= DEPENDENCIES ================= */
 
     private final PaymentRepository paymentRepo;
     private final PaymentCaptureRepository captureRepo;
@@ -36,121 +56,100 @@ public class PaymentService {
 
     private final OrderClient orderClient;
     private final InventoryClient inventoryClient;
+    private final UserClient userClient;
 
-    // ✅ Kafka producer (cần spring-kafka + spring.kafka.bootstrap-servers)
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final KafkaTemplate<String, PaymentCapturedEvent> kafkaTemplate;
+    private final ObjectMapper objectMapper;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    /* ================= CREATE INTENT ================= */
 
-    private static final String PAYOS_PROVIDER   = "PAYOS";
-    private static final String DEFAULT_CURRENCY = "VND";
-    private static final String DEFAULT_CHANNEL  = "QR";
-
-    // ✅ các trạng thái coi là "đang active" => retry phải trả về cái này
-    private static final EnumSet<PaymentStatus> ACTIVE_STATUSES = EnumSet.of(
-            PaymentStatus.NEW,
-            PaymentStatus.REQUIRES_ACTION,
-            PaymentStatus.AUTHORIZED,
-            PaymentStatus.PARTIALLY_CAPTURED
-    );
-
-    // --------------------------------------------------------------------
-    // CREATE INTENT (idempotent theo orderId)
-    // --------------------------------------------------------------------
     /**
-     * ✅ SỬA: truyền userId/userEmail từ Controller (lấy từ JWT)
-     * - userId: BẮT BUỘC để sau này webhook CAPTURED publish event cho notification-service.
-     * - userEmail: optional.
+     * Tạo payment intent (idempotent theo idemKey + orderId)
+     * userId và userEmail không còn được lưu vào Payment entity
+     * Sẽ được lấy từ Order và Identity service khi cần
      */
     @Transactional
-    public CreateIntentResponse createIntent(CreateIntentRequest req, String idemKey, String userId, String userEmail) {
-
+    public CreateIntentResponse createIntent(
+            CreateIntentRequest req,
+            String idemKey,
+            String userId,
+            String userEmail
+    ) {
         validateCreateRequest(req);
 
-        if (userId == null || userId.isBlank()) {
-            throw new IllegalArgumentException("userId is required");
-        }
+        String reqHash = sha256(req);
 
-        String reqHash = HashingUtils.sha256(serialize(req));
-
-        // 1) Idempotency theo idemKey (giữ nguyên)
+        /* 1. Idempotency theo idemKey */
         if (idemKey != null && !idemKey.isBlank()) {
-            var existing = idemSvc.lookupPaymentId(idemKey, IDEM_ENDPOINT_CREATE, reqHash);
-            if (existing.isPresent()) {
-                var p = paymentRepo.findById(existing.get())
+            var mappedId = idemSvc.lookupPaymentId(idemKey, IDEM_ENDPOINT_CREATE, reqHash);
+            if (mappedId.isPresent()) {
+                return paymentRepo.findById(mappedId.get())
+                        .map(this::toCreateResponse)
                         .orElseThrow(() -> new NotFoundException("Payment not found"));
-                return toCreateResponse(p);
             }
         }
 
-        // 2) ✅ Idempotency chính theo orderId nội bộ
-        //    - Nếu orderId đã có payment ACTIVE hoặc CAPTURED => trả lại luôn
+        /* 2. Idempotency chính theo orderId */
         var latestOpt = paymentRepo.findTopByOrderIdOrderByIdDesc(req.orderId());
         if (latestOpt.isPresent()) {
             Payment latest = latestOpt.get();
 
-            if (latest.getStatus() == PaymentStatus.CAPTURED) {
+            if (latest.getStatus() == PaymentStatus.CAPTURED
+                    || ACTIVE_STATUSES.contains(latest.getStatus())) {
                 return toCreateResponse(latest);
             }
-
-            if (ACTIVE_STATUSES.contains(latest.getStatus())) {
-                return toCreateResponse(latest);
-            }
-            // Nếu latest là FAILED/CANCELED thì cho phép tạo payment mới
         }
 
-        // 3) (Optional) Chặn trùng theo orderCode PayOS
-        var existedByOrderCode = paymentRepo.findByOrderCode(req.orderCode());
-        if (existedByOrderCode.isPresent()) {
-            return toCreateResponse(existedByOrderCode.get());
-        }
+        /* 3. Chặn trùng orderCode PayOS */
+        paymentRepo.findByOrderCode(req.orderCode())
+                .ifPresent(p -> {
+                    throw new IllegalStateException("Payment already exists for orderCode=" + req.orderCode());
+                });
 
-        // 4) Tạo payment mới
-        Payment p = Payment.builder()
-                .orderId(req.orderId())        // ✅ orderId nội bộ
-                .userId(userId)                // ✅ BẮT BUỘC
-                .userEmail(userEmail)          // ✅ optional
-                .orderCode(req.orderCode())    // ✅ orderCode gửi sang PayOS
+        /* 4. Persist NEW payment - không lưu userId và userEmail */
+        Payment payment = Payment.builder()
+                .orderId(req.orderId())
+                .orderCode(req.orderCode())
                 .amount(req.amount())
                 .currency(DEFAULT_CURRENCY)
-                .status(PaymentStatus.NEW)
-                .captureMethod(CaptureMethod.AUTOMATIC)
                 .provider(PAYOS_PROVIDER)
+                .captureMethod(CaptureMethod.AUTOMATIC)
+                .status(PaymentStatus.NEW)
                 .capturedAmount(BigDecimal.ZERO)
                 .build();
-        paymentRepo.save(p);
+        paymentRepo.save(payment);
 
-        // 5) Gọi PayOS tạo payment link
-        var res = gateway.createIntent(
-                p.getOrderCode(),
-                p.getAmount(),
-                p.getCurrency(),
+        /* 5. Gọi PayOS */
+        var providerRes = gateway.createIntent(
+                payment.getOrderCode(),
+                payment.getAmount(),
+                payment.getCurrency(),
                 DEFAULT_CHANNEL,
                 req.returnUrl()
         );
 
-        // 6) Update theo provider
-        p.setProviderPaymentId(res.providerPaymentId());
-        p.setClientSecret(res.clientSecret());
-        p.setStatus(res.nextStatus());
-        p.setPaymentUrl(res.paymentUrl());
-        paymentRepo.save(p);
+        /* 6. Update theo provider response */
+        payment.setProviderPaymentId(providerRes.providerPaymentId());
+        payment.setClientSecret(providerRes.clientSecret());
+        payment.setPaymentUrl(providerRes.paymentUrl());
+        payment.setStatus(providerRes.nextStatus());
+        paymentRepo.save(payment);
 
-        // 7) Lưu idempotency map (giữ nguyên)
+        /* 7. Lưu idempotency map */
         if (idemKey != null && !idemKey.isBlank()) {
-            idemSvc.storePaymentMapping(idemKey, IDEM_ENDPOINT_CREATE, reqHash, p.getId());
+            idemSvc.storePaymentMapping(idemKey, IDEM_ENDPOINT_CREATE, reqHash, payment.getId());
         }
 
-        return toCreateResponse(p);
+        return toCreateResponse(payment);
     }
 
-    // --------------------------------------------------------------------
-    // GET STATUS (theo PayOS orderCode)
-    // --------------------------------------------------------------------
+    /* ================= QUERY STATUS ================= */
+
     @Transactional(readOnly = true)
     public PaymentStatusResponse getStatus(Long orderCode) {
-        var p = paymentRepo.findByOrderCode(orderCode)
+        Payment p = paymentRepo.findByOrderCode(orderCode)
                 .orElseThrow(() -> new NotFoundException("Payment not found"));
+
         return new PaymentStatusResponse(
                 p.getId(),
                 p.getOrderCode(),
@@ -161,12 +160,11 @@ public class PaymentService {
         );
     }
 
-    // --------------------------------------------------------------------
-    // CAPTURE MANUAL -> PAYOS KHÔNG HỖ TRỢ (giữ nguyên)
-    // --------------------------------------------------------------------
+    /* ================= CAPTURE (NON-PAYOS) ================= */
+
     @Transactional
     public PaymentStatusResponse capture(Long paymentId, CaptureRequest req) {
-        var p = paymentRepo.findById(paymentId)
+        Payment p = paymentRepo.findById(paymentId)
                 .orElseThrow(() -> new NotFoundException("Payment not found"));
 
         if (PAYOS_PROVIDER.equalsIgnoreCase(p.getProvider())) {
@@ -202,11 +200,8 @@ public class PaymentService {
                 .providerCaptureId(res.providerCaptureId())
                 .build());
 
-        // ✅ nếu capture xong thành CAPTURED -> commit inventory + publish event
         if (p.getStatus() == PaymentStatus.CAPTURED) {
             commitInventoryForOrder(p.getOrderId());
-
-            // publish notification event AFTER_COMMIT
             publishPaymentCapturedAfterCommit(p);
         }
 
@@ -220,16 +215,15 @@ public class PaymentService {
         );
     }
 
-    // --------------------------------------------------------------------
-    // REFUND (giữ nguyên)
-    // --------------------------------------------------------------------
+    /* ================= REFUND ================= */
+
     @Transactional
     public PaymentStatusResponse refund(RefundRequest req) {
-        var p = paymentRepo.findById(req.paymentId())
+        Payment p = paymentRepo.findById(req.paymentId())
                 .orElseThrow(() -> new NotFoundException("Payment not found"));
 
         if (PAYOS_PROVIDER.equalsIgnoreCase(p.getProvider())) {
-            throw new UnsupportedOperationException("Refund PayOS cần nghiệp vụ payout/chi hộ, chưa hỗ trợ auto");
+            throw new UnsupportedOperationException("PayOS refund chưa hỗ trợ tự động");
         }
 
         if (req.amount() == null || req.amount().compareTo(BigDecimal.ZERO) <= 0) {
@@ -255,72 +249,95 @@ public class PaymentService {
         );
     }
 
-    // --------------------------------------------------------------------
-    // HELPERS
-    // --------------------------------------------------------------------
-    private void publishPaymentCapturedAfterCommit(Payment p) {
-        if (p == null) return;
+    /* ================= INTERNAL HELPERS ================= */
 
-        // userId là BẮT BUỘC nếu bạn muốn notification-service hiển thị theo user
-        if (p.getUserId() == null || p.getUserId().isBlank()) {
-            log.warn("[payment.kafka] userId missing for paymentId={}, orderId={}, skip publish PaymentCapturedEvent",
+    private void publishPaymentCapturedAfterCommit(Payment p) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            publishPaymentCaptured(p);
+            return;
+        }
+
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                publishPaymentCaptured(p);
+            }
+        });
+    }
+
+    private void publishPaymentCaptured(Payment p) {
+        // ✅ LUÔN lấy userId từ Order để đảm bảo chính xác
+        String userId = fetchUserIdFromOrder(p.getOrderId());
+        
+        if (userId == null || userId.isBlank()) {
+            log.warn("[payment.kafka] Cannot fetch userId from order, skip publish paymentId={}, orderId={}", 
                     p.getId(), p.getOrderId());
             return;
         }
 
+        // ✅ Lấy email từ identity-service
+        String userEmail = fetchUserEmail(userId);
+
         PaymentCapturedEvent evt = new PaymentCapturedEvent(
                 p.getOrderId(),
-                p.getUserId(),
-                p.getCapturedAmount() != null ? p.getCapturedAmount() : BigDecimal.ZERO,
-                (p.getCurrency() == null || p.getCurrency().isBlank()) ? DEFAULT_CURRENCY : p.getCurrency(),
-                p.getUserEmail()
+                userId,
+                p.getCapturedAmount(),
+                p.getCurrency(),
+                userEmail
         );
 
-        Runnable publishTask = () -> {
-            try {
-                String key = evt.orderId() == null ? null : String.valueOf(evt.orderId());
-                kafkaTemplate.send(TOPIC_PAYMENT_CAPTURED, key, evt);
-                log.info("[payment.kafka] published topic={}, orderId={}, userId={}, amount={}",
-                        TOPIC_PAYMENT_CAPTURED, evt.orderId(), evt.userId(), evt.amount());
-            } catch (Exception ex) {
-                log.error("[payment.kafka] publish FAILED topic={}, orderId={}, reason={}",
-                        TOPIC_PAYMENT_CAPTURED, evt.orderId(), ex.getMessage(), ex);
-            }
-        };
-
-        if (TransactionSynchronizationManager.isSynchronizationActive()) {
-            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                @Override
-                public void afterCommit() {
-                    publishTask.run();
-                }
-            });
-        } else {
-            publishTask.run();
-        }
+        kafkaTemplate.send(paymentCapturedTopic, String.valueOf(p.getOrderId()), evt);
+        log.info("[payment.kafka] published topic={}, orderId={}, userId={}, email={}",
+                paymentCapturedTopic, evt.orderId(), evt.userId(), userEmail != null ? userEmail : "null");
     }
 
     private void commitInventoryForOrder(Long orderId) {
-        if (orderId == null) {
-            log.warn("[payment] orderId is null -> skip commit inventory");
-            return;
-        }
-
         try {
-            var resDto = orderClient.getReservation(orderId);
-            String reservationId = resDto.reservationId();
-
-            if (reservationId == null || reservationId.isBlank()) {
-                log.warn("[payment] reservationId missing for orderId={}, skip commit", orderId);
-                return;
-            }
-
-            inventoryClient.commit(reservationId);
-            log.info("[payment] committed inventory reservationId={} for orderId={}", reservationId, orderId);
-
+            var res = orderClient.getReservation(orderId);
+            if (res.reservationId() == null || res.reservationId().isBlank()) return;
+            inventoryClient.commit(res.reservationId());
         } catch (Exception ex) {
-            log.error("[payment] commit inventory failed for orderId={}, reason={}", orderId, ex.getMessage());
-            throw new RuntimeException("Commit inventory failed: " + ex.getMessage(), ex);
+            log.error("Commit inventory failed for orderId={}", orderId, ex);
+            throw new RuntimeException("Commit inventory failed", ex);
+        }
+    }
+
+    /**
+     * Lấy userId từ Order khi không có trong header
+     */
+    private String fetchUserIdFromOrder(Long orderId) {
+        if (orderId == null) return null;
+        try {
+            var orderDto = orderClient.getOrder(orderId);
+            if (orderDto != null && orderDto.userId() != null) {
+                return String.valueOf(orderDto.userId());
+            }
+            log.warn("[payment] Cannot fetch userId from order orderId={}", orderId);
+            return null;
+        } catch (Exception ex) {
+            log.error("[payment] Failed to fetch userId from order orderId={}, error={}", 
+                    orderId, ex.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Lấy email từ UserClient khi không có trong header
+     */
+    private String fetchUserEmail(String userId) {
+        if (userId == null || userId.isBlank()) return null;
+        try {
+            Long userIdLong = Long.parseLong(userId);
+            var userDto = userClient.getUser(userIdLong);
+            if (userDto != null && userDto.email() != null) {
+                return userDto.email();
+            }
+            log.warn("[payment] Cannot fetch email from user-service userId={}", userId);
+            return null;
+        } catch (Exception ex) {
+            log.error("[payment] Failed to fetch email from user-service userId={}, error={}", 
+                    userId, ex.getMessage());
+            return null;
         }
     }
 
@@ -332,11 +349,11 @@ public class PaymentService {
             throw new IllegalArgumentException("amount must be > 0");
     }
 
-    private String serialize(Object o) {
+    private String sha256(Object o) {
         try {
-            return objectMapper.writeValueAsString(o);
-        } catch (Exception e) {
-            return String.valueOf(o);
+            return HashingUtils.sha256(objectMapper.writeValueAsString(o));
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Serialize request failed", e);
         }
     }
 

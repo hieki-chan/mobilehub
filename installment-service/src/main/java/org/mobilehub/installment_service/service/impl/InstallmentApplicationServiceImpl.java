@@ -25,6 +25,9 @@ import java.util.stream.Collectors;
 // [NEW]
 import org.mobilehub.installment_service.messaging.InstallmentOrderCreateMessage;
 import org.mobilehub.installment_service.messaging.InstallmentOrderMessagePublisher;
+import org.mobilehub.installment_service.messaging.NotificationEventPublisher;
+import org.mobilehub.installment_service.client.IdentityServiceClient;
+import org.mobilehub.shared.contracts.notification.InstallmentApprovedEvent;
 
 @Service
 @RequiredArgsConstructor
@@ -39,6 +42,12 @@ public class InstallmentApplicationServiceImpl implements InstallmentApplication
 
     // [NEW] publisher Kafka để yêu cầu order-service tạo đơn
     private final InstallmentOrderMessagePublisher orderMessagePublisher;
+    
+    // [NEW] publisher Kafka để gửi thông báo
+    private final NotificationEventPublisher notificationPublisher;
+    
+    // [NEW] client để lấy thông tin user từ identity-service
+    private final IdentityServiceClient identityServiceClient;
 
     // ============================================================
     // SEARCH
@@ -73,10 +82,11 @@ public class InstallmentApplicationServiceImpl implements InstallmentApplication
         app.setStatus(newStatus);
         appRepo.save(app);
 
-        // ✅ Nếu duyệt thì tạo hợp đồng + lịch thanh toán + bắn event tạo Order
+        // ✅ Nếu duyệt thì tạo hợp đồng + lịch thanh toán + bắn event tạo Order + gửi thông báo
         if (newStatus == ApplicationStatus.APPROVED) {
             createContractAndScheduleIfNotExist(app);
             publishOrderCreateEvent(app);   // [NEW]
+            publishInstallmentApprovedNotification(app);  // [NEW] gửi thông báo
         }
     }
 
@@ -104,6 +114,24 @@ public class InstallmentApplicationServiceImpl implements InstallmentApplication
                         .build();
 
         orderMessagePublisher.publishInstallmentOrderCreate(msg);
+    }
+
+    // ============================================================
+    // [NEW] PUBLISH NOTIFICATION EVENT KHI HỒ SƠ ĐƯỢC DUYỆT
+    // ============================================================
+    private void publishInstallmentApprovedNotification(InstallmentApplication app) {
+        // Lấy email từ identity-service
+        String userEmail = identityServiceClient.getUserEmail(app.getUserId());
+        
+        InstallmentApprovedEvent event = new InstallmentApprovedEvent(
+                app.getId(),
+                app.getUserId().toString(),
+                app.getPlan().getName(),
+                app.getTenorMonths(),
+                userEmail
+        );
+        
+        notificationPublisher.publishInstallmentApproved(event);
     }
 
     // ============================================================
@@ -306,7 +334,7 @@ public class InstallmentApplicationServiceImpl implements InstallmentApplication
                 .partner(partner)
                 .plan(plan)
                 .tenorMonths(tenor)
-                .status(ApplicationStatus.PENDING)
+                .status(ApplicationStatus.APPROVED)  // ✅ TỰ ĐỘNG DUYỆT
                 .createdAt(LocalDateTime.now())
 
                 // [NEW] set các field TMĐT
@@ -318,6 +346,12 @@ public class InstallmentApplicationServiceImpl implements InstallmentApplication
                 .build();
 
         app = appRepo.save(app);
+        
+        // ✅ TỰ ĐỘNG tạo hợp đồng + lịch thanh toán + gửi event
+        createContractAndScheduleIfNotExist(app);
+        publishOrderCreateEvent(app);
+        publishInstallmentApprovedNotification(app);
+        
         return toResponse(app);
     }
 

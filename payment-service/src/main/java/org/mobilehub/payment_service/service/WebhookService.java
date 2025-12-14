@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.mobilehub.payment_service.client.InventoryClient;
 import org.mobilehub.payment_service.client.OrderClient;
+import org.mobilehub.payment_service.client.UserClient;
 import org.mobilehub.payment_service.entity.Payment;
 import org.mobilehub.payment_service.entity.PaymentStatus;
 import org.mobilehub.payment_service.entity.WebhookEvent;
@@ -11,6 +12,7 @@ import org.mobilehub.payment_service.provider.PaymentProviderGateway;
 import org.mobilehub.payment_service.repository.PaymentRepository;
 import org.mobilehub.payment_service.repository.WebhookEventRepository;
 import org.mobilehub.shared.contracts.notification.PaymentCapturedEvent;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,9 +38,9 @@ public class WebhookService {
 
     private final OrderClient orderClient;
     private final InventoryClient inventoryClient;
+    private final UserClient userClient;
 
-    // ✅ Kafka producer (cần spring-kafka + spring.kafka.bootstrap-servers)
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final KafkaTemplate<String, PaymentCapturedEvent> kafkaTemplate;
 
     @Transactional
     public void handle(String rawBody, Map<String, String> headers) {
@@ -135,11 +137,15 @@ public class WebhookService {
                     payment.getOrderId());
         }
 
-        // ✅ Nếu chuyển sang CAPTURED lần đầu -> chuẩn bị publish event (AFTER_COMMIT)
         if (changedToCaptured) {
-            PaymentCapturedEvent capturedEvent = buildPaymentCapturedEvent(payment, evt.amount());
-            publishAfterCommit(capturedEvent);
+            PaymentCapturedEvent capturedEvent =
+                    buildPaymentCapturedEvent(payment, evt.amount());
+
+            if (capturedEvent != null) {
+                publishAfterCommit(capturedEvent);
+            }
         }
+
 
         // lưu event audit
         WebhookEvent entity = WebhookEvent.builder()
@@ -165,8 +171,10 @@ public class WebhookService {
             try {
                 String key = event.orderId() == null ? null : String.valueOf(event.orderId());
                 kafkaTemplate.send(TOPIC_PAYMENT_CAPTURED, key, event);
-                log.info("[payment.kafka] published topic={}, orderId={}, userId={}, amount={}, currency={}",
-                        TOPIC_PAYMENT_CAPTURED, event.orderId(), event.userId(), event.amount(), event.currency());
+                log.info("[payment.kafka] published topic={}, orderId={}, userId={}, email={}, amount={}, currency={}",
+                        TOPIC_PAYMENT_CAPTURED, event.orderId(), event.userId(), 
+                        event.userEmail() != null ? event.userEmail() : "null",
+                        event.amount(), event.currency());
             } catch (Exception ex) {
                 log.error("[payment.kafka] publish FAILED topic={}, orderId={}, reason={}",
                         TOPIC_PAYMENT_CAPTURED, event.orderId(), ex.getMessage(), ex);
@@ -187,42 +195,37 @@ public class WebhookService {
         }
     }
 
-    /**
-     * Tạo PaymentCapturedEvent theo contracts:
-     * (orderId, userId, amount, currency, userEmail)
-     *
-     * LƯU Ý:
-     * - Payment của bạn có thể chưa có userId/userEmail/currency getter.
-     * - Mình dùng reflection để "có thì lấy", "không có thì null" => tránh lỗi compile.
-     * - Để notification hiển thị đúng theo user, bạn NÊN lưu userId vào Payment ngay lúc tạo payment intent,
-     *   hoặc bổ sung order-service internal API trả về userId theo orderId.
-     */
     private PaymentCapturedEvent buildPaymentCapturedEvent(Payment payment, BigDecimal fallbackAmount) {
-        Long orderId = payment.getOrderId();
 
-        // lấy userId/userEmail/currency nếu Payment có
-        String userId = tryInvokeString(payment, "getUserId");
-        if (userId == null) userId = tryInvokeString(payment, "getUserID"); // phòng trường hợp đặt tên khác
+        // ✅ LUÔN lấy userId từ Order để đảm bảo chính xác
+        String userId = fetchUserIdFromOrder(payment.getOrderId());
+        
+        if (userId == null || userId.isBlank()) {
+            log.warn("[payment.webhook] Cannot fetch userId from order orderId={}, skip event",
+                    payment.getOrderId());
+            return null;
+        }
 
-        String userEmail = tryInvokeString(payment, "getUserEmail");
-        if (userEmail == null) userEmail = tryInvokeString(payment, "getEmail");
+        // ✅ Lấy email từ identity-service
+        String userEmail = fetchUserEmail(userId);
 
-        String currency = tryInvokeString(payment, "getCurrency");
-        if (currency == null || currency.isBlank()) currency = "VND";
-
-        // amount ưu tiên capturedAmount; nếu không có getter thì dùng fallbackAmount (từ webhook)
-        BigDecimal amount = tryInvokeBigDecimal(payment, "getCapturedAmount");
+        BigDecimal amount = payment.getCapturedAmount();
         if (amount == null) amount = fallbackAmount;
         if (amount == null) amount = BigDecimal.ZERO;
 
+        String currency = payment.getCurrency();
+        if (currency == null || currency.isBlank()) currency = "VND";
+
         return new PaymentCapturedEvent(
-                orderId,
-                userId,      // có thể null nếu Payment chưa lưu userId
+                payment.getOrderId(),
+                userId,
                 amount,
                 currency,
-                userEmail    // có thể null
+                userEmail
         );
     }
+
+
 
     private String tryInvokeString(Object target, String methodName) {
         try {
@@ -273,6 +276,45 @@ public class WebhookService {
         } catch (Exception ex) {
             log.warn("[payment.webhook] cannot fetch reservationId for orderId={}, reason={}",
                     orderId, ex.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Lấy userId từ Order
+     */
+    private String fetchUserIdFromOrder(Long orderId) {
+        if (orderId == null) return null;
+        try {
+            var orderDto = orderClient.getOrder(orderId);
+            if (orderDto != null && orderDto.userId() != null) {
+                return String.valueOf(orderDto.userId());
+            }
+            log.warn("[payment.webhook] Cannot fetch userId from order orderId={}", orderId);
+            return null;
+        } catch (Exception ex) {
+            log.error("[payment.webhook] Failed to fetch userId from order orderId={}, error={}", 
+                    orderId, ex.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Lấy email từ identity-service
+     */
+    private String fetchUserEmail(String userId) {
+        if (userId == null || userId.isBlank()) return null;
+        try {
+            Long userIdLong = Long.parseLong(userId);
+            var userDto = userClient.getUser(userIdLong);
+            if (userDto != null && userDto.email() != null) {
+                return userDto.email();
+            }
+            log.warn("[payment.webhook] Cannot fetch email from user-service userId={}", userId);
+            return null;
+        } catch (Exception ex) {
+            log.error("[payment.webhook] Failed to fetch email from user-service userId={}, error={}", 
+                    userId, ex.getMessage());
             return null;
         }
     }

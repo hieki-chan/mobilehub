@@ -83,6 +83,13 @@ public class OrderService {
         return doCreateBaseOrder(userId, request);
     }
 
+    public OrderResponse getById(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderNotFoundException(orderId));
+
+        return orderMapper.toOrderResponse(order);
+    }
+
     // ============================================================
     // CORE: TẠO ORDER + SET SNAPSHOT ITEM + PUBLISH EVENT
     // ============================================================

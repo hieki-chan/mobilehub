@@ -20,7 +20,8 @@ public class NotificationEventListener {
     // 1) Thanh toán thành công
     @KafkaListener(topics = NotificationTopics.PAYMENT_CAPTURED, groupId = "notification-service")
     public void onPaymentCaptured(PaymentCapturedEvent e) {
-        log.info("[NOTI] payment captured order={}", e.orderId());
+        log.info("[NOTI] payment captured order={}, userId={}, userEmail={}", 
+                e.orderId(), e.userId(), e.userEmail() != null ? e.userEmail() : "null");
 
         // ✅ Luôn lưu notification vào DB trước
         notiSvc.create(
@@ -108,16 +109,19 @@ public class NotificationEventListener {
 
     private void safeSendEmail(String to, String subject, String body, String eventType, String refId) {
         if (to == null || to.isBlank()) {
-            log.debug("[NOTI][EMAIL] skip (missing email) eventType={}, refId={}", eventType, refId);
+            log.warn("[NOTI][EMAIL] SKIP - missing email: eventType={}, refId={}, to={}", 
+                    eventType, refId, to);
             return;
         }
 
         try {
+            log.info("[NOTI][EMAIL] Sending to={}, subject={}, eventType={}, refId={}", 
+                    to, subject, eventType, refId);
             emailSender.send(to, subject, body);
-            log.info("[NOTI][EMAIL] sent to={} eventType={}, refId={}", to, eventType, refId);
+            log.info("[NOTI][EMAIL] SUCCESS - sent to={}, eventType={}, refId={}", to, eventType, refId);
         } catch (Exception ex) {
             // ✅ quan trọng: không throw, để Kafka commit offset
-            log.error("[NOTI][EMAIL] FAILED to={} eventType={}, refId={}, reason={}",
+            log.error("[NOTI][EMAIL] FAILED to={}, eventType={}, refId={}, reason={}",
                     to, eventType, refId, ex.getMessage(), ex);
         }
     }

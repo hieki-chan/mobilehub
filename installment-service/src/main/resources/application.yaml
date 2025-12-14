@@ -3,3 +3,8 @@ spring:
     name: installment-service
   config:
     import: "optional:configserver:http://localhost:8888"
+
+# Service URLs
+services:
+  identity:
+    url: ${IDENTITY_SERVICE_URL:http://localhost:8081}

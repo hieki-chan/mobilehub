@@ -3,3 +3,12 @@ spring:
     name: payment-service
   config:
     import: "optional:configserver:http://localhost:8888"
+
+# Service URLs
+services:
+  identity:
+    base-url: ${IDENTITY_SERVICE_URL:http://localhost:8081}
+  order:
+    base-url: ${ORDER_SERVICE_URL:http://localhost:8082}
+  user:
+    base-url: ${USER_SERVICE_URL:http://localhost:8084}

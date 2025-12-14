@@ -11,7 +11,8 @@ public class KafkaPaymentEventPublisher implements PaymentEventPublisher {
 
     public static final String TOPIC_PAYMENT_CAPTURED = "payment.captured";
 
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    // ✅ Sửa từ KafkaTemplate<String, Object> sang PaymentCapturedEvent
+    private final KafkaTemplate<String, PaymentCapturedEvent> kafkaTemplate;
 
     @Override
     public void publishPaymentCaptured(PaymentCapturedEvent event) {

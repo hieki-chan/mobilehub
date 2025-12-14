@@ -57,6 +57,9 @@ public class SecurityConfig {
 
                         .requestMatchers("/users/**").permitAll()
 
+                        // Internal APIs for service-to-service communication
+                        .requestMatchers("/internal/**").permitAll()
+
                         .anyRequest().authenticated()
                 )
 //                .oauth2Login(oauth -> oauth
