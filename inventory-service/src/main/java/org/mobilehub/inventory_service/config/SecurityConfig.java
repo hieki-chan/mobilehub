@@ -26,13 +26,15 @@ public class SecurityConfig {
                                 "/swagger-ui.html",
                                 "/swagger-resources/**",
                                 "/webjars/**",
-                                "/public/**"
+                                "/public/**",
+                                "/inventory/**"
                         ).permitAll()
 
                         // ✅ đúng theo controller @RequestMapping("/inventory")
                         .requestMatchers(HttpMethod.POST,
                                 "/inventory/reservations/*/commit",
-                                "/inventory/reservations/*/release"
+                                "/inventory/reservations/*/release",
+                                "/inventory/**"
                         ).permitAll()
 
                         // (tuỳ bạn) cho reserve public luôn nếu cần

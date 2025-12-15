@@ -29,8 +29,8 @@ public class ApplicationCreateRequest {
     @Positive
     private Integer tenorMonths;
 
-    @NotNull
-    private Long userId;        // id user trong hệ thống TMĐT
+    // ✅ Không cần @NotNull vì sẽ lấy từ JWT token
+    private Long userId;        // id user trong hệ thống TMĐT (sẽ được set từ token)
 
     @NotNull
     private Long productId;     // id sản phẩm trong product-service

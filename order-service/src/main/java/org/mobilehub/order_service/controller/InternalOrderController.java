@@ -2,6 +2,9 @@ package org.mobilehub.order_service.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.mobilehub.order_service.dto.response.OrderResponse;
+import org.mobilehub.order_service.entity.InstallmentOrderMapping;
+import org.mobilehub.order_service.entity.Order;
+import org.mobilehub.order_service.repository.InstallmentOrderMappingRepository;
 import org.mobilehub.order_service.repository.OrderRepository;
 import org.mobilehub.order_service.service.OrderService;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +17,7 @@ public class InternalOrderController {
 
     private final OrderRepository orderRepo;
     private final OrderService orderService;
+    private final InstallmentOrderMappingRepository mappingRepo;
 
     @GetMapping("/{orderId}/reservation")
     public ResponseEntity<?> getReservation(@PathVariable Long orderId) {
@@ -29,5 +33,18 @@ public class InternalOrderController {
     public OrderResponse getById(@PathVariable Long orderId) {
         return orderService.getById(orderId);
     }
+
+    @GetMapping("/by-application/{applicationId}")
+    public ResponseEntity<OrderBasicDto> getByApplicationId(@PathVariable Long applicationId) {
+        InstallmentOrderMapping mapping = mappingRepo.findByApplicationId(applicationId)
+                .orElseThrow(() -> new IllegalStateException("Order not found for application " + applicationId));
+        
+        Order order = orderRepo.findById(mapping.getOrderId())
+                .orElseThrow(() -> new IllegalStateException("Order not found " + mapping.getOrderId()));
+        
+        return ResponseEntity.ok(new OrderBasicDto(order.getId(), order.getUserId()));
+    }
+
+    public record OrderBasicDto(Long id, Long userId) {}
 
 }

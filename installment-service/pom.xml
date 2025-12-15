@@ -70,16 +70,14 @@
             <artifactId>spring-cloud-starter-config</artifactId>
         </dependency>
 
-        <!-- TẮT SECURITY (vì bạn dùng identity-service login rồi) -->
+        <!-- Spring Security + OAuth2 Resource Server -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework.security</groupId>
-                    <artifactId>spring-security-config</artifactId>
-                </exclusion>
-            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
         </dependency>
 
         <!-- Devtools -->
@@ -109,6 +107,12 @@
             <groupId>org.mobilehub.shared</groupId>
             <artifactId>contracts</artifactId>
             <version>1.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mobilehub.shared</groupId>
+            <artifactId>common</artifactId>
+            <version>1.0.0</version>
+            <scope>compile</scope>
         </dependency>
 
     </dependencies>

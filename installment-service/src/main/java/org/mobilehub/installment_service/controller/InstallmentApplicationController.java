@@ -7,6 +7,8 @@ import org.mobilehub.installment_service.dto.application.ApplicationStatusUpdate
 import org.mobilehub.installment_service.service.InstallmentApplicationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import org.mobilehub.installment_service.dto.application.ApplicationCreateRequest;
 import org.mobilehub.installment_service.dto.application.ApplicationPrecheckRequest;
@@ -33,9 +35,39 @@ public class InstallmentApplicationController {
     // 2) Tạo hồ sơ PENDING sau khi precheck OK
     @PostMapping
     public ApplicationResponse create(
-            @Valid @RequestBody ApplicationCreateRequest request
+            @Valid @RequestBody ApplicationCreateRequest request,
+            Authentication authentication
     ) {
+        // ✅ Lấy userId từ JWT token thay vì từ request body
+        Long userId = extractUserIdFromToken(authentication);
+        request.setUserId(userId);
         return applicationService.create(request);
+    }
+    
+    private Long extractUserIdFromToken(Authentication authentication) {
+        if (authentication != null && authentication.getPrincipal() instanceof Jwt jwt) {
+            // JWT token có claim "id" (từ identity-service)
+            Object idClaim = jwt.getClaim("id");
+            if (idClaim != null) {
+                if (idClaim instanceof Number) {
+                    return ((Number) idClaim).longValue();
+                }
+                return Long.parseLong(idClaim.toString());
+            }
+            
+            // Fallback: thử lấy từ subject
+            String sub = jwt.getSubject();
+            if (sub != null) {
+                try {
+                    return Long.parseLong(sub);
+                } catch (NumberFormatException e) {
+                    // subject không phải là userId
+                }
+            }
+            
+            throw new IllegalStateException("Cannot extract userId from token. Available claims: " + jwt.getClaims().keySet());
+        }
+        throw new IllegalStateException("Cannot extract userId from token - authentication is null or not JWT");
     }
 
     // 3) Search list hồ sơ

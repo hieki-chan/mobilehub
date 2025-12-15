@@ -46,4 +46,17 @@ public class InstallmentContract {
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
+    
+    // ============ PAYMENT INFO ============
+    @Column(name = "down_payment_amount")
+    private Long downPaymentAmount;  // Số tiền trả trước
+    
+    @Column(name = "payment_code")
+    private Long paymentCode;  // Mã thanh toán từ payment-service
+    
+    @Column(name = "payment_url", length = 500)
+    private String paymentUrl;  // URL thanh toán QR
+    
+    @Column(name = "down_payment_status", length = 20)
+    private String downPaymentStatus;  // PENDING, PAID, FAILED
 }

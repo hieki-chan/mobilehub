@@ -1,6 +1,7 @@
 package org.mobilehub.installment_service.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.mobilehub.installment_service.domain.entity.InstallmentApplication;
 import org.mobilehub.installment_service.domain.entity.InstallmentContract;
 import org.mobilehub.installment_service.domain.entity.InstallmentPayment;
@@ -27,8 +28,13 @@ import org.mobilehub.installment_service.messaging.InstallmentOrderCreateMessage
 import org.mobilehub.installment_service.messaging.InstallmentOrderMessagePublisher;
 import org.mobilehub.installment_service.messaging.NotificationEventPublisher;
 import org.mobilehub.installment_service.client.IdentityServiceClient;
+import org.mobilehub.installment_service.client.OrderServiceClient;
+import org.mobilehub.installment_service.client.PaymentServiceClient;
 import org.mobilehub.shared.contracts.notification.InstallmentApprovedEvent;
 
+import java.math.BigDecimal;
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class InstallmentApplicationServiceImpl implements InstallmentApplicationService {
@@ -48,6 +54,12 @@ public class InstallmentApplicationServiceImpl implements InstallmentApplication
     
     // [NEW] client để lấy thông tin user từ identity-service
     private final IdentityServiceClient identityServiceClient;
+    
+    // [NEW] client để lấy thông tin order từ order-service
+    private final OrderServiceClient orderServiceClient;
+    
+    // [NEW] client để tạo payment cho khoản trả trước
+    private final PaymentServiceClient paymentServiceClient;
 
     // ============================================================
     // SEARCH
@@ -120,12 +132,35 @@ public class InstallmentApplicationServiceImpl implements InstallmentApplication
     // [NEW] PUBLISH NOTIFICATION EVENT KHI HỒ SƠ ĐƯỢC DUYỆT
     // ============================================================
     private void publishInstallmentApprovedNotification(InstallmentApplication app) {
+        Long userId = app.getUserId();
+        
+        // ✅ Nếu application đã có userId (hồ sơ mới), dùng luôn
+        // ✅ Nếu không có (hồ sơ cũ), thử lấy từ order
+        if (userId == null) {
+            log.info("[INSTALLMENT] Application {} has no userId, trying to get from order", app.getId());
+            userId = orderServiceClient.getUserIdByApplicationId(app.getId());
+        }
+        
+        if (userId == null) {
+            log.warn("[INSTALLMENT] Cannot send notification - userId not found for applicationId={}", 
+                    app.getId());
+            return;
+        }
+        
         // Lấy email từ identity-service
-        String userEmail = identityServiceClient.getUserEmail(app.getUserId());
+        String userEmail = identityServiceClient.getUserEmail(userId);
+        if (userEmail == null || userEmail.isBlank()) {
+            log.warn("[INSTALLMENT] Cannot send notification - userEmail is null/blank for userId={}, applicationId={}", 
+                    userId, app.getId());
+            return;
+        }
+        
+        log.info("[INSTALLMENT] Sending approval notification: applicationId={}, userId={}, userEmail={}", 
+                app.getId(), userId, userEmail);
         
         InstallmentApprovedEvent event = new InstallmentApprovedEvent(
                 app.getId(),
-                app.getUserId().toString(),
+                userId.toString(),
                 app.getPlan().getName(),
                 app.getTenorMonths(),
                 userEmail
@@ -152,6 +187,9 @@ public class InstallmentApplicationServiceImpl implements InstallmentApplication
         LocalDate startDate = LocalDate.now();
         LocalDate endDate   = startDate.plusMonths(tenorMonths);
 
+        // Tính số tiền trả trước
+        long downPaymentAmount = app.getProductPrice() - app.getLoanAmount();
+        
         InstallmentContract contract = InstallmentContract.builder()
                 .code(generateContractCode())
                 .application(app)
@@ -160,11 +198,16 @@ public class InstallmentApplicationServiceImpl implements InstallmentApplication
                 .remainingAmount(app.getLoanAmount())
                 .status(ContractStatus.ACTIVE)
                 .startDate(startDate)
-                .endDate(endDate) // ✅ lấy theo tenor thật
+                .endDate(endDate)
                 .createdAt(LocalDateTime.now())
+                .downPaymentAmount(downPaymentAmount)
+                .downPaymentStatus("PENDING")
                 .build();
 
         contract = contractRepo.save(contract);
+
+        // ✅ Tạo payment intent cho khoản trả trước
+        createDownPaymentIntent(contract, app);
 
         // ✅ tạo các kỳ thanh toán
         List<InstallmentPayment> schedule = buildPaymentSchedule(
@@ -175,6 +218,52 @@ public class InstallmentApplicationServiceImpl implements InstallmentApplication
                 startDate
         );
         paymentRepo.saveAll(schedule);
+    }
+    
+    private void createDownPaymentIntent(InstallmentContract contract, InstallmentApplication app) {
+        try {
+            // Lấy orderId từ order-service
+            OrderServiceClient.OrderBasicDto order = orderServiceClient.getOrderByApplicationId(app.getId());
+            if (order == null) {
+                log.warn("[INSTALLMENT] Cannot create payment - order not found for applicationId={}", app.getId());
+                return;
+            }
+            
+            Long userId = app.getUserId();
+            if (userId == null) {
+                userId = order.userId();
+            }
+            
+            String userEmail = identityServiceClient.getUserEmail(userId);
+            if (userEmail == null) {
+                log.warn("[INSTALLMENT] Cannot create payment - userEmail not found for userId={}", userId);
+                return;
+            }
+            
+            BigDecimal amount = BigDecimal.valueOf(contract.getDownPaymentAmount());
+            String returnUrl = "http://localhost:3000/installment/contracts/" + contract.getId();
+            
+            PaymentServiceClient.CreatePaymentResponse payment = paymentServiceClient.createDownPayment(
+                    order.id(),
+                    order.id(), // orderCode = orderId
+                    amount,
+                    returnUrl,
+                    userId.toString(),
+                    userEmail
+            );
+            
+            if (payment != null) {
+                contract.setPaymentCode(payment.orderCode());
+                contract.setPaymentUrl(payment.paymentUrl());
+                contractRepo.save(contract);
+                
+                log.info("[INSTALLMENT] Created down payment: contractId={}, paymentUrl={}", 
+                        contract.getId(), payment.paymentUrl());
+            }
+        } catch (Exception e) {
+            log.error("[INSTALLMENT] Failed to create down payment for contractId={}: {}", 
+                    contract.getId(), e.getMessage());
+        }
     }
 
     private List<InstallmentPayment> buildPaymentSchedule(

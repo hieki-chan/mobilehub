@@ -30,3 +30,14 @@ spring:
 logging:
   level:
     root: INFO
+
+services:
+  order-service:
+    url: ${ORDER_SERVICE_URL:http://localhost:8085}
+  identity-service:
+    url: ${IDENTITY_SERVICE_URL:http://localhost:8081}
+  payment-service:
+    url: ${PAYMENT_SERVICE_URL:http://localhost:8084}
+
+internal:
+  api-key: ${INTERNAL_API_KEY:dev-secret-key}
